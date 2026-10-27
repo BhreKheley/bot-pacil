@@ -38,7 +38,16 @@ export const DEFAULT_GUILD_CONFIG = {
     },
     verification: {
         enabled: false
-    }
+    },
+    // Publicly anonymous; moderators may review before a message is published.
+    confessions: {
+        enabled: false,
+        channelId: null,
+        reviewChannelId: null,
+        moderatorRoleId: null,
+        requireApproval: true,
+        cooldownMinutes: 10,
+    },
 };
 
 export const INTERACTION_TIMEOUTS = {

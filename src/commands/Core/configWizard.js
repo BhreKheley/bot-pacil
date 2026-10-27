@@ -22,6 +22,7 @@ import { getGuildConfig, setConfigValue } from '../../services/config/guildConfi
 import ConfigService from '../../services/config/configService.js';
 import { logger } from '../../utils/logger.js';
 import { botConfig, getCommandPrefix } from '../../config/bot.js';
+import { createInitialHelpMenu } from './help.js';
 
 const DASHBOARD_CUSTOM_ID = 'config_select';
 const WIZARD_BUTTON_ID = 'config_wizard';
@@ -607,6 +608,13 @@ export default {
     data: new SlashCommandBuilder()
         .setName('configwizard')
         .setDescription('Open the server configuration dashboard and setup wizard')
+        .setDescriptionLocalizations({ id: 'Buka dashboard konfigurasi dan setup server' })
+        .addChannelOption((option) => option
+            .setName('guide_channel')
+            .setDescription('Post a permanent interactive bot guide in this channel')
+            .setDescriptionLocalizations({ id: 'Kirim panduan bot interaktif permanen ke channel ini' })
+            .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+            .setRequired(false))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setDMPermission(false),
     category: 'Core',
@@ -622,6 +630,26 @@ export default {
                 return replyUserError(interaction, {
                     type: ErrorTypes.PERMISSION,
                     message: 'You need the **Manage Server** permission to use this command.',
+                });
+            }
+
+            const guideChannel = interaction.options.getChannel('guide_channel');
+            if (guideChannel) {
+                const botPermissions = guideChannel.permissionsFor(interaction.guild.members.me);
+                if (!botPermissions?.has(PermissionFlagsBits.SendMessages)) {
+                    return replyUserError(interaction, {
+                        type: ErrorTypes.PERMISSION,
+                        message: `I cannot send messages in ${guideChannel}. Give me **Send Messages** permission first.`,
+                    });
+                }
+
+                const guide = await createInitialHelpMenu(interaction.client, interaction.guildId);
+                const sent = await guideChannel.send({
+                    ...guide,
+                    allowedMentions: { parse: [] },
+                });
+                return InteractionHelper.safeEditReply(interaction, {
+                    embeds: [successEmbed('Panduan Dipasang', `Panduan interaktif sudah dikirim ke ${guideChannel}. [Buka pesan panduan](${sent.url})`)],
                 });
             }
 

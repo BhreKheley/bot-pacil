@@ -4,7 +4,7 @@ import {
     ChannelType,
     MessageFlags,
 } from 'discord.js';
-import { successEmbed } from '../../utils/embeds.js';
+import { createEmbed, successEmbed } from '../../utils/embeds.js';
 import { logEvent } from '../../utils/moderation.js';
 import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
@@ -40,6 +40,26 @@ export default {
                 .setRequired(true)
                 .setMaxLength(2000),
         )
+        .addStringOption((option) =>
+            option
+                .setName('title')
+                .setDescription('Optional title to turn this into a styled announcement')
+                .setDescriptionLocalizations({ id: 'Judul opsional untuk membuat pengumuman lebih menarik' })
+                .setMaxLength(256),
+        )
+        .addStringOption((option) =>
+            option
+                .setName('color')
+                .setDescription('Announcement accent color')
+                .setDescriptionLocalizations({ id: 'Warna aksen pengumuman' })
+                .addChoices(
+                    { name: 'Pacil Gold', value: 'primary' },
+                    { name: 'Fasilkom Blue', value: 'secondary' },
+                    { name: 'Information Blue', value: 'info' },
+                    { name: 'Success Green', value: 'success' },
+                    { name: 'Important Red', value: 'error' },
+                ),
+        )
         .addChannelOption((option) =>
             option
                 .setName('channel')
@@ -67,6 +87,8 @@ export default {
 
         const rawMessage = interaction.options.getString('message');
         const message = sanitizeInput(rawMessage, 2000);
+        const title = sanitizeInput(interaction.options.getString('title') || '', 256);
+        const color = interaction.options.getString('color') || 'primary';
 
         if (!message) {
             return replyUserError(interaction, {
@@ -100,7 +122,17 @@ export default {
             });
         }
 
-        const sentMessage = await channel.send({ content: message });
+        const sentMessage = title
+            ? await channel.send({
+                embeds: [createEmbed({
+                    title,
+                    description: message,
+                    color,
+                    footer: { text: `Pacil Baik • dibuat oleh ${interaction.user.username}` },
+                })],
+                allowedMentions: { parse: [] },
+            })
+            : await channel.send({ content: message, allowedMentions: { parse: [] } });
 
         await logEvent({
             client,

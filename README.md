@@ -1,5 +1,21 @@
 # TitanBot - Ultimate Discord Bot
 
+## Menfess / anonymous confession
+
+Pacil Bot includes a moderated anonymous-confession flow. An author is never shown in the public channel; their identity is visible only in the private moderator review queue when approval is enabled.
+
+1. A server manager runs `/confession configure`, then chooses the public channel, review channel, moderator role, and send cooldown.
+2. Members use `/confession send` and fill in the modal form.
+3. Moderators publish or reject queued posts using the supplied buttons.
+
+The new confession UI follows each Discord user's language setting (Bahasa Indonesia or English). Keep the review channel private and restricted to trusted moderators.
+
+## Admin quick-start for Pacil Baik
+
+- **Permanent guide:** run `/configwizard guide_channel:#panduan-bot`. The bot posts an interactive help directory that members can keep using without giving them admin access.
+- **Styled announcements:** use `/say message:<isi> title:<judul> color:<warna> channel:<tujuan>`. Without a title, `/say` continues to send a plain message.
+- **Join to Create:** run `/jointocreate setup`. Each temporary voice room automatically receives a control embed in its voice chat. The room owner (or a server manager) can lock, unlock, or rename it; empty rooms are removed automatically.
+
 **TitanBot** is a powerful, feature-rich Discord bot designed to enhance your server experience with comprehensive moderation tools, engaging economy systems, utility features, and much more. Built with modern Discord.js v14 and PostgreSQL for optimal performance and data persistence.
 
 [![Support Server](https://img.shields.io/badge/-Support%20Server-%235865F2?logo=discord&logoColor=white&style=flat-square&logoWidth=20)](https://discord.gg/8kJBYhTGW9)

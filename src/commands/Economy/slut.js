@@ -102,6 +102,10 @@ function resolveOutcome(activity, wallet) {
 }
 
 export default {
+    // This legacy command is deliberately not exposed in Pacil Baik.
+    // Keeping the implementation avoids an irreversible removal while freeing
+    // one of Discord's limited global slash-command slots.
+    register: false,
     data: new SlashCommandBuilder()
         .setName('slut')
         .setDescription('Take a risky provocative job for random payout or loss'),

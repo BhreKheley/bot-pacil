@@ -9,6 +9,7 @@ import {
 import { sanitizeInput } from '../utils/validation.js';
 import { logger } from '../utils/logger.js';
 import { handleMusicVoiceState } from '../services/music/musicVoiceState.js';
+import { postVoiceControlPanel } from '../services/voiceControlPanelService.js';
 
 const channelCreationCooldown = new Map();
 const VOICE_CREATE_COOLDOWN_MS = 2000;
@@ -215,6 +216,12 @@ userLimit: userLimit === 0 ? undefined : userLimit,
                 });
 
                 await registerTemporaryChannel(client, guild.id, tempChannel.id, member.id, triggerChannel.id);
+
+                // Discord voice channels have their own chat. This persistent-looking
+                // panel gives the room owner immediate controls without hunting for a command.
+                await postVoiceControlPanel(tempChannel, member, triggerChannel).catch((error) => {
+                    logger.warn(`Unable to post voice control panel in ${tempChannel.id}: ${error.message}`);
+                });
 
                 if (member.voice?.channel?.id === triggerChannel.id) {
                     await member.voice.setChannel(tempChannel);

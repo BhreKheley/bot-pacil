@@ -75,6 +75,13 @@ export async function loadCommands(client) {
                 logger.warn(`Command at ${filePath} is missing required "data" or "execute" property.`);
                 continue;
             }
+
+            // Keeps the project below Discord's 100 global-command limit while
+            // allowing legacy commands to remain in the source tree.
+            if (command.register === false) {
+                logger.info(`Skipping command registration: ${command.data.name}`);
+                continue;
+            }
             
             command.category = category;
             command.filePath = normalizedPath;
