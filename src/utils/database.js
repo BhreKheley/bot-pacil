@@ -1,5 +1,6 @@
 // database.js — facade re-exporting split modules for backward compatibility
 
+import { Mutex } from './mutex.js';
 import { pgDb } from './postgresDatabase.js';
 import { logger } from './logger.js';
 import { BotConfig, getDefaultApplicationQuestions } from '../config/bot.js';
@@ -1129,15 +1130,19 @@ export async function removeJoinToCreateTrigger(client, guildId, channelId) {
 
 export async function registerTemporaryChannel(client, guildId, channelId, ownerId, triggerChannelId) {
     try {
-        const config = await getJoinToCreateConfig(client, guildId);
-        
-        config.temporaryChannels[channelId] = {
-            ownerId,
-            triggerChannelId,
-            createdAt: Date.now()
-        };
-        
-        return await saveJoinToCreateConfig(client, guildId, config);
+        // Kunci yang sama dengan voiceRoomService.updateRoom: dokumen JTC ditulis utuh,
+        // jadi tulis-baca yang bersamaan bisa saling menimpa.
+        return await Mutex.runExclusive(`jtc-doc:${guildId}`, async () => {
+            const config = await getJoinToCreateConfig(client, guildId);
+
+            config.temporaryChannels[channelId] = {
+                ownerId,
+                triggerChannelId,
+                createdAt: Date.now()
+            };
+
+            return await saveJoinToCreateConfig(client, guildId, config);
+        });
     } catch (error) {
         logger.error(`Error registering temporary channel for guild ${guildId}:`, error);
         return false;
@@ -1146,14 +1151,16 @@ export async function registerTemporaryChannel(client, guildId, channelId, owner
 
 export async function unregisterTemporaryChannel(client, guildId, channelId) {
     try {
-        const config = await getJoinToCreateConfig(client, guildId);
-        
-        if (config.temporaryChannels[channelId]) {
-            delete config.temporaryChannels[channelId];
-            return await saveJoinToCreateConfig(client, guildId, config);
-        }
-        
-        return false;
+        return await Mutex.runExclusive(`jtc-doc:${guildId}`, async () => {
+            const config = await getJoinToCreateConfig(client, guildId);
+
+            if (config.temporaryChannels[channelId]) {
+                delete config.temporaryChannels[channelId];
+                return await saveJoinToCreateConfig(client, guildId, config);
+            }
+
+            return false;
+        });
     } catch (error) {
         logger.error(`Error unregistering temporary channel for guild ${guildId}:`, error);
         return false;
