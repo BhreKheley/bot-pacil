@@ -1,3 +1,5 @@
+# Catatan: default POSTGRES_USER/POSTGRES_DB sengaja tetap "titanbot" agar deploy lama
+# tidak kehilangan database. Instalasi baru boleh memakai "pacilbot" lewat .env.
 services:
   bot:
     build: .

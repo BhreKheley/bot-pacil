@@ -376,7 +376,8 @@ export default {
               handler: 'general'
             }, interactionTraceContext));
           }
-        } else if (interaction.isStringSelectMenu()) {
+        } else if (interaction.isStringSelectMenu() || interaction.isUserSelectMenu()) {
+          // User select (mis. panel voice) memakai registry yang sama dengan select menu string.
           const [customId, ...args] = interaction.customId.split(':');
           const selectMenu = client.selectMenus.get(customId);
 

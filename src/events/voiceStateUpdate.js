@@ -10,6 +10,7 @@ import { sanitizeInput } from '../utils/validation.js';
 import { logger } from '../utils/logger.js';
 import { handleMusicVoiceState } from '../services/music/musicVoiceState.js';
 import { postVoiceControlPanel } from '../services/voiceControlPanelService.js';
+import { notifyOwnerAbsent, refreshPanel, updateRoom } from '../services/voiceRoomService.js';
 
 const channelCreationCooldown = new Map();
 const VOICE_CREATE_COOLDOWN_MS = 2000;
@@ -47,6 +48,10 @@ export default {
 
             if (oldState.channel && newState.channel && oldState.channel.id !== newState.channel.id) {
                 await handleVoiceMove(client, oldState, newState, config);
+            }
+
+            if (newState.channel && newState.channel.id !== oldState.channel?.id) {
+                await handleOwnerReturn(client, newState);
             }
 
         } catch (error) {
@@ -110,10 +115,16 @@ if (now - lastCreation < VOICE_CREATE_COOLDOWN_MS) {
             if (channel.members.size === 0) {
                 await deleteTemporaryChannel(client, channel, state.guild.id);
             } else if (tempChannelInfo.ownerId === member.id) {
-                const nextMember = channel.members.first();
-                if (nextMember) {
-                    await transferChannelOwnership(client, channel, state.guild.id, nextMember.id);
-                }
+                // Pemilik keluar tapi ruang masih terisi: tidak ada pemindahan otomatis.
+                // Panel menampilkan tombol Klaim supaya yang masih di ruang bisa mengambil alih.
+                await notifyOwnerAbsent(client, channel);
+            }
+        }
+
+        async function handleOwnerReturn(client, state) {
+            const info = await getTemporaryChannelInfo(client, state.guild.id, state.channel.id);
+            if (info?.ownerId === state.member.id) {
+                await refreshPanel(client, state.channel);
             }
         }
 
@@ -125,10 +136,7 @@ if (now - lastCreation < VOICE_CREATE_COOLDOWN_MS) {
                     if (oldState.channel.members.size === 0) {
                         await deleteTemporaryChannel(client, oldState.channel, oldState.guild.id);
                     } else if (tempChannelInfo.ownerId === oldState.member.id) {
-                        const nextMember = oldState.channel.members.first();
-                        if (nextMember) {
-                            await transferChannelOwnership(client, oldState.channel, oldState.guild.id, nextMember.id);
-                        }
+                        await notifyOwnerAbsent(client, oldState.channel);
                     }
                 }
             }
@@ -219,9 +227,15 @@ userLimit: userLimit === 0 ? undefined : userLimit,
 
                 // Discord voice channels have their own chat. This persistent-looking
                 // panel gives the room owner immediate controls without hunting for a command.
-                await postVoiceControlPanel(tempChannel, member, triggerChannel).catch((error) => {
+                const panel = await postVoiceControlPanel(tempChannel, member, triggerChannel).catch((error) => {
                     logger.warn(`Unable to post voice control panel in ${tempChannel.id}: ${error.message}`);
+                    return null;
                 });
+                // Simpan ID pesan panel agar refreshPanel mengedit pesan ini, bukan memposting panel baru.
+                if (panel?.id) {
+                    await updateRoom(client, guild.id, tempChannel.id, (room) => ({ ...room, panelMessageId: panel.id }))
+                        .catch((error) => logger.warn(`Unable to store panel message for ${tempChannel.id}: ${error.message}`));
+                }
 
                 if (member.voice?.channel?.id === triggerChannel.id) {
                     await member.voice.setChannel(tempChannel);
@@ -256,39 +270,6 @@ userLimit: userLimit === 0 ? undefined : userLimit,
 
             } catch (error) {
                 logger.error(`Failed to delete temporary channel ${channel.id}:`, error);
-            }
-        }
-
-        async function transferChannelOwnership(client, channel, guildId, newOwnerId) {
-            try {
-                const config = await getJoinToCreateConfig(client, guildId);
-                const tempChannelInfo = config.temporaryChannels[channel.id];
-                
-                if (!tempChannelInfo) return;
-
-                config.temporaryChannels[channel.id].ownerId = newOwnerId;
-                await client.db.set(`guild:${guildId}:jointocreate`, config);
-
-                const newOwner = await channel.guild.members.fetch(newOwnerId);
-                if (newOwner) {
-                    const channelOptions = config.channelOptions?.[tempChannelInfo.triggerChannelId] || {};
-                    const nameTemplate = channelOptions.nameTemplate || config.channelNameTemplate;
-                    
-                    const newChannelName = sanitizeVoiceChannelName(formatChannelName(nameTemplate, {
-                        username: newOwner.user.username,
-                        userTag: newOwner.user.tag,
-                        displayName: newOwner.displayName,
-                        guildName: channel.guild.name,
-                        channelName: channel.guild.channels.cache.get(tempChannelInfo.triggerChannelId)?.name || 'Voice Channel'
-                    }));
-
-                    await channel.setName(newChannelName);
-                }
-
-                logger.info(`Transferred ownership of temporary channel ${channel.id} to user ${newOwnerId}`);
-
-            } catch (error) {
-                logger.error(`Failed to transfer ownership of channel ${channel.id}:`, error);
             }
         }
 
