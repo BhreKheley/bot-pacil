@@ -1,7 +1,7 @@
 services:
   bot:
     build: .
-    container_name: titanbot
+    container_name: pacilbot
     restart: unless-stopped
     env_file:
       - .env
@@ -35,24 +35,24 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - titan-network
+      - pacil-network
 
   lavalink:
     profiles:
       - local-lavalink
     image: ghcr.io/lavalink-devs/lavalink:4
-    container_name: titanbot-lavalink
+    container_name: pacilbot-lavalink
     restart: unless-stopped
     environment:
       - LAVALINK_PASSWORD=${LAVALINK_PASSWORD:-youshallnotpass}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml
     networks:
-      - titan-network
+      - pacil-network
 
   db:
     image: postgres:15-alpine
-    container_name: titanbot-db
+    container_name: pacilbot-db
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-titanbot}
@@ -66,10 +66,10 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - titan-network
+      - pacil-network
 
 networks:
-  titan-network:
+  pacil-network:
     driver: bridge
 
 volumes:
