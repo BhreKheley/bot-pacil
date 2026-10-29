@@ -46,6 +46,8 @@ const validatedTables = Object.fromEntries(
     ])
 );
 
+// Nama DB default sengaja tetap 'titanbot' agar deploy lama tidak kehilangan data.
+// Ganti lewat POSTGRES_DB / POSTGRES_URL jika ingin memakai DB baru.
 const DEFAULT_POSTGRES_URL = 'postgresql://localhost:5432/titanbot';
 
 export function resolveSslConfig() {
@@ -81,7 +83,7 @@ export function resolvePostgresPoolConfig() {
         min: parseInt(process.env.POSTGRES_MIN_CONNECTIONS) || 2,
         idleTimeoutMillis: parseInt(process.env.POSTGRES_IDLE_TIMEOUT) || 30000,
         connectionTimeoutMillis: parseInt(process.env.POSTGRES_CONNECTION_TIMEOUT) || 10000,
-        application_name: 'titanbot',
+        application_name: 'pacilbot',
         statement_timeout: process.env.NODE_ENV === 'production' ? 30000 : 0,
         keepalives: 1,
         keepalives_idle: 30,
@@ -119,7 +121,7 @@ export const pgConfig = {
         idleTimeoutMillis: parseInt(process.env.POSTGRES_IDLE_TIMEOUT) || 30000,
         connectionTimeoutMillis: parseInt(process.env.POSTGRES_CONNECTION_TIMEOUT) || 10000,
 
-        application_name: 'titanbot',
+        application_name: 'pacilbot',
         statement_timeout: process.env.NODE_ENV === 'production' ? 30000 : 0,
         keepalives: 1,
         keepalives_idle: 30,
