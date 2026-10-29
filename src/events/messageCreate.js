@@ -12,6 +12,7 @@ import { getCommandPrefix, getBotMessage, isBotOwner, isCommandCategoryEnabled, 
 import { enforceAbuseProtection, formatCooldownDuration } from '../utils/abuseProtection.js';
 import { createEmbed } from '../utils/embeds.js';
 import { isCommandEnabled } from '../services/commandAccessService.js';
+import { handleStickyMessage } from '../services/stickyService.js';
 import {
   getCountingGameConfig,
   saveCountingGameConfig,
@@ -29,6 +30,9 @@ export default {
       if (message.author.bot || !message.guild) return;
 
       logger.debug(`Message received from ${message.author.tag}: ${message.content}`);
+
+      // Sticky: jadwalkan repost di bawah (tidak menunggu; kegagalan hanya dicatat).
+      handleStickyMessage(message, client).catch((error) => logger.debug('Sticky handler error:', error));
 
       const countingProcessed = await handleCountingGame(message, client);
       if (countingProcessed) {

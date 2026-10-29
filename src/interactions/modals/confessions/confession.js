@@ -1,6 +1,6 @@
 import { MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { getGuildConfig } from '../../../services/config/guildConfig.js';
-import { confessionCooldownKey, confessionKey, getConfessionConfig, newConfessionId, publicConfessionEmbed, reviewConfessionEmbed } from '../../../services/confessionService.js';
+import { confessionCooldownKey, confessionKey, getConfessionConfig, newConfessionId, publishConfession, registerShortId, reviewConfessionEmbed } from '../../../services/confessionService.js';
 import { t } from '../../../utils/i18n.js';
 
 const MAX_CONTENT = 1800;
@@ -27,7 +27,10 @@ export default {
       return interaction.reply({ content: t(interaction, config.requireApproval ? 'missingReview' : 'missingChannel'), flags: MessageFlags.Ephemeral });
     }
     const confession = { id: newConfessionId(), guildId: interaction.guildId, authorId: interaction.user.id, content: content.slice(0, MAX_CONTENT), status: config.requireApproval ? 'pending' : 'published', createdAt: Date.now() };
+    // Alur langsung: terbitkan dulu agar publishedMessageId ikut tersimpan (dibutuhkan fitur balasan).
+    if (!config.requireApproval) await publishConfession(destination, confession, config, interaction);
     await client.db.set(confessionKey(interaction.guildId, confession.id), confession);
+    await registerShortId(client, interaction.guildId, 'confession', confession.id);
     await client.db.set(cooldownKey, Date.now());
     if (config.requireApproval) {
       await destination.send({
@@ -37,8 +40,6 @@ export default {
           new ButtonBuilder().setCustomId(`confessReject:${confession.id}`).setLabel(t(interaction, 'reject')).setStyle(ButtonStyle.Danger),
         )], allowedMentions: { parse: [] },
       });
-    } else {
-      await destination.send({ embeds: [publicConfessionEmbed(confession, interaction)], allowedMentions: { parse: [] } });
     }
     return interaction.reply({ content: `${t(interaction, 'submitted')} — ${t(interaction, config.requireApproval ? 'submittedReview' : 'submittedPublished')}`, flags: MessageFlags.Ephemeral });
   },

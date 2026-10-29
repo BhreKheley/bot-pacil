@@ -24,13 +24,13 @@ export const PACIL_FOOTER = 'Pacil Baik • Fasilkom UI';
 
 /**
  * Embed panel Pacil. Judul diberi satu emoji saja; isi memakai teks biasa.
- * @param {{ title: string, description?: string, icon?: string, tone?: keyof typeof PACIL_TOKENS,
+ * @param {{ title: string, description?: string, icon?: string, tone?: keyof typeof PACIL_TOKENS, color?: string,
  *           fields?: {name:string,value:string,inline?:boolean}[], footer?: string, thumbnail?: string }} opts
  */
-export function pacilPanel({ title, description, icon, tone = 'accent', fields = [], footer, thumbnail } = {}) {
+export function pacilPanel({ title, description, icon, tone = 'accent', color, fields = [], footer, thumbnail } = {}) {
   const embed = new EmbedBuilder()
     .setTitle(icon ? `${icon}  ${title}` : title)
-    .setColor(getColor(PACIL_TOKENS[tone] ?? PACIL_TOKENS.accent))
+    .setColor(getColor(color ?? PACIL_TOKENS[tone] ?? PACIL_TOKENS.accent))
     .setFooter({ text: footer ?? PACIL_FOOTER })
     .setTimestamp();
   if (description) embed.setDescription(description.slice(0, 4000));

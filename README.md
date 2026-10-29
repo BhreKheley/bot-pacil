@@ -19,11 +19,15 @@ Identitas pengirim tidak pernah tampil di channel publik. Identitas hanya terlih
 3. Moderator menerbitkan atau menolak lewat tombol di antrean.
 4. Setelah terbit, anggota lain bisa menekan **Balas**. Balasan masuk ke thread di bawah menfess dengan label anonim (Anonim 1, Anonim 2, dst.).
 
+Atur balasan lewat `/confession configure` (opsi `replies` dan `reply_cooldown`). Bot perlu izin *Create Public Threads* dan *Send Messages in Threads*. Balasan memakai label stabil per orang di tiap menfess (Anonim 1, Anonim 2, ...), sedangkan pengirim asli berlabel *Pengirim Asli*.
+
+Agar tidak disalahgunakan, pengurus bisa menelusuri pengirim lewat `/confession lookup id:<ID di footer>` (hanya terlihat oleh pengurus, balasan dan menfess sama-sama tercatat).
+
 Jaga agar channel review tetap privat dan hanya bisa diakses moderator tepercaya.
 
 ### Sticky message
 
-`/sticky set` membuka formulir (judul, isi, warna opsional) untuk channel yang dipilih. Bot memposting ulang sticky di bawah setelah ada chat baru, dengan jeda supaya tidak spam. Kelola lewat `/sticky edit`, `/sticky remove`, dan `/sticky list`.
+`/sticky set` membuka formulir (judul, isi, warna opsional) untuk channel yang dipilih. Bot memposting ulang sticky di bawah setelah ada chat baru, dengan jeda supaya tidak spam. Menjalankan `/sticky set` lagi pada channel yang sama berarti mengubah sticky-nya (formulir terisi otomatis). Hapus dengan `/sticky remove`, lihat semuanya dengan `/sticky list`. Maksimal 25 sticky per server.
 
 ### Join to Create
 

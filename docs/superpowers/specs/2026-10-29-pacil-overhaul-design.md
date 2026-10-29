@@ -41,8 +41,10 @@ sticky message, hub `/config`, dan panel pemilik voice JTC yang kaya.
   balasan diposting bot ke thread confession (dibuat saat balasan pertama), diberi label
   anonim stabil per pengirim per confession (hash `guildId+confessionId+userId`, tanpa
   menyimpan identitas ke thread). Pengirim asli tercatat untuk moderasi seperti confession.
-  Opsi config: `repliesEnabled`, `replyCooldownSeconds`, `replyRequiresApproval` (default false).
-- Sticky: perintah `/sticky set|edit|remove|list`; data per channel
+  Opsi config: `repliesEnabled`, `replyCooldownSeconds`. (Persetujuan moderator untuk balasan
+  tidak diimplementasikan: YAGNI; gantinya `/confession lookup` untuk menelusuri pengirim
+  menfess/balasan lewat ID footer.)
+- Sticky: perintah `/sticky set|remove|list` (`set` pada channel yang sudah punya sticky = edit); data per channel
   (`judul`, `isi`, `warna`); listener `messageCreate` memposting ulang sticky di bawah dengan
   debounce (default 5 detik) dan menghapus pesan sticky lama. Bot tidak memicu dirinya sendiri.
 
