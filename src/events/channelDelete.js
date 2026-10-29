@@ -7,11 +7,17 @@ import {
 } from '../utils/database.js';
 import { getServerCounters, saveServerCounters } from '../services/serverstatsService.js';
 import { logger } from '../utils/logger.js';
+import { removeSticky } from '../services/stickyService.js';
 
 export default {
     name: 'channelDelete',
     async execute(channel, client) {
-        
+
+        if (channel.guild) {
+            // Bersihkan sticky milik channel yang dihapus (pesannya ikut hilang bersama channel).
+            removeSticky(client, channel.guild.id, channel.id).catch((err) => logger.debug(`Sticky cleanup skipped for ${channel.id}:`, err));
+        }
+
         if (channel.type === 0 && channel.guild) {
             try {
                 const ticketData = await getTicketData(channel.guild.id, channel.id);
