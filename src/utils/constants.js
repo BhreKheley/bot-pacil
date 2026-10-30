@@ -24,6 +24,8 @@ export const DEFAULT_ECONOMY_DATA = {
 
 export const DEFAULT_GUILD_CONFIG = {
     enabledCommands: {},
+    // Izin per command: { 'nama command': { allowedRoles, allowedChannels, cooldownSeconds } }
+    commandPolicies: {},
     birthdayChannelId: null,
     premiumRoleId: null,
     modRole: null,

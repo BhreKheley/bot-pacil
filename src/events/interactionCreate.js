@@ -15,6 +15,7 @@ import { createInteractionTraceContext, runWithTraceContext } from '../utils/log
 import { validateChatInputPayloadOrThrow } from '../utils/commandInputValidation.js';
 import { enforceAbuseProtection, formatCooldownDuration } from '../utils/abuseProtection.js';
 import { isCommandEnabled } from '../services/commandAccessService.js';
+import { enforceCommandPolicy } from '../services/commandPolicyService.js';
 import { resolveSlashAccessKey } from '../utils/messageAdapter.js';
 import { isCollectorManagedComponent } from '../utils/collectorComponents.js';
 import { ResponseCoordinator } from '../utils/responseCoordinator.js';
@@ -163,6 +164,15 @@ export default {
 
               return await InteractionHelper.safeReply(interaction, {
                 embeds: [closedEmbed],
+                flags: MessageFlags.Ephemeral,
+              });
+            }
+
+            // Izin per command dari /config (role, channel, cooldown).
+            const policyDenial = enforceCommandPolicy(interaction, guildConfig, accessKey, client);
+            if (policyDenial) {
+              return await InteractionHelper.safeReply(interaction, {
+                embeds: [createEmbed({ title: 'Command Dibatasi', description: policyDenial, color: 'warning' })],
                 flags: MessageFlags.Ephemeral,
               });
             }
@@ -376,8 +386,8 @@ export default {
               handler: 'general'
             }, interactionTraceContext));
           }
-        } else if (interaction.isStringSelectMenu() || interaction.isUserSelectMenu()) {
-          // User select (mis. panel voice) memakai registry yang sama dengan select menu string.
+        } else if (interaction.isAnySelectMenu()) {
+          // User/role/channel select (panel voice, /config) memakai registry yang sama dengan select menu string.
           const [customId, ...args] = interaction.customId.split(':');
           const selectMenu = client.selectMenus.get(customId);
 
