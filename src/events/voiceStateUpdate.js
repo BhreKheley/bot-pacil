@@ -1,4 +1,4 @@
-import { ChannelType, PermissionFlagsBits } from 'discord.js';
+import { ChannelType, PermissionFlagsBits, VideoQualityMode } from 'discord.js';
 import {
     getJoinToCreateConfig, 
     registerTemporaryChannel, 
@@ -10,7 +10,7 @@ import { sanitizeInput } from '../utils/validation.js';
 import { logger } from '../utils/logger.js';
 import { handleMusicVoiceState } from '../services/music/musicVoiceState.js';
 import { postVoiceControlPanel } from '../services/voiceControlPanelService.js';
-import { notifyOwnerAbsent, refreshPanel, updateRoom } from '../services/voiceRoomService.js';
+import { notifyOwnerAbsent, refreshPanel, setStatus, updateRoom } from '../services/voiceRoomService.js';
 
 const channelCreationCooldown = new Map();
 const VOICE_CREATE_COOLDOWN_MS = 2000;
@@ -211,6 +211,9 @@ type: ChannelType.GuildVoice,
                     parent: triggerChannel.parentId,
 userLimit: userLimit === 0 ? undefined : userLimit,
                     bitrate: bitrate,
+                    // Default dari dashboard /jointocreate (region dan mode video).
+                    rtcRegion: channelOptions.rtcRegion ?? undefined,
+                    videoQualityMode: channelOptions.videoQuality === 'full' ? VideoQualityMode.Full : undefined,
                     permissionOverwrites: [
                         {
                             id: member.id,
@@ -235,6 +238,11 @@ userLimit: userLimit === 0 ? undefined : userLimit,
                 if (panel?.id) {
                     await updateRoom(client, guild.id, tempChannel.id, (room) => ({ ...room, panelMessageId: panel.id }))
                         .catch((error) => logger.warn(`Unable to store panel message for ${tempChannel.id}: ${error.message}`));
+                }
+
+                if (channelOptions.defaultStatus) {
+                    await setStatus(client, tempChannel, channelOptions.defaultStatus, client.user?.id ?? 'bot')
+                        .catch((error) => logger.debug(`Unable to set default status for ${tempChannel.id}: ${error.message}`));
                 }
 
                 if (member.voice?.channel?.id === triggerChannel.id) {
