@@ -1,6 +1,8 @@
-import { getColor } from '../../config/bot.js';
-import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder, LabelBuilder } from 'discord.js';
-import { successEmbed, warningEmbed } from '../../utils/embeds.js';
+import {
+    SlashCommandBuilder, PermissionFlagsBits, MessageFlags, ChannelType, ActionRowBuilder,
+    StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder,
+} from 'discord.js';
+import { pacilButtons, pacilNotice, pacilPanel } from '../../ui/pacil.js';
 import { logger } from '../../utils/logger.js';
 import { PacilBotError, ErrorTypes, replyUserError } from '../../utils/errorHandler.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
@@ -11,674 +13,348 @@ import {
     removeTriggerChannel,
     hasManageGuildPermission,
     logConfigurationChange,
-    getConfiguration
+    getConfiguration,
 } from '../../services/joinToCreateService.js';
+import {
+    RTC_REGIONS, ROOM_LIMITS, formatLimit, parseBitrateKbps, parseUserLimit, regionLabel, sanitizeRoomStatus,
+} from '../../services/voiceRoomLogic.js';
+
+const DASHBOARD_TIMEOUT_MS = 5 * 60 * 1000;
+const MODAL_TIMEOUT_MS = 2 * 60 * 1000;
+const DEFAULT_TEMPLATE = "{username}'s Room";
+
+// Template nama ruang. Placeholder yang diizinkan divalidasi oleh joinToCreateService.
+const NAME_TEMPLATES = [
+    DEFAULT_TEMPLATE,
+    "{username}'s Channel",
+    "{username}'s Lounge",
+    "{username}'s Space",
+    "{displayName}'s Room",
+    "{username}'s VC",
+    "{username}'s Music Room",
+    "{username}'s Gaming Room",
+    "{username}'s Chat Room",
+    "{username}'s Private Room",
+    'Ruang {username}',
+    'Ngumpul {username}',
+    'Belajar bareng {username}',
+    'Ngoding {username}',
+    'Warroom {username}',
+];
+
+const isModalTimeout = (error) => error?.code === 'InteractionCollectorError' || /time/i.test(error?.message ?? '');
 
 export default {
     data: new SlashCommandBuilder()
-        .setName("jointocreate")
-        .setDescription("Manage Join to Create voice channels system.")
+        .setName('jointocreate')
+        .setDescription('Manage Join to Create voice channels system.')
+        .setDescriptionLocalizations({ id: 'Atur sistem ruang voice Join to Create' })
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setDMPermission(false)
-        .addSubcommand((subcommand) =>
-            subcommand
-                .setName("setup")
-                .setDescription("Set up a new Join to Create voice channel.")
-                .addChannelOption((option) =>
-                    option
-                        .setName("category")
-                        .setDescription("Category to create the channel in.")
-                        .addChannelTypes(ChannelType.GuildCategory)
-                )
-                .addStringOption((option) =>
-                    option
-                        .setName("channel_name")
-                        .setDescription("Select a template for naming temporary voice channels.")
-                        .addChoices(
-                            { name: "{username}'s Room (Default)", value: "{username}'s Room" },
-                            { name: "{username}'s Channel", value: "{username}'s Channel" },
-                            { name: "{username}'s Lounge", value: "{username}'s Lounge" },
-                            { name: "{username}'s Space", value: "{username}'s Space" },
-                            { name: "{displayName}'s Room", value: "{displayName}'s Room" },
-                            { name: "{username}'s VC", value: "{username}'s VC" },
-                            { name: "{username}'s Music Room", value: "{username}'s Music Room" },
-                            { name: "{username}'s Gaming Room", value: "{username}'s Gaming Room" },
-                            { name: "{username}'s Chat Room", value: "{username}'s Chat Room" },
-                            { name: "{username}'s Private Room", value: "{username}'s Private Room" }
-                        )
-                )
-                .addIntegerOption((option) =>
-                    option
-                        .setName("user_limit")
-                        .setDescription("Maximum number of users in temporary channels. (0 = unlimited)")
-                )
-                .addIntegerOption((option) =>
-                    option
-                        .setName("bitrate")
-                        .setDescription("Bitrate for temporary channels in kbps (8-96).")
-                )
-        )
-        .addSubcommand((subcommand) =>
-            subcommand
-                .setName("dashboard")
-                .setDescription("Configure an existing Join to Create system.")
-                .addChannelOption((option) =>
-                    option
-                        .setName("trigger_channel")
-                        .setDescription("The Join to Create trigger channel to configure.")
-                        .setRequired(true)
-                        .addChannelTypes(ChannelType.GuildVoice)
-                )
-        ),
-    category: "utility",
+        .addSubcommand((sub) => sub
+            .setName('setup')
+            .setDescription('Set up a new Join to Create voice channel.')
+            .setDescriptionLocalizations({ id: 'Buat channel pemicu Join to Create' })
+            .addChannelOption((o) => o.setName('category').setDescription('Category to create the channel in.').setDescriptionLocalizations({ id: 'Kategori tempat channel dibuat' }).addChannelTypes(ChannelType.GuildCategory))
+            .addStringOption((o) => o.setName('channel_name').setDescription('Naming template for temporary voice channels.').setDescriptionLocalizations({ id: 'Template nama ruang sementara' })
+                .addChoices(...NAME_TEMPLATES.map((value) => ({ name: value === DEFAULT_TEMPLATE ? `${value} (Default)` : value, value }))))
+            .addIntegerOption((o) => o.setName('user_limit').setDescription('Maximum number of users in temporary channels. (0 = unlimited)').setDescriptionLocalizations({ id: 'Batas orang per ruang (0 = tanpa batas)' }).setMinValue(0).setMaxValue(ROOM_LIMITS.maxUserLimit))
+            .addIntegerOption((o) => o.setName('bitrate').setDescription('Bitrate for temporary channels in kbps (8-96).').setDescriptionLocalizations({ id: 'Bitrate ruang dalam kbps (8-96)' }).setMinValue(8).setMaxValue(96)))
+        .addSubcommand((sub) => sub
+            .setName('dashboard')
+            .setDescription('Configure an existing Join to Create system.')
+            .setDescriptionLocalizations({ id: 'Atur Join to Create yang sudah ada' })
+            .addChannelOption((o) => o.setName('trigger_channel').setDescription('The Join to Create trigger channel to configure.').setDescriptionLocalizations({ id: 'Channel pemicu yang mau diatur' }).setRequired(true).addChannelTypes(ChannelType.GuildVoice))),
+    category: 'utility',
 
     async execute(interaction, config, client) {
         try {
-            
             if (!hasManageGuildPermission(interaction.member)) {
-                throw new PacilBotError(
-                    'User lacks ManageGuild permission',
-                    ErrorTypes.PERMISSION,
-                    'You need **Manage Server** permission to use this command.'
-                );
+                throw new PacilBotError('User lacks ManageGuild permission', ErrorTypes.PERMISSION, 'Kamu butuh izin **Manage Server** untuk memakai command ini.');
             }
-
             const subcommand = interaction.options.getSubcommand();
             await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
-
-            let responseEmbed;
-
-            if (subcommand === "setup") {
-                await handleSetupSubcommand(interaction, client);
-                return;
-            } else if (subcommand === "dashboard") {
-                await handleConfigSubcommand(interaction, client);
-                return;
-            }
-
+            if (subcommand === 'setup') return await handleSetup(interaction, client);
+            if (subcommand === 'dashboard') return await handleDashboard(interaction, client);
         } catch (error) {
             try {
-                let errorMessage = 'An error occurred while executing this command.';
-                
+                let message = 'Waduh, ada kendala tak terduga. Coba lagi, atau hubungi pengurus server.';
                 if (error instanceof PacilBotError) {
-                    errorMessage = error.userMessage || 'An error occurred. Please try again.';
+                    message = error.userMessage || 'Terjadi kendala. Coba lagi ya.';
                     logger.debug(`PacilBotError [${error.type}]: ${error.message}`, error.context || {});
                 } else {
                     logger.error('Unexpected error in jointocreate command:', error);
-                    errorMessage = 'An unexpected error occurred. Please try again or contact support.';
                 }
-
-                return replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: errorMessage });
+                return replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message });
             } catch (replyError) {
                 logger.error('Failed to send error message:', replyError);
             }
         }
-    }
+    },
 };
 
-async function handleSetupSubcommand(interaction, client) {
+// ---------------------------------------------------------------- setup
+
+async function handleSetup(interaction, client) {
     try {
         const category = interaction.options.getChannel('category');
-        const nameTemplate = interaction.options.getString('channel_name') || "{username}'s Room";
+        const nameTemplate = interaction.options.getString('channel_name') || DEFAULT_TEMPLATE;
         const userLimit = interaction.options.getInteger('user_limit') || 0;
         const bitrate = interaction.options.getInteger('bitrate') || 64;
         const guildId = interaction.guild.id;
 
-        logger.debug(`Setting up Join to Create in guild ${guildId} with template: ${nameTemplate}`);
-
-        const existingConfig = await getConfiguration(client, guildId);
-        
-        if (Array.isArray(existingConfig.triggerChannels) && existingConfig.triggerChannels.length > 0) {
-            const activeTriggerChannels = [];
-            const staleTriggerChannelIds = [];
-
-            for (const existingChannelId of existingConfig.triggerChannels) {
-                const existingChannel = await interaction.guild.channels.fetch(existingChannelId).catch(() => null);
-                if (existingChannel) {
-                    activeTriggerChannels.push(existingChannel);
-                } else {
-                    staleTriggerChannelIds.push(existingChannelId);
+        const existing = await getConfiguration(client, guildId);
+        if (Array.isArray(existing.triggerChannels) && existing.triggerChannels.length > 0) {
+            const active = [];
+            for (const id of existing.triggerChannels) {
+                const channel = await interaction.guild.channels.fetch(id).catch(() => null);
+                if (channel) active.push(channel);
+                else {
+                    logger.info(`Cleaning up stale JTC trigger ${id} from guild ${guildId}`);
+                    await removeTriggerChannel(client, guildId, id);
                 }
             }
-
-            if (staleTriggerChannelIds.length > 0) {
-                for (const staleChannelId of staleTriggerChannelIds) {
-                    logger.info(`Cleaning up stale JTC trigger ${staleChannelId} from guild ${guildId}`);
-                    await removeTriggerChannel(client, guildId, staleChannelId);
-                }
-            }
-
-            if (activeTriggerChannels.length > 0) {
-                const primaryTrigger = activeTriggerChannels[0];
-                const errorMessage = `This server already has a Join to Create channel set up: ${primaryTrigger}\n\nUse \`/jointocreate dashboard\` to modify it, or remove it first before creating a new one.`;
-
+            if (active.length > 0) {
                 throw new PacilBotError(
                     'Guild already has a Join to Create channel',
                     ErrorTypes.VALIDATION,
-                    errorMessage,
-                    {
-                        guildId,
-                        activeTriggerCount: activeTriggerChannels.length,
-                        expected: true,
-                        suppressErrorLog: true
-                    }
+                    `Server ini sudah punya channel Join to Create: ${active[0]}\n\nPakai \`/jointocreate dashboard\` untuk mengubahnya, atau hapus dulu sebelum membuat yang baru.`,
+                    { guildId, activeTriggerCount: active.length, expected: true, suppressErrorLog: true },
                 );
             }
         }
 
-        logger.debug('Creating Join to Create trigger channel...');
-        let triggerChannel = await interaction.guild.channels.create({
+        const triggerChannel = await interaction.guild.channels.create({
             name: 'Join to Create',
             type: ChannelType.GuildVoice,
             parent: category?.id,
             userLimit: 0,
             bitrate: 64000,
-            permissionOverwrites: [
-                {
-                    id: interaction.guild.id,
-                    allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect],
-                },
-            ],
+            permissionOverwrites: [{ id: interaction.guild.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect] }],
         });
 
-        logger.debug(`Created trigger channel ${triggerChannel.id}, initializing config...`);
-
-        const config = await initializeJoinToCreate(client, guildId, triggerChannel.id, {
-            nameTemplate: nameTemplate,
-            userLimit: userLimit,
-            bitrate: bitrate * 1000,
-            categoryId: category?.id
+        await initializeJoinToCreate(client, guildId, triggerChannel.id, {
+            nameTemplate, userLimit, bitrate: bitrate * 1000, categoryId: category?.id,
         });
-
         await logConfigurationChange(client, guildId, interaction.user.id, 'Initialized Join to Create', {
-            channelId: triggerChannel.id,
-            nameTemplate,
-            userLimit,
-            bitrate
+            channelId: triggerChannel.id, nameTemplate, userLimit, bitrate,
         });
-
         logger.info(`Successfully created Join to Create system in guild ${guildId}`);
 
-        const responseEmbed = successEmbed(
-            '✅ Setup Complete',
-            `Created Join to Create channel: ${triggerChannel}\n\n` +
-            `**Settings:**\n` +
-            `• Template: \`${nameTemplate}\`\n` +
-            `• User Limit: ${userLimit === 0 ? 'Unlimited' : userLimit + ' users'}\n` +
-            `• Bitrate: ${bitrate} kbps\n` +
-            `${category ?`• Category: ${category.name}`: '• Category: Root level'}`
-        );
-
-        return await InteractionHelper.safeEditReply(interaction, { embeds: [responseEmbed] });
-
+        const embed = pacilNotice({
+            tone: 'success',
+            title: 'Join to Create siap dipakai',
+            body: [
+                `Channel pemicu: ${triggerChannel}`,
+                '',
+                `**Template nama:** \`${nameTemplate}\``,
+                `**Batas orang:** ${formatLimit(userLimit)}`,
+                `**Bitrate:** ${bitrate} kbps`,
+                `**Kategori:** ${category ? category.name : 'Tanpa kategori'}`,
+                '',
+                'Atur region, mode video, status awal, dan lainnya lewat `/jointocreate dashboard`.',
+            ].join('\n'),
+        });
+        return await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     } catch (error) {
-        logger.error('Error in handleSetupSubcommand:', error);
-        if (error instanceof PacilBotError) {
-            throw error;
-        }
-        throw new PacilBotError(
-            `Setup failed: ${error.message}`,
-            ErrorTypes.DISCORD_API,
-            'Failed to set up Join to Create system. Please check bot permissions.'
-        );
+        logger.error('Error in handleSetup:', error);
+        if (error instanceof PacilBotError) throw error;
+        throw new PacilBotError(`Setup failed: ${error.message}`, ErrorTypes.DISCORD_API, 'Gagal menyiapkan Join to Create. Cek izin bot (Manage Channels, Move Members) lalu coba lagi.');
     }
 }
 
-async function handleConfigSubcommand(interaction, client) {
+// ---------------------------------------------------------------- dashboard
+
+const buttonId = (action, channelId) => `jtc_cfg_${action}_${channelId}`;
+
+/** Nilai efektif sebuah pemicu (pengaturan per pemicu menimpa bawaan server). */
+function effectiveSettings(current) {
+    const own = current.channelConfig || {};
+    return {
+        template: own.nameTemplate || current.channelNameTemplate || DEFAULT_TEMPLATE,
+        userLimit: own.userLimit ?? current.userLimit ?? 0,
+        bitrate: own.bitrate ?? current.bitrate ?? 64000,
+        rtcRegion: own.rtcRegion ?? null,
+        videoQuality: own.videoQuality === 'full' ? 'full' : 'auto',
+        defaultStatus: own.defaultStatus || '',
+    };
+}
+
+function buildDashboard(triggerChannel, current, { expired = false } = {}) {
+    const s = effectiveSettings(current);
+    const embed = pacilPanel({
+        title: 'Pengaturan Join to Create',
+        icon: '🎙️',
+        tone: expired ? 'warning' : 'panel',
+        description: expired
+            ? 'Sesi pengaturan habis. Jalankan `/jointocreate dashboard` lagi untuk mengubah.'
+            : `Pengaturan bawaan untuk ruang yang dibuat dari ${triggerChannel}. Pemilik ruang tetap bisa mengubah ruangnya sendiri lewat panel di chat voice.`,
+        fields: [
+            { name: 'Template nama', value: `\`${s.template}\``, inline: false },
+            { name: 'Batas orang', value: formatLimit(s.userLimit), inline: true },
+            { name: 'Bitrate', value: `${Math.round(s.bitrate / 1000)} kbps`, inline: true },
+            { name: 'Mode video', value: s.videoQuality === 'full' ? '720p' : 'Otomatis', inline: true },
+            { name: 'Region', value: regionLabel(s.rtcRegion), inline: true },
+            { name: 'Status awal ruang', value: s.defaultStatus || '—', inline: true },
+        ],
+        footer: 'Pacil Baik • Hanya satu channel pemicu per server',
+    });
+
+    const id = (action) => buttonId(action, triggerChannel.id);
+    const buttons = pacilButtons([
+        { id: id('name'), label: 'Nama', emoji: '✏️', style: 'primary', disabled: expired },
+        { id: id('limit'), label: 'Batas', emoji: '👥', style: 'primary', disabled: expired },
+        { id: id('bitrate'), label: 'Bitrate', emoji: '🎚️', style: 'primary', disabled: expired },
+        { id: id('status'), label: 'Status Awal', emoji: '📝', style: 'secondary', disabled: expired },
+        { id: id('video'), label: s.videoQuality === 'full' ? 'Video 720p' : 'Video Auto', emoji: '🎥', style: 'secondary', disabled: expired },
+    ]);
+    const region = new StringSelectMenuBuilder()
+        .setCustomId(id('region'))
+        .setPlaceholder('Region suara bawaan…')
+        .setDisabled(expired)
+        .addOptions(RTC_REGIONS.map((r) => ({ label: r.label, value: r.value, default: r.rtc === (s.rtcRegion ?? null) })));
+    const remove = pacilButtons([{ id: id('delete'), label: 'Hapus Pemicu', emoji: '🗑️', style: 'danger', disabled: expired }]);
+    return { embeds: [embed], components: [...buttons, new ActionRowBuilder().addComponents(region), ...remove] };
+}
+
+function buildDeleteConfirm(triggerChannel) {
+    return {
+        embeds: [pacilNotice({
+            tone: 'warning',
+            title: 'Hapus channel pemicu?',
+            body: `**${triggerChannel.name}** akan dikeluarkan dari sistem Join to Create. Ruang sementara yang sedang aktif tidak ikut dihapus.\n\nTindakan ini tidak bisa dibatalkan.`,
+        })],
+        components: pacilButtons([
+            { id: buttonId('delyes', triggerChannel.id), label: 'Ya, Hapus', emoji: '🗑️', style: 'danger' },
+            { id: buttonId('delno', triggerChannel.id), label: 'Batal', emoji: '↩️', style: 'secondary' },
+        ]),
+    };
+}
+
+function textModal(customId, title, label, { value = '', style = TextInputStyle.Short, min = 1, max = 3, required = true, placeholder } = {}) {
+    const input = new TextInputBuilder().setCustomId('value').setLabel(label).setStyle(style).setMinLength(min).setMaxLength(max).setRequired(required);
+    if (value !== '' && value !== null && value !== undefined) input.setValue(String(value).slice(0, max));
+    if (placeholder) input.setPlaceholder(placeholder);
+    return new ModalBuilder().setCustomId(customId).setTitle(title).addComponents(new ActionRowBuilder().addComponents(input));
+}
+
+async function handleDashboard(interaction, client) {
+    const triggerChannel = interaction.options.getChannel('trigger_channel');
+    const guildId = interaction.guild.id;
+    const fetchCurrent = () => getChannelConfiguration(client, guildId, triggerChannel.id);
+
     try {
-        const triggerChannel = interaction.options.getChannel('trigger_channel');
-        const guildId = interaction.guild.id;
-
-        const currentConfig = await getChannelConfiguration(client, guildId, triggerChannel.id);
-        const channelConfig = currentConfig.channelConfig || {};
-
-        const configEmbed = new EmbedBuilder()
-            .setTitle('Join to Create Configuration')
-            .setDescription(`Configuration for ${triggerChannel}`)
-            .setColor(getColor('info'))
-            .addFields(
-                {
-                    name: 'Channel Name Template',
-                    value: `\`${channelConfig.nameTemplate || currentConfig.channelNameTemplate || "{username}'s Room"}\``,
-                    inline: false
-                },
-                {
-                    name: 'User Limit',
-                    value: `${(channelConfig.userLimit ?? currentConfig.userLimit ?? 0) === 0 ? 'Unlimited' : (channelConfig.userLimit ?? currentConfig.userLimit ?? 0) + ' users'}`,
-                    inline: true
-                },
-                {
-                    name: 'Bitrate',
-                    value: `${(channelConfig.bitrate ?? currentConfig.bitrate ?? 64000) / 1000} kbps`,
-                    inline: true
-                }
-            )
-            .setFooter({ text: 'Use the buttons below to modify settings • Only one trigger channel is supported per guild' })
-            .setTimestamp();
-
-        const nameButton = new ButtonBuilder()
-            .setCustomId(`jtc_config_name_${triggerChannel.id}`)
-            .setLabel('📝 Name Template')
-            .setStyle(ButtonStyle.Primary);
-
-        const limitButton = new ButtonBuilder()
-            .setCustomId(`jtc_config_limit_${triggerChannel.id}`)
-            .setLabel('👥 User Limit')
-            .setStyle(ButtonStyle.Primary);
-
-        const bitrateButton = new ButtonBuilder()
-            .setCustomId(`jtc_config_bitrate_${triggerChannel.id}`)
-            .setLabel('🎵 Bitrate')
-            .setStyle(ButtonStyle.Primary);
-
-        const deleteButton = new ButtonBuilder()
-            .setCustomId(`jtc_config_delete_${triggerChannel.id}`)
-            .setLabel('🗑️ Remove Channel')
-            .setStyle(ButtonStyle.Danger);
-
-        const row = new ActionRowBuilder().addComponents(nameButton, limitButton, bitrateButton, deleteButton);
-
-        await InteractionHelper.safeEditReply(interaction, {
-            embeds: [configEmbed],
-            components: [row]
-        });
-
+        const initial = await fetchCurrent();
+        await InteractionHelper.safeEditReply(interaction, buildDashboard(triggerChannel, initial));
         const message = await interaction.fetchReply();
-
-        if (!message || typeof message.createMessageComponentCollector !== 'function') {
-            throw new PacilBotError(
-                'Failed to fetch interaction reply for collector setup',
-                ErrorTypes.DISCORD_API,
-                'Failed to open configuration controls. Please run `/jointocreate dashboard` again.'
-            );
+        if (typeof message?.createMessageComponentCollector !== 'function') {
+            throw new PacilBotError('Failed to fetch reply for collector', ErrorTypes.DISCORD_API, 'Gagal membuka kontrol pengaturan. Jalankan `/jointocreate dashboard` lagi.');
         }
 
-        const collector = message.createMessageComponentCollector({
-            componentType: ComponentType.Button,
-            time: 300000
-        });
+        const collector = message.createMessageComponentCollector({ time: DASHBOARD_TIMEOUT_MS });
+        const refresh = async (target) => target.update(buildDashboard(triggerChannel, await fetchCurrent()));
+        const change = async (updates, logLabel) => {
+            await updateChannelConfig(client, guildId, triggerChannel.id, updates);
+            await logConfigurationChange(client, guildId, interaction.user.id, logLabel, { channelId: triggerChannel.id, ...updates });
+        };
 
-        collector.on('collect', async (buttonInteraction) => {
+        collector.on('collect', async (component) => {
             try {
-                
-                if (!hasManageGuildPermission(buttonInteraction.member)) {
-                    await buttonInteraction.reply({
-                        content: '❌ You need **Manage Server** permission to use these controls.',
-                        flags: MessageFlags.Ephemeral
-                    });
-                    return;
+                if (!hasManageGuildPermission(component.member)) {
+                    return await component.reply({ content: 'Kamu butuh izin **Manage Server** untuk memakai kontrol ini.', flags: MessageFlags.Ephemeral });
                 }
+                const action = component.customId.replace(/^jtc_cfg_/, '').replace(`_${triggerChannel.id}`, '');
+                const current = effectiveSettings(await fetchCurrent());
 
-                const customId = buttonInteraction.customId;
-
-                if (customId.includes('jtc_config_name_')) {
-                    await handleNameTemplateModal(buttonInteraction, triggerChannel, currentConfig, client);
-                } else if (customId.includes('jtc_config_limit_')) {
-                    await handleUserLimitModal(buttonInteraction, triggerChannel, currentConfig, client);
-                } else if (customId.includes('jtc_config_bitrate_')) {
-                    await handleBitrateModal(buttonInteraction, triggerChannel, currentConfig, client);
-                } else if (customId.includes('jtc_config_delete_')) {
-                    await handleChannelDeletion(buttonInteraction, triggerChannel, currentConfig, client);
+                if (action === 'video') {
+                    await change({ videoQuality: current.videoQuality === 'full' ? 'auto' : 'full' }, 'Mengubah mode video bawaan');
+                    return await refresh(component);
                 }
-            } catch (error) {
-                const userMessage = error instanceof PacilBotError
-                    ? error.userMessage || 'An error occurred.'
-                    : 'An error occurred while processing your request.';
-
-                if (error instanceof PacilBotError) {
-                    logger.debug(`Button interaction validation error: ${error.message}`, error.context || {});
-                } else {
-                    logger.error('Unexpected error in config button interaction:', error);
+                if (action === 'region') {
+                    const region = RTC_REGIONS.find((r) => r.value === component.values[0]);
+                    if (!region) return await component.deferUpdate();
+                    await change({ rtcRegion: region.rtc }, 'Mengubah region bawaan');
+                    return await refresh(component);
                 }
-
-                await buttonInteraction.reply({
-                    content: `❌ ${userMessage}`,
-                    flags: MessageFlags.Ephemeral
-                }).catch(() => {});
-            }
-        });
-
-        collector.on('end', () => {
-            const disabledRow = new ActionRowBuilder().addComponents(
-                nameButton.setDisabled(true),
-                limitButton.setDisabled(true),
-                bitrateButton.setDisabled(true),
-                deleteButton.setDisabled(true)
-            );
-
-            message.edit({
-                components: [disabledRow],
-                embeds: [configEmbed.setFooter({ text: 'Configuration session expired. Run the command again to make changes.' })]
-            }).catch(() => {});
-        });
-
-    } catch (error) {
-        if (error instanceof PacilBotError) {
-            throw error;
-        }
-        throw new PacilBotError(
-            `Config failed: ${error.message}`,
-            ErrorTypes.DATABASE,
-            'Failed to load configuration.'
-        );
-    }
-}
-
-async function handleNameTemplateModal(interaction, triggerChannel, currentConfig, client) {
-    try {
-        const TEMPLATE_OPTIONS = [
-            { label: "{username}'s Room (Default)", value: "{username}'s Room" },
-            { label: "{username}'s Channel",        value: "{username}'s Channel" },
-            { label: "{username}'s Lounge",         value: "{username}'s Lounge" },
-            { label: "{username}'s Space",          value: "{username}'s Space" },
-            { label: "{displayName}'s Room",        value: "{displayName}'s Room" },
-            { label: "{username}'s VC",             value: "{username}'s VC" },
-            { label: "{username}'s Music Room",  value: "{username}'s Music Room" },
-            { label: "{username}'s Gaming Room", value: "{username}'s Gaming Room" },
-            { label: "{username}'s Chat Room",   value: "{username}'s Chat Room" },
-            { label: "{username}'s Private Room",   value: "{username}'s Private Room" },
-        ];
-
-        const currentTemplate = currentConfig.channelConfig?.nameTemplate
-            || currentConfig.channelNameTemplate
-            || "{username}'s Room";
-
-        const templateSelect = new StringSelectMenuBuilder()
-            .setCustomId('template')
-            .setPlaceholder('Pick a name template...')
-            .setOptions(
-                TEMPLATE_OPTIONS.map(o => ({
-                    label: o.label,
-                    value: o.value,
-                    default: o.value === currentTemplate,
-                })),
-            );
-
-        const templateLabel = new LabelBuilder()
-            .setLabel('Channel name template')
-            .setStringSelectMenuComponent(templateSelect);
-
-        const modal = new ModalBuilder()
-            .setCustomId(`jtc_name_modal_${triggerChannel.id}`)
-            .setTitle('Channel Name Template')
-            .addLabelComponents(templateLabel);
-
-        await interaction.showModal(modal);
-
-        const modalSubmission = await interaction.awaitModalSubmit({
-            filter: (i) => i.customId === `jtc_name_modal_${triggerChannel.id}` && i.user.id === interaction.user.id,
-            time: 60000
-        });
-
-        if (!hasManageGuildPermission(modalSubmission.member)) {
-            await modalSubmission.reply({
-                content: '❌ You need **Manage Server** permission to modify these settings.',
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
-
-        const [newTemplate] = modalSubmission.fields.getStringSelectValues('template');
-
-        await updateChannelConfig(client, interaction.guild.id, triggerChannel.id, {
-            nameTemplate: newTemplate
-        });
-
-        await logConfigurationChange(client, interaction.guild.id, interaction.user.id, 'Updated channel name template', {
-            channelId: triggerChannel.id,
-            newTemplate
-        });
-
-        await modalSubmission.reply({
-            embeds: [successEmbed('Updated', `Channel name template changed to \`${newTemplate}\``)],
-            flags: MessageFlags.Ephemeral
-        });
-
-    } catch (error) {
-        if (error.code === 'INTERACTION_COLLECTOR_ERROR') {
-            return;
-        }
-        if (error instanceof PacilBotError) {
-            throw error;
-        }
-        logger.error('Unexpected error in name template modal:', error);
-        throw new PacilBotError(
-            `Modal error: ${error.message}`,
-            ErrorTypes.UNKNOWN,
-            'An error occurred while updating the template.'
-        );
-    }
-}
-
-async function handleUserLimitModal(interaction, triggerChannel, currentConfig, client) {
-    try {
-        const currentLimit = currentConfig.channelConfig?.userLimit ?? currentConfig.userLimit ?? 0;
-
-        const modal = new ModalBuilder()
-            .setCustomId(`jtc_limit_modal_${triggerChannel.id}`)
-            .setTitle('Configure User Limit')
-            .addComponents(
-                new ActionRowBuilder().addComponents(
-                    new TextInputBuilder()
-                        .setCustomId('user_limit')
-                        .setLabel('Enter user limit (0-99, 0 = unlimited)')
-                        .setPlaceholder('Enter a number between 0 and 99')
-                        .setStyle(TextInputStyle.Short)
-                        .setRequired(true)
-                        .setMinLength(1)
-                        .setMaxLength(2)
-                        .setValue(currentLimit.toString())
-                )
-            );
-
-        await interaction.showModal(modal);
-
-        const modalSubmission = await interaction.awaitModalSubmit({
-            filter: (i) => i.customId === `jtc_limit_modal_${triggerChannel.id}` && i.user.id === interaction.user.id,
-            time: 60000
-        });
-
-        if (!hasManageGuildPermission(modalSubmission.member)) {
-            await modalSubmission.reply({
-                content: '❌ You need **Manage Server** permission to modify these settings.',
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
-
-        const userInput = modalSubmission.fields.getTextInputValue('user_limit').trim();
-
-        await updateChannelConfig(client, interaction.guild.id, triggerChannel.id, {
-            userLimit: parseInt(userInput)
-        });
-
-        await logConfigurationChange(client, interaction.guild.id, interaction.user.id, 'Updated user limit', {
-            channelId: triggerChannel.id,
-            userLimit: parseInt(userInput)
-        });
-
-        await modalSubmission.reply({
-            embeds: [successEmbed('Updated', `User limit changed to ${parseInt(userInput) === 0 ? 'Unlimited' : parseInt(userInput) + ' users'}`)],
-            flags: MessageFlags.Ephemeral
-        });
-
-    } catch (error) {
-        if (error.code === 'INTERACTION_COLLECTOR_ERROR') {
-            return;
-        }
-        if (error instanceof PacilBotError) {
-            throw error;
-        }
-        logger.error('Unexpected error in user limit modal:', error);
-        throw new PacilBotError(
-            `Modal error: ${error.message}`,
-            ErrorTypes.UNKNOWN,
-            'An error occurred while updating the user limit.'
-        );
-    }
-}
-
-async function handleBitrateModal(interaction, triggerChannel, currentConfig, client) {
-    try {
-        const currentBitrate = ((currentConfig.channelConfig.bitrate ?? currentConfig.bitrate ?? 64000) / 1000);
-
-        const modal = new ModalBuilder()
-            .setCustomId(`jtc_bitrate_modal_${triggerChannel.id}`)
-            .setTitle('Configure Bitrate')
-            .addComponents(
-                new ActionRowBuilder().addComponents(
-                    new TextInputBuilder()
-                        .setCustomId('bitrate')
-                        .setLabel('Enter bitrate in kbps (8-384)')
-                        .setPlaceholder('Enter a number between 8 and 384')
-                        .setStyle(TextInputStyle.Short)
-                        .setRequired(true)
-                        .setMinLength(1)
-                        .setMaxLength(3)
-                        .setValue(currentBitrate.toString())
-                )
-            );
-
-        await interaction.showModal(modal);
-
-        const modalSubmission = await interaction.awaitModalSubmit({
-            filter: (i) => i.customId === `jtc_bitrate_modal_${triggerChannel.id}` && i.user.id === interaction.user.id,
-            time: 60000
-        });
-
-        if (!hasManageGuildPermission(modalSubmission.member)) {
-            await modalSubmission.reply({
-                content: '❌ You need **Manage Server** permission to modify these settings.',
-                flags: MessageFlags.Ephemeral
-            });
-            return;
-        }
-
-        const userInput = modalSubmission.fields.getTextInputValue('bitrate').trim();
-
-        await updateChannelConfig(client, interaction.guild.id, triggerChannel.id, {
-            bitrate: parseInt(userInput) * 1000
-        });
-
-        await logConfigurationChange(client, interaction.guild.id, interaction.user.id, 'Updated bitrate', {
-            channelId: triggerChannel.id,
-            bitrate: parseInt(userInput)
-        });
-
-        await modalSubmission.reply({
-            embeds: [successEmbed('Updated', `Bitrate changed to ${parseInt(userInput)} kbps`)],
-            flags: MessageFlags.Ephemeral
-        });
-
-    } catch (error) {
-        if (error.code === 'INTERACTION_COLLECTOR_ERROR') {
-            return;
-        }
-        if (error instanceof PacilBotError) {
-            throw error;
-        }
-        logger.error('Unexpected error in bitrate modal:', error);
-        throw new PacilBotError(
-            `Modal error: ${error.message}`,
-            ErrorTypes.UNKNOWN,
-            'An error occurred while updating the bitrate.'
-        );
-    }
-}
-
-async function handleChannelDeletion(interaction, triggerChannel, currentConfig, client) {
-    try {
-        const confirmRow = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId(`jtc_delete_confirm_${triggerChannel.id}`)
-                .setLabel('🗑️ Yes, Delete')
-                .setStyle(ButtonStyle.Danger),
-            new ButtonBuilder()
-                .setCustomId(`jtc_delete_cancel_${triggerChannel.id}`)
-                .setLabel('❌ Cancel')
-                .setStyle(ButtonStyle.Secondary)
-        );
-
-        await InteractionHelper.safeReply(interaction, {
-            embeds: [warningEmbed('Confirm Deletion', `Are you sure you want to remove **${triggerChannel.name}** from the Join to Create system?\n\nThis action cannot be undone.`)],
-            components: [confirmRow],
-            flags: MessageFlags.Ephemeral
-        });
-
-        const message = await interaction.fetchReply();
-        const deleteCollector = message.createMessageComponentCollector({
-            componentType: ComponentType.Button,
-            filter: (i) => i.user.id === interaction.user.id && 
-                          (i.customId === `jtc_delete_confirm_${triggerChannel.id}` || 
-                           i.customId === `jtc_delete_cancel_${triggerChannel.id}`),
-            time: 600_000,
-            max: 1
-        });
-
-        deleteCollector.on('collect', async (buttonInteraction) => {
-            try {
-                
-                if (!hasManageGuildPermission(buttonInteraction.member)) {
-                    await buttonInteraction.reply({
-                        content: '❌ You need **Manage Server** permission to remove channels.',
-                        flags: MessageFlags.Ephemeral
-                    });
-                    return;
-                }
-
-                if (buttonInteraction.customId === `jtc_delete_confirm_${triggerChannel.id}`) {
-                    
-                    await removeTriggerChannel(client, interaction.guild.id, triggerChannel.id);
-
-                    await logConfigurationChange(client, interaction.guild.id, interaction.user.id, 'Removed Join to Create trigger', {
-                        channelId: triggerChannel.id,
-                        channelName: triggerChannel.name
-                    });
-
-                    try {
-                        if (triggerChannel.members.size === 0) {
-                            await triggerChannel.delete('Join to Create trigger removed by administrator');
-                        }
-                    } catch (deleteError) {
-                        logger.warn(`Could not delete channel ${triggerChannel.id}: ${deleteError.message}`);
-                        
+                if (action === 'delete') return await component.update(buildDeleteConfirm(triggerChannel));
+                if (action === 'delno') return await refresh(component);
+                if (action === 'delyes') {
+                    await removeTriggerChannel(client, guildId, triggerChannel.id);
+                    await logConfigurationChange(client, guildId, interaction.user.id, 'Removed Join to Create trigger', { channelId: triggerChannel.id, channelName: triggerChannel.name });
+                    if (triggerChannel.members?.size === 0) {
+                        await triggerChannel.delete('Join to Create trigger removed by administrator').catch((e) => logger.warn(`Could not delete channel ${triggerChannel.id}: ${e.message}`));
                     }
-
-                    await buttonInteraction.update({
-                        embeds: [successEmbed('Removed', `**${triggerChannel.name}** has been removed from the Join to Create system.`)],
-                        components: []
-                    });
-
-                } else {
-                    await buttonInteraction.update({
-                        embeds: [successEmbed('Cancelled', 'Channel removal has been cancelled.')],
-                        components: []
-                    });
+                    collector.stop('removed');
+                    return await component.update({ embeds: [pacilNotice({ tone: 'success', title: 'Pemicu dihapus', body: `**${triggerChannel.name}** sudah dikeluarkan dari Join to Create.` })], components: [] });
                 }
-            } catch (collectError) {
-                logger.error('Error handling delete confirmation:', collectError);
-                await buttonInteraction.reply({
-                    content: '❌ An error occurred while processing your request.',
-                    flags: MessageFlags.Ephemeral
-                }).catch(() => {});
+
+                // Aksi berbentuk modal: tampilkan, tunggu isian, lalu segarkan dashboard.
+                const modalId = `jtc_modal_${action}_${triggerChannel.id}`;
+                let modal;
+                if (action === 'name') {
+                    const select = new StringSelectMenuBuilder().setCustomId('template').setPlaceholder('Pilih template nama…')
+                        .setOptions(NAME_TEMPLATES.map((value) => ({ label: value, value, default: value === current.template })));
+                    modal = new ModalBuilder().setCustomId(modalId).setTitle('Template Nama Ruang')
+                        .addLabelComponents(new LabelBuilder().setLabel('Template nama ruang').setStringSelectMenuComponent(select));
+                } else if (action === 'limit') {
+                    modal = textModal(modalId, 'Batas Orang', 'Batas orang (0 = tanpa batas, maks. 99)', { value: current.userLimit, max: 2, placeholder: '0' });
+                } else if (action === 'bitrate') {
+                    modal = textModal(modalId, 'Bitrate Suara', 'Bitrate dalam kbps (8–384)', { value: Math.round(current.bitrate / 1000), max: 3 });
+                } else if (action === 'status') {
+                    modal = textModal(modalId, 'Status Awal Ruang', 'Status awal (kosongkan untuk menghapus)', { value: current.defaultStatus, min: 0, max: ROOM_LIMITS.statusLength, required: false, style: TextInputStyle.Paragraph, placeholder: 'Contoh: Belajar bareng, santai aja' });
+                } else {
+                    return await component.deferUpdate();
+                }
+
+                await component.showModal(modal);
+                const submission = await component.awaitModalSubmit({
+                    filter: (i) => i.customId === modalId && i.user.id === component.user.id,
+                    time: MODAL_TIMEOUT_MS,
+                });
+                if (!hasManageGuildPermission(submission.member)) {
+                    return await submission.reply({ content: 'Kamu butuh izin **Manage Server** untuk mengubah pengaturan ini.', flags: MessageFlags.Ephemeral });
+                }
+
+                let updates;
+                let logLabel;
+                if (action === 'name') {
+                    [updates, logLabel] = [{ nameTemplate: submission.fields.getStringSelectValues('template')[0] }, 'Mengubah template nama'];
+                } else if (action === 'limit') {
+                    const parsed = parseUserLimit(submission.fields.getTextInputValue('value'));
+                    if (!parsed.ok) return await submission.reply({ content: 'Batas harus berupa angka 0 sampai 99.', flags: MessageFlags.Ephemeral });
+                    [updates, logLabel] = [{ userLimit: parsed.value }, 'Mengubah batas orang'];
+                } else if (action === 'bitrate') {
+                    const parsed = parseBitrateKbps(submission.fields.getTextInputValue('value'), interaction.guild.maximumBitrate);
+                    if (!parsed.ok) {
+                        const text = parsed.error === 'bitrateTooHigh'
+                            ? `Bitrate maksimal untuk server ini **${parsed.maxKbps} kbps** (naik level boost untuk batas lebih tinggi).`
+                            : 'Bitrate harus berupa angka dalam kbps, minimal 8.';
+                        return await submission.reply({ content: text, flags: MessageFlags.Ephemeral });
+                    }
+                    [updates, logLabel] = [{ bitrate: parsed.value }, 'Mengubah bitrate'];
+                } else {
+                    [updates, logLabel] = [{ defaultStatus: sanitizeRoomStatus(submission.fields.getTextInputValue('value')) }, 'Mengubah status awal'];
+                }
+                await change(updates, logLabel);
+                return await refresh(submission);
+            } catch (error) {
+                if (isModalTimeout(error)) return;
+                const text = error instanceof PacilBotError ? (error.userMessage || 'Terjadi kendala.') : 'Waduh, pengaturan tidak bisa disimpan. Coba lagi ya.';
+                if (error instanceof PacilBotError) logger.debug(`JTC dashboard validation: ${error.message}`, error.context || {});
+                else logger.error('Unexpected error in JTC dashboard interaction:', error);
+                const payload = { content: `❌ ${text}`, flags: MessageFlags.Ephemeral };
+                await (component.deferred || component.replied ? component.followUp(payload) : component.reply(payload)).catch(() => {});
             }
         });
 
-        deleteCollector.on('end', (collected, reason) => {
-            if (reason === 'time' && collected.size === 0) {
-                message.edit({ components: [] }).catch(() => {});
-            }
+        collector.on('end', (_collected, reason) => {
+            if (reason === 'removed') return;
+            fetchCurrent()
+                .then((current) => message.edit(buildDashboard(triggerChannel, current, { expired: true })))
+                .catch(() => {});
         });
-
     } catch (error) {
-        if (error instanceof PacilBotError) {
-            throw error;
-        }
-        logger.error('Unexpected error in handleChannelDeletion:', error);
-        throw new PacilBotError(
-            `Deletion error: ${error.message}`,
-            ErrorTypes.UNKNOWN,
-            'An error occurred while removing the channel.'
-        );
+        if (error instanceof PacilBotError) throw error;
+        throw new PacilBotError(`Dashboard failed: ${error.message}`, ErrorTypes.DATABASE, 'Gagal memuat pengaturan. Coba lagi sebentar.');
     }
 }

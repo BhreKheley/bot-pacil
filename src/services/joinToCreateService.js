@@ -8,6 +8,8 @@ import {
     formatChannelName as formatChannelNameUtil
 } from '../utils/database.js';
 import { logger } from '../utils/logger.js';
+import { Mutex } from '../utils/mutex.js';
+import { RTC_REGIONS, sanitizeRoomStatus } from './voiceRoomLogic.js';
 import { PacilBotError, ErrorTypes } from '../utils/errorHandler.js';
 import { logEvent, EVENT_TYPES } from './loggingService.js';
 import { formatLogLine } from '../utils/logging/logEmbeds.js';
@@ -270,7 +272,16 @@ export async function initializeJoinToCreate(client, guildId, channelId, options
     }
 }
 
-export async function updateChannelConfig(client, guildId, channelId, updates) {
+// Dokumen JTC ditulis utuh, jadi semua perubahan memakai kunci yang sama dengan voiceRoomService.updateRoom.
+const jtcDocLock = (guildId) => `jtc-doc:${guildId}`;
+
+export const updateChannelConfig = (client, guildId, channelId, updates) =>
+    Mutex.runExclusive(jtcDocLock(guildId), () => updateChannelConfigUnlocked(client, guildId, channelId, updates));
+
+export const removeTriggerChannel = (client, guildId, channelId) =>
+    Mutex.runExclusive(jtcDocLock(guildId), () => removeTriggerChannelUnlocked(client, guildId, channelId));
+
+async function updateChannelConfigUnlocked(client, guildId, channelId, updates) {
     try {
         if (!client || !client.db) {
             throw new PacilBotError(
@@ -298,6 +309,16 @@ export async function updateChannelConfig(client, guildId, channelId, updates) {
         }
         if (updates.userLimit !== undefined) {
             validateUserLimit(updates.userLimit);
+        }
+        if (updates.rtcRegion !== undefined && updates.rtcRegion !== null
+            && !RTC_REGIONS.some((region) => region.rtc === updates.rtcRegion)) {
+            throw new PacilBotError('Unknown RTC region', ErrorTypes.VALIDATION, 'Region suara tidak dikenal.');
+        }
+        if (updates.videoQuality !== undefined && !['auto', 'full'].includes(updates.videoQuality)) {
+            throw new PacilBotError('Invalid video quality', ErrorTypes.VALIDATION, 'Mode video harus auto atau full.');
+        }
+        if (updates.defaultStatus !== undefined) {
+            updates = { ...updates, defaultStatus: sanitizeRoomStatus(updates.defaultStatus) };
         }
 
         if (!config.channelOptions) {
@@ -330,7 +351,7 @@ export async function updateChannelConfig(client, guildId, channelId, updates) {
     }
 }
 
-export async function removeTriggerChannel(client, guildId, channelId) {
+async function removeTriggerChannelUnlocked(client, guildId, channelId) {
     try {
         if (!client || !client.db) {
             throw new PacilBotError(
