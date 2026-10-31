@@ -21,7 +21,7 @@ export default {
         title: '🏓 Pong! Latensi Pacil Baik',
         description: `Status jaringan bot ke server Discord: **${quality}**`,
         color: latency < 200 ? 'success' : 'warning',
-        footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+        footer: { text: 'Pacil Baik • Fasilkom UI' },
         timestamp: true,
       }).addFields(
         { name: '⚡ Bot Latency', value: `\`${latency}ms\``, inline: true },
@@ -65,7 +65,7 @@ export default {
         title: "🏓 Pong! Latensi Pacil Baik",
         description: `Koneksi bot Pacil Baik ke server berjalan **${quality}**.`,
         color: latency < 200 ? 'success' : 'warning',
-        footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+        footer: { text: 'Pacil Baik • Fasilkom UI' },
         timestamp: true,
       }).addFields(
         { name: "⚡ Bot Latency", value: `\`${latency}ms\``, inline: true },

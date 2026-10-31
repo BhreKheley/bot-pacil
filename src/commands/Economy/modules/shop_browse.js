@@ -36,7 +36,7 @@ export default {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId('shop_prev')
-                            .setLabel('⬅️ Previous')
+                            .setLabel('Sebelumnya').setEmoji('⬅️')
                             .setStyle(ButtonStyle.Secondary)
                             .setDisabled(page === 1),
                         new ButtonBuilder()

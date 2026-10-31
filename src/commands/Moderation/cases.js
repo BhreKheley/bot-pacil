@@ -102,7 +102,7 @@ export default {
                 
                 const prevButton = new ButtonBuilder()
                     .setCustomId('prev_page')
-                    .setLabel('⬅️ Previous')
+                    .setLabel('Sebelumnya').setEmoji('⬅️')
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(page === 1);
 

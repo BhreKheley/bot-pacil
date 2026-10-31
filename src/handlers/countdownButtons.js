@@ -11,7 +11,7 @@ function createControlButtons(countdownId, isPaused = false) {
             .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
             .setCustomId(`countdown_cancel:${countdownId}`)
-            .setLabel("❌ Cancel")
+            .setLabel("Batal").setEmoji("❌")
             .setStyle(ButtonStyle.Danger),
     );
 }

@@ -86,7 +86,7 @@ export const helpBugReportButton = {
     name: BUG_REPORT_BUTTON_ID,
     async execute(interaction, client) {
         const supportButton = new ButtonBuilder()
-            .setLabel('💬 Masuk Discord Pacil Baik')
+            .setLabel('Masuk Discord Pacil Baik').setEmoji('💬')
             .setStyle(ButtonStyle.Link)
             .setURL('https://discord.gg/QnWNz2dKCE');
 
@@ -106,7 +106,7 @@ export const helpBugReportButton = {
             ].join('\n'),
             color: 'error',
             footer: {
-                text: 'Pacil Baik Bug Reporting • Fasilkom UI 💻',
+                text: 'Pacil Baik • Laporan Bug',
                 iconURL: client.user.displayAvatarURL(),
             },
             timestamp: true,

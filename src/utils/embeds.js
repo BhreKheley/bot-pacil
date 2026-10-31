@@ -161,7 +161,7 @@ export function createPacilEmbed({
     color,
     fields,
     thumbnail,
-    footer: footer || { text: 'Pacil Baik • Fasilkom UI 💻' },
+    footer: footer || { text: 'Pacil Baik • Fasilkom UI' },
     timestamp: true,
     ...rest,
   });
@@ -222,7 +222,7 @@ export function buildUserErrorEmbed(errorType, description = '', options = {}) {
   const body = description ? String(description).trim() : undefined;
 
   return createEmbed({
-    title,
+    title: withIcon(title, 'error'),
     description: body,
     color,
   });
@@ -231,6 +231,9 @@ export function buildUserErrorEmbed(errorType, description = '', options = {}) {
 function containsDiscordRenderable(content = '') {
   return /<@!?&?\d+>|<#\d+>|\b\d{17,19}\b/.test(String(content));
 }
+
+const NOTIFICATION_ICONS = { success: '✅', info: 'ℹ️', warning: '⚠️', primary: '📢', error: '❌' };
+const withIcon = (title, color) => (/^\p{Extended_Pictographic}/u.test(title) ? title : `${NOTIFICATION_ICONS[color] ?? ''} ${title}`.trim());
 
 function buildNotificationEmbed(title, body = '', color = 'primary') {
   const defaultTitle = NOTIFICATION_DEFAULT_TITLES[color] || NOTIFICATION_DEFAULT_TITLES.primary;
@@ -243,7 +246,7 @@ function buildNotificationEmbed(title, body = '', color = 'primary') {
   }
 
   return createEmbed({
-    title: titleText || defaultTitle,
+    title: withIcon(titleText || defaultTitle, color),
     description: bodyText || undefined,
     color,
   });
@@ -270,28 +273,28 @@ export function errorEmbed(title, detail = null, options = {}) {
 /** @param {string} titleOrBody - With one arg: body text. With two args: title and body. */
 export function successEmbed(title, body = '') {
   if (arguments.length === 1) {
-    return buildNotificationEmbed('Success', title, 'success');
+    return buildNotificationEmbed('Berhasil', title, 'success');
   }
 
-  return buildNotificationEmbed(title || 'Success', body, 'success');
+  return buildNotificationEmbed(title || 'Berhasil', body, 'success');
 }
 
 /** @param {string} titleOrBody - With one arg: body text. With two args: title and body. */
 export function infoEmbed(title, body = '') {
   if (arguments.length === 1) {
-    return buildNotificationEmbed('Information', title, 'info');
+    return buildNotificationEmbed('Informasi', title, 'info');
   }
 
-  return buildNotificationEmbed(title || 'Information', body, 'info');
+  return buildNotificationEmbed(title || 'Informasi', body, 'info');
 }
 
 /** @param {string} titleOrBody - With one arg: body text. With two args: title and body. */
 export function warningEmbed(title, body = '') {
   if (arguments.length === 1) {
-    return buildNotificationEmbed('Warning', title, 'warning');
+    return buildNotificationEmbed('Peringatan', title, 'warning');
   }
 
-  return buildNotificationEmbed(title || 'Warning', body, 'warning');
+  return buildNotificationEmbed(title || 'Peringatan', body, 'warning');
 }
 
 export function formatUser(user) {

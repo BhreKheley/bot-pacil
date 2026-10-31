@@ -126,7 +126,7 @@ export async function createInitialHelpMenu(client, guildId = null) {
             },
         ],
         footer: {
-            text: "Pacil Baik • Fasilkom UI 💻",
+            text: "Pacil Baik • Fasilkom UI",
         },
         timestamp: true,
     });
@@ -186,7 +186,7 @@ export default {
                     title: "Menu Bantuan Ditutup",
                     description: "Sesi menu bantuan telah berakhir karena timeout. Ketik `/help` lagi kapan saja saat butuh bantuan!",
                     color: "secondary",
-                    footer: { text: "Pacil Baik • Fasilkom UI 💻" },
+                    footer: { text: "Pacil Baik • Fasilkom UI" },
                 });
 
                 await InteractionHelper.safeEditReply(interaction, {

@@ -28,7 +28,7 @@ export default {
             title: 'Kendala Sistem',
             description: 'Gagal mengambil data statistik performa sistem.',
             color: 'error',
-            footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+            footer: { text: 'Pacil Baik • Fasilkom UI' },
           }),
         ],
         flags: MessageFlags.Ephemeral,
