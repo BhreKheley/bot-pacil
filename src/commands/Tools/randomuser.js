@@ -104,7 +104,7 @@ export default {
             .addComponents(
                 new ButtonBuilder()
                     .setCustomId(`randomuser_${interaction.user.id}_again`)
-                    .setLabel('🎲 Pick Another User')
+                    .setLabel('Pilih Lainnya').setEmoji('🎲')
                     .setStyle(ButtonStyle.Primary)
             );
 

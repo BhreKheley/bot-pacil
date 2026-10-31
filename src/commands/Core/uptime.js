@@ -36,7 +36,7 @@ export default {
           `*Sistem stabil & siap nemenin nugas di server pacil baik!*`,
         ].join('\n'),
         color: 'primary',
-        footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+        footer: { text: 'Pacil Baik • Fasilkom UI' },
         timestamp: true,
       });
 
@@ -52,7 +52,7 @@ export default {
               title: 'Kendala Sistem',
               description: 'Tidak dapat menghitung waktu aktif bot saat ini.',
               color: 'error',
-              footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+              footer: { text: 'Pacil Baik • Fasilkom UI' },
             }),
           ],
           flags: MessageFlags.Ephemeral,

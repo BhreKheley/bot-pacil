@@ -90,7 +90,7 @@ export async function buildStatusEmbed(client, guildId = null) {
         inline: false,
       },
     ],
-    footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+    footer: { text: 'Pacil Baik • Fasilkom UI' },
     timestamp: true,
   });
 

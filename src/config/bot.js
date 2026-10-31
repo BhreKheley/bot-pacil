@@ -136,7 +136,7 @@ export const botConfig = {
     },
     footer: {
       // Default footer text used in bot embeds.
-      text: "Pacil Baik • Fasilkom UI 💻",
+      text: "Pacil Baik • Fasilkom UI",
       // Footer icon URL (null = no icon).
       icon: null,
     },

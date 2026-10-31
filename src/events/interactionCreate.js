@@ -159,7 +159,7 @@ export default {
                 title: `${statusCheck.icon || '🔴'} Command Sedang Ditutup / Maintenance`,
                 description: `Waduh warga Pacil, command \`/${accessKey}\` saat ini **tidak dapat digunakan**.\n\n**Status / Keterangan:**\n> ${statusCheck.reason}\n\n*Gunakan </help:0> untuk melihat daftar command yang aktif atau cek </status:0>.*`,
                 color: 'error',
-                footer: { text: 'Pacil Baik • Fasilkom UI 💻' }
+                footer: { text: 'Pacil Baik • Fasilkom UI' }
               });
 
               return await InteractionHelper.safeReply(interaction, {

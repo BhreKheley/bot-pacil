@@ -124,7 +124,7 @@ export function buildOverviewEmbed(snapshot, guild) {
     description: `Kelola ketersediaan command (Open 🟢 / Closed 🔴) untuk server **${guild.name}** (Fasilkom UI).`,
     color: 'primary',
     fields,
-    footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+    footer: { text: 'Pacil Baik • Fasilkom UI' },
     timestamp: true,
   });
 }
@@ -180,7 +180,7 @@ export function buildCategoryEmbed(category, guild) {
     description: `Pengaturan akses command untuk server **${guild.name}**.`,
     color: category.categoryDisabled ? 'error' : category.disabledCount > 0 ? 'warning' : 'success',
     fields,
-    footer: { text: 'Pacil Baik • Fasilkom UI 💻' },
+    footer: { text: 'Pacil Baik • Fasilkom UI' },
     timestamp: true,
   });
 }
