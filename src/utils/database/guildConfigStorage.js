@@ -27,14 +27,8 @@ export async function readGuildConfig(client, guildId, context = {}) {
             return normalizeGuildConfig({}, GUILD_CONFIG_DEFAULTS);
         }
 
-        if (typeof client.db.isAvailable === 'function' && !client.db.isAvailable()) {
-            logger.warn(`PostgreSQL unavailable for readGuildConfig in guild ${guildId}`, {
-                traceId: context.traceId,
-                guildId,
-            });
-            return normalizeGuildConfig({}, GUILD_CONFIG_DEFAULTS);
-        }
-
+        // Mode degraded (tanpa PostgreSQL): client.db.get membaca penyimpanan memori tempat
+        // writeGuildConfig menulis, jadi pengaturan tetap terbaca selama bot hidup.
         const rawConfig = await client.db.get(getGuildConfigKey(guildId), null);
 
         if (rawConfig === null) {
