@@ -4,6 +4,8 @@ import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 
 export default {
+  // Dinonaktifkan agar total command tetap <= 100 (batas Discord). Ganti ke true untuk mengaktifkan lagi.
+  register: false,
   data: new SlashCommandBuilder()
     .setName("uptime")
     .setDescription("Cek berapa lama bot Pacil Baik telah aktif online"),

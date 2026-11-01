@@ -11,6 +11,8 @@ const MAX_WIN = Number(botConfig?.economy?.begMax) || 200;
 const SUCCESS_CHANCE = 0.7;
 
 export default {
+  // Dinonaktifkan agar total command tetap <= 100 (batas Discord). Ganti ke true untuk mengaktifkan lagi.
+  register: false,
     data: new SlashCommandBuilder()
         .setName('beg')
         .setDescription('Beg for a small amount of money'),
