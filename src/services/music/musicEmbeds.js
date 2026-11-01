@@ -11,6 +11,7 @@ export const MUSIC_BUTTON_IDS = {
     STOP: 'music_stop',
     SHUFFLE: 'music_shuffle',
     LOOP: 'music_loop',
+    AUTOPLAY: 'music_autoplay',
     VOL_DOWN: 'music_vol_down',
     VOL_UP: 'music_vol_up',
     QUEUE: 'music_queue',
@@ -68,6 +69,7 @@ export function buildNowPlayingEmbed(track, player, guildData) {
             { name: 'Progress', value: `${position} / ${duration}`, inline: true },
             { name: 'Volume', value: `${guildData?.volume ?? 75}%`, inline: true },
             { name: 'Loop', value: getLoopLabel(guildData?.loop), inline: true },
+            { name: 'Autoplay', value: guildData?.autoplay ? 'On' : 'Off', inline: true },
             { name: 'Queue', value: `${player?.queue?.length || 0} track(s)`, inline: true },
         ],
         thumbnail: getTrackArtwork(track),
@@ -144,6 +146,11 @@ export function buildPlayerButtonRows(player, guildData) {
             .setLabel('Loop')
             .setStyle(guildData?.loop !== 'none' ? ButtonStyle.Success : ButtonStyle.Secondary)
             .setEmoji('🔁'),
+        new ButtonBuilder()
+            .setCustomId(MUSIC_BUTTON_IDS.AUTOPLAY)
+            .setLabel('Autoplay')
+            .setStyle(guildData?.autoplay ? ButtonStyle.Success : ButtonStyle.Secondary)
+            .setEmoji('♾️'),
         new ButtonBuilder()
             .setCustomId(MUSIC_BUTTON_IDS.VOL_DOWN)
             .setLabel('Vol -')

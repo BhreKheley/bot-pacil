@@ -2,6 +2,7 @@
 
 import { logger } from '../../utils/logger.js';
 import { getGuildMusicData, clearUpdateInterval } from './playerStore.js';
+import { playAutoplayRecommendation, recordTrackForAutoplay } from './autoplayService.js';
 import {
     buildNowPlayingEmbed,
     buildPlayerButtonRows,
@@ -130,6 +131,8 @@ export function setupPlayerHandler(client) {
                 player.setLoop(guildData.loop);
             }
 
+            recordTrackForAutoplay(player.guildId, track);
+
             if (player.previous) {
                 guildData.previousTracks.push(player.previous);
                 if (guildData.previousTracks.length > 20) {
@@ -158,8 +161,13 @@ export function setupPlayerHandler(client) {
             clearUpdateInterval(guildData);
 
             if (guildData.autoplay) {
-                player.autoplay(player);
-                return;
+                const picked = await playAutoplayRecommendation(client, player).catch((error) => {
+                    logger.warn(`Autoplay gagal di guild ${player.guildId}: ${error?.message || error}`);
+                    return null;
+                });
+                if (picked) return;
+                const channel = client.channels.cache.get(guildData.playerChannelId || player.textChannel);
+                channel?.send('Autoplay belum nemu lagu yang cocok, jadi antrean selesai di sini.').catch(() => null);
             }
 
             if (guildData.playerMessageId && guildData.playerChannelId) {
@@ -216,6 +224,8 @@ export function setupPlayerHandler(client) {
         guildData.playerMessageId = null;
         guildData.playerChannelId = null;
         guildData.previousTracks = [];
+        guildData.autoplayHistory = [];
+        guildData.lastTrack = null;
         guildData.autoPaused = false;
         if (guildData.idleTimeout) {
             clearTimeout(guildData.idleTimeout);

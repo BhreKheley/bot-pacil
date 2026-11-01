@@ -509,6 +509,24 @@ export async function clearQueue(client, interaction) {
     return successEmbed('Queue Cleared', 'All queued tracks were removed.');
 }
 
+export async function setAutoplay(client, interaction, enabled) {
+    const player = getPlayer(client, interaction.guild.id);
+    if (!player) {
+        throw new PacilBotError('No player', ErrorTypes.USER_INPUT, 'Belum ada musik yang diputar. Pakai `/play` dulu ya.');
+    }
+    assertCanControl(interaction.member, player);
+
+    const guildData = getGuildMusicData(interaction.guild.id);
+    guildData.autoplay = Boolean(enabled);
+    await refreshPlayerMessage(client, interaction.guild.id);
+    return successEmbed(
+        'Autoplay',
+        guildData.autoplay
+            ? 'Autoplay nyala. Kalau antrean habis, bot otomatis memutar lagu yang mirip dengan lagu terakhir.'
+            : 'Autoplay mati. Musik berhenti saat antrean habis.',
+    );
+}
+
 export async function setTwentyFourSeven(client, interaction, enabled) {
     const guildData = getGuildMusicData(interaction.guild.id);
     guildData.twentyFourSeven = enabled;
@@ -556,6 +574,8 @@ export async function destroyPlayerSession(client, guildId, player, guildData, {
     }
 
     guildData.previousTracks = [];
+    guildData.autoplayHistory = [];
+    guildData.lastTrack = null;
     guildData.stopConfirmPending = null;
     guildData.autoPaused = false;
     guildData.queuePages?.clear();

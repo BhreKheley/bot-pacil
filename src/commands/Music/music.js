@@ -13,6 +13,7 @@ import {
     moveInQueue,
     clearQueue,
     setTwentyFourSeven,
+    setAutoplay,
     leaveVoiceChannel,
     replyMusicSuccess,
 } from '../../services/music/musicActions.js';
@@ -87,6 +88,14 @@ export default {
                 )
                 .addIntegerOption((opt) =>
                     opt.setName('to').setDescription('New position').setRequired(true).setMinValue(1),
+                ),
+        )
+        .addSubcommand((sub) =>
+            sub
+                .setName('autoplay')
+                .setDescription('Putar lagu serupa otomatis saat antrean habis')
+                .addBooleanOption((opt) =>
+                    opt.setName('enabled').setDescription('Nyalakan atau matikan autoplay').setRequired(true),
                 ),
         )
         .addSubcommand((sub) =>
@@ -171,6 +180,11 @@ export default {
             }
             case 'leave': {
                 const embed = await leaveVoiceChannel(client, interaction);
+                await replyMusicSuccess(interaction, embed);
+                break;
+            }
+            case 'autoplay': {
+                const embed = await setAutoplay(client, interaction, interaction.options.getBoolean('enabled'));
                 await replyMusicSuccess(interaction, embed);
                 break;
             }
