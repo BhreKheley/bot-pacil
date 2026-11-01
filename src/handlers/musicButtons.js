@@ -123,6 +123,10 @@ async function handleMusicButton(interaction, client) {
                 await setLoopMode(client, interaction, next);
                 break;
             }
+            case MUSIC_BUTTON_IDS.AUTOPLAY:
+                guildData.autoplay = !guildData.autoplay;
+                await refreshPlayerMessage(client, interaction.guild.id);
+                break;
             case MUSIC_BUTTON_IDS.VOL_DOWN:
                 guildData.volume = Math.max(0, guildData.volume - 10);
                 player.setVolume(guildData.volume);

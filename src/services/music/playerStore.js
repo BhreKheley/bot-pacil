@@ -5,6 +5,8 @@ export class GuildMusicData {
         this.playerMessageId = null;
         this.playerChannelId = null;
         this.autoplay = false;
+        this.autoplayHistory = [];
+        this.lastTrack = null;
         this.loop = 'none';
         this.volume = 75;
         this.shuffle = false;
