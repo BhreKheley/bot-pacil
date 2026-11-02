@@ -53,16 +53,21 @@ export default {
                     });
                 } else {
                     const embed = new EmbedBuilder()
-                        .setColor(welcomeConfig.welcomeEmbed?.color || getColor('success'))
-                        .setTitle(embedTitle)
-                        .setDescription(welcomeMessage)
-                        .setThumbnail(user.displayAvatarURL())
+                        .setColor(0xF2A900) // Makara Gold
+                        .setTitle(`Selamat Datang di Pacil Baik, ${user.username}! 🎉`)
+                        .setDescription(
+                            `Halo <@${user.id}>, selamat datang di rumah digital mahasiswa Fakultas Ilmu Komputer Universitas Indonesia!\n\n` +
+                            `Silakan baca panduan di <#${welcomeChannelId}> dan ambil peran angkatanmu agar dapat mengakses seluruh ruang diskusi kuliah.`
+                        )
+                        .setThumbnail(user.displayAvatarURL({ dynamic: true, size: 512 }))
                         .addFields(
-                            { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
-                            { name: 'Member Count', value: guild.memberCount.toString(), inline: true }
+                            { name: '👤 Username', value: `${user.tag}`, inline: true },
+                            { name: '📍 Member Ke-', value: `#${guild.memberCount}`, inline: true },
+                            { name: '🔗 Diundang oleh', value: 'Direct / Server Link', inline: true },
+                            { name: '📚 Langkah Pertama', value: 'Buka `/guide` atau kunjungi `#start-here` untuk orientasi awal!', inline: false }
                         )
                         .setTimestamp()
-                        .setFooter({ text: embedFooter });
+                        .setFooter({ text: 'Makara Fasilkom UI • Pacil Bot' });
                     
                     if (welcomeConfig.welcomeImage) {
                         embed.setImage(welcomeConfig.welcomeImage);

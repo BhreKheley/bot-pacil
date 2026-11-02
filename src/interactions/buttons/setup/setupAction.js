@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   MessageFlags,
+  EmbedBuilder,
 } from 'discord.js';
 import { buildPacilEmbed } from '../../../ui/pacil.js';
 import { getGuildConfig, patchGuildConfig } from '../../../services/config/guildConfig.js';
@@ -10,6 +11,9 @@ import { getConfessionConfig } from '../../../services/confessionService.js';
 import { guildCirclesListKey, getCircle } from '../../../services/circleService.js';
 import { renderConfessionSubPanel } from '../../../components/panels/confessionSubPanel.js';
 import { renderWelcomeSubPanel } from '../../../components/panels/welcomeSubPanel.js';
+import { renderRulesGuidePublicEmbed } from '../../../components/panels/rulesGuideSubPanel.js';
+import { renderBoosterPublicPanel } from '../../../components/panels/boosterSubPanel.js';
+import { renderMusicStatusEmbed } from '../../../components/panels/musicSubPanel.js';
 
 export default {
   name: 'setupAction',
@@ -35,7 +39,7 @@ export default {
             inline: false,
           },
         ],
-        footer: 'Pacil Baik • Fasilkom UI Circle Automation',
+        footer: 'Makara Fasilkom UI • Pacil Bot',
       });
 
       const buttonRow = new ActionRowBuilder().addComponents(
@@ -104,13 +108,18 @@ export default {
             inline: false,
           },
           {
+            name: '💬 Balasan Anonim',
+            value: 'Setiap menfess yang terbit dapat dibalas oleh mahasiswa lain melalui untaian thread anonim!',
+            inline: false,
+          },
+          {
             name: '🛡️ Keamanan & Etika',
             value:
               'Harap gunakan bahasa yang sopan. Pesan berisi pelecehan, doxxing, atau ujaran kebencian akan ditindak oleh moderator.',
             inline: false,
           },
         ],
-        footer: 'Pacil Baik • Fasilkom UI Community Menfess',
+        footer: 'Makara Fasilkom UI • Pacil Bot',
       });
 
       const row = new ActionRowBuilder().addComponents(
@@ -169,6 +178,122 @@ export default {
       const updatedPanel = await renderWelcomeSubPanel(client, interaction.guild);
       return interaction.update(updatedPanel);
     }
+
+    // 7. Preview Greeting
+    if (action === 'test_welcome') {
+      const member = interaction.member;
+      const previewEmbed = buildPacilEmbed({
+        title: `Selamat Datang di Pacil Baik, ${member.user.username}! 🎉`,
+        description:
+          `Halo <@${member.id}>, selamat datang di rumah digital mahasiswa Fakultas Ilmu Komputer Universitas Indonesia!\n\n` +
+          `Silakan mampir ke channel <#${interaction.channelId}> untuk membaca panduan awal dan mulai berkenalan dengan teman-teman sesama anak Pacil!`,
+        tone: 'gold',
+        thumbnail: member.user.displayAvatarURL({ dynamic: true, size: 512 }),
+        fields: [
+          { name: '👤 Username', value: member.user.tag, inline: true },
+          { name: '📍 Member Ke-', value: `#${interaction.guild.memberCount}`, inline: true },
+          { name: '🔗 Diundang oleh', value: 'Direct / Server Link', inline: true },
+          { name: '📚 Langkah Pertama', value: 'Baca panduan di `#start-here` dan ambil role angkatanmu di `#reaction-roles`!', inline: false },
+        ],
+        footer: 'Makara Fasilkom UI • Pacil Bot',
+      });
+
+      return interaction.reply({
+        content: '*(Preview tampilan kartu sambutan kedatangan)*',
+        embeds: [previewEmbed],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 8. Pasang Embed Rules
+    if (action === 'deploy_rules') {
+      const rulesEmbed = buildPacilEmbed({
+        title: '📜 Tata Tertib & Peraturan Komunitas Pacil Baik',
+        description:
+          'Demi kenyamanan dan lingkungan belajar yang suportif bagi seluruh mahasiswa Fasilkom UI, seluruh anggota wajib mematuhi aturan berikut:',
+        tone: 'gold',
+        fields: [
+          {
+            name: '1️⃣ Community Guidelines (Etika Akademik & Inklusivitas)',
+            value:
+              '• **Saling Menghargai:** Jaga sopan santun antar mahasiswa lintas angkatan dan program studi.\n' +
+              '• **Inklusif & Bebas Diskriminasi:** Dilarang keras melakukan perundungan (cyberbullying), ujaran kebencian, pelecehan, atau provokasi SARA.\n' +
+              '• **Integritas Akademik:** Dilarang membagikan jawaban ujian resmi atau meminta kode tugas akhir secara terang-terangan yang melanggar kode etik Fasilkom UI.',
+            inline: false,
+          },
+          {
+            name: '2️⃣ Server Etiquette (Ketertiban Diskusi)',
+            value:
+              '• **Gunakan Channel yang Relevan:** Diskusi tugas di `#tugas-diskusi`, santai di `#general`, dan menfess di `#confess-pacil`.\n' +
+              '• **Privasi Terjaga:** Dilarang membocorkan data pribadi (*doxxing*) siapa pun tanpa izin.\n' +
+              '• **Bebas Spam:** Dilarang spam mention, invite link liar, atau flood pesan/media.',
+            inline: false,
+          },
+        ],
+        footer: 'Makara Fasilkom UI • Dewan Kehormatan Mahasiswa Pacil',
+      });
+
+      await interaction.channel.send({ embeds: [rulesEmbed] });
+      return interaction.reply({
+        content: `✅ Embed Tata Tertib berhasil dikirim ke <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 9. Pasang Interactive Guide
+    if (action === 'deploy_guide') {
+      const guidePayload = renderRulesGuidePublicEmbed('server');
+      await interaction.channel.send(guidePayload);
+      return interaction.reply({
+        content: `✅ Interactive Guide berhasil dipasang di <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 10. Pasang Panel Publik Booster
+    if (action === 'deploy_booster_panel') {
+      const boosterPayload = renderBoosterPublicPanel();
+      await interaction.channel.send(boosterPayload);
+      return interaction.reply({
+        content: `✅ Panel Booster Lounge berhasil dikirim ke <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 11. Pasang Tracker Live Music
+    if (action === 'deploy_music_tracker') {
+      const trackerEmbed = renderMusicStatusEmbed(interaction.guild);
+      await interaction.channel.send({ embeds: [trackerEmbed] });
+      return interaction.reply({
+        content: `✅ Live Music Bot Tracker berhasil dikirim ke <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 12. Refresh Music Panel
+    if (action === 'refresh_music_panel') {
+      const trackerEmbed = renderMusicStatusEmbed(interaction.guild);
+      const buttonRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('setupAction:deploy_music_tracker')
+          .setLabel('Pasang Tracker Publik')
+          .setEmoji('📌')
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId('setupAction:refresh_music_panel')
+          .setLabel('Refresh Status')
+          .setEmoji('🔄')
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+          .setCustomId('setupBackMain')
+          .setLabel('🔙 Back to Main Menu')
+          .setStyle(ButtonStyle.Primary)
+      );
+
+      return interaction.update({
+        embeds: [trackerEmbed],
+        components: [buttonRow],
+      });
+    }
   },
 };
-

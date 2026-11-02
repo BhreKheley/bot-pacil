@@ -73,7 +73,7 @@ export function replyButtonRow(confession, config, locale) {
   return [new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`confessReply:${confession.id}`)
-      .setLabel(t(locale, 'reply'))
+      .setLabel('Balas (Anonim)')
       .setEmoji('💬')
       .setStyle(ButtonStyle.Secondary),
   )];

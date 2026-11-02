@@ -20,7 +20,7 @@ export const PACIL_TOKENS = Object.freeze({
   info: 'info',
 });
 
-export const PACIL_FOOTER = 'Pacil Baik • Fasilkom UI';
+export const PACIL_FOOTER = 'Makara Fasilkom UI • Pacil Bot';
 
 export const PACIL_COLORS = Object.freeze({
   navy: 0x0D3A73,
