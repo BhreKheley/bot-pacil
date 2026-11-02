@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ComponentType, LabelBuilder, RoleSelectMenuBuilder } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ComponentType } from 'discord.js';
 import { createEmbed, successEmbed } from '../../utils/embeds.js';
 import { getColor, getApplicationStatusColor } from '../../config/bot.js';
 import { logger } from '../../utils/logger.js';
@@ -144,62 +144,53 @@ async function handleSetup(interaction) {
         .setCustomId('app_setup_modal')
         .setTitle('Set Up New Application');
 
-    const roleSelect = new RoleSelectMenuBuilder()
+    const roleInput = new TextInputBuilder()
         .setCustomId('role_id')
-        .setPlaceholder('Select the role users will apply for')
+        .setLabel('Role (ID atau Nama Role)')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Masukkan ID role atau nama persis role')
         .setRequired(true);
-
-    const roleLabel = new LabelBuilder()
-        .setLabel('Application Role')
-        .setDescription('The role that users will be applying for')
-        .setRoleSelectMenuComponent(roleSelect);
 
     const appNameInput = new TextInputBuilder()
         .setCustomId('app_name')
+        .setLabel('Application Name')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('e.g., Moderator, Helper, Developer')
+        .setPlaceholder('Contoh: Moderator, Asdos, Developer')
         .setMaxLength(50)
         .setMinLength(1)
         .setRequired(true);
 
-    const appNameLabel = new LabelBuilder()
-        .setLabel('Application Name')
-        .setTextInputComponent(appNameInput);
-
     const q1Input = new TextInputBuilder()
         .setCustomId('app_question_1')
+        .setLabel('Pertanyaan 1 (Wajib)')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('Why do you want this role?')
+        .setPlaceholder('Kenapa kamu ingin mendaftar?')
         .setMaxLength(100)
         .setMinLength(1)
         .setRequired(true);
 
-    const q1Label = new LabelBuilder()
-        .setLabel('Question 1 (required)')
-        .setTextInputComponent(q1Input);
-
     const q2Input = new TextInputBuilder()
         .setCustomId('app_question_2')
+        .setLabel('Pertanyaan 2 (Opsional)')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('What experience do you have?')
+        .setPlaceholder('Apa pengalaman yang kamu miliki?')
         .setMaxLength(100)
         .setRequired(false);
-
-    const q2Label = new LabelBuilder()
-        .setLabel('Question 2 (optional)')
-        .setTextInputComponent(q2Input);
 
     const q3Input = new TextInputBuilder()
         .setCustomId('app_question_3')
+        .setLabel('Pertanyaan 3 (Opsional)')
         .setStyle(TextInputStyle.Short)
         .setMaxLength(100)
         .setRequired(false);
 
-    const q3Label = new LabelBuilder()
-        .setLabel('Question 3 (optional)')
-        .setTextInputComponent(q3Input);
-
-    modal.addLabelComponents(roleLabel, appNameLabel, q1Label, q2Label, q3Label);
+    modal.addComponents(
+        new ActionRowBuilder().addComponents(roleInput),
+        new ActionRowBuilder().addComponents(appNameInput),
+        new ActionRowBuilder().addComponents(q1Input),
+        new ActionRowBuilder().addComponents(q2Input),
+        new ActionRowBuilder().addComponents(q3Input)
+    );
 
     await interaction.showModal(modal);
 
@@ -216,11 +207,15 @@ async function handleSetup(interaction) {
     }
 
     const appName = submitted.fields.getTextInputValue('app_name').trim();
-    const selectedRoles = submitted.fields.getSelectedRoles('role_id');
-    const roleId = selectedRoles.first()?.id;
+    const rawRole = submitted.fields.getTextInputValue('role_id')?.trim();
+    const cleanRoleId = rawRole?.replace(/[<@&>]/g, '');
+    let role = interaction.guild.roles.cache.get(cleanRoleId) 
+        || interaction.guild.roles.cache.find(r => r.name.toLowerCase() === rawRole.toLowerCase())
+        || (await interaction.guild.roles.fetch(cleanRoleId).catch(() => null));
+    const roleId = role?.id;
 
     if (!roleId) {
-        await replyUserError(submitted, { type: ErrorTypes.USER_INPUT, message: 'You must select a role for the application.' });
+        await replyUserError(submitted, { type: ErrorTypes.USER_INPUT, message: `Role "${rawRole}" tidak ditemukan di server ini.` });
         return;
     }
 
@@ -230,7 +225,9 @@ async function handleSetup(interaction) {
         submitted.fields.getTextInputValue('app_question_3').trim(),
     ].filter(q => q.length > 0);
 
-    const role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+    if (!role) {
+        role = await interaction.guild.roles.fetch(roleId).catch(() => null);
+    }
     if (!role) {
         await replyUserError(submitted, { type: ErrorTypes.VALIDATION, message: 'The selected role could not be found.' });
         return;

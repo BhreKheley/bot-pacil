@@ -86,10 +86,10 @@ export const botConfig = {
   embeds: {
     colors: {
       // Main brand colors (Kuning Makara UI & Biru Fasilkom Navy).
-      primary: "#FFD700",
-      secondary: "#003B73",
-      pacilNavy: "#003B73",
-      makaraGold: "#FFD700",
+      primary: "#f2a900",
+      secondary: "#0d3a73",
+      pacilNavy: "#0d3a73",
+      makaraGold: "#f2a900",
 
       // Standard status colors for success/error/warning/info messages.
       success: "#10B981",

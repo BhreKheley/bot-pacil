@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { pacilPanel } from '../ui/pacil.js';
+import { pacilPanel, buildPacilEmbed } from '../ui/pacil.js';
 import { t } from '../utils/i18n.js';
 import { DEFAULT_REPLY_SETTINGS, shortId } from './confessionLogic.js';
 
@@ -24,24 +24,36 @@ export function newConfessionId() {
 }
 
 export function publicConfessionEmbed(confession, locale) {
-  return pacilPanel({
-    title: t(locale, 'publicTitle'),
-    description: confession.content,
-    tone: 'panel',
-    footer: `${t(locale, 'publicFooter')} • #${shortId(confession.id)}`,
+  const fromText = confession.from?.trim() || 'Anonim';
+  const toText = confession.to?.trim() || 'Warga Fasilkom UI';
+
+  return buildPacilEmbed({
+    title: '💌 Pacil Menfess',
+    tone: 'gold',
+    fields: [
+      { name: '👤 Dari (From)', value: fromText, inline: true },
+      { name: '🎯 Untuk (To)', value: toText, inline: true },
+      { name: '💬 Pesan (Message)', value: confession.content, inline: false },
+    ],
+    footer: `Pacil Baik • #${shortId(confession.id)}`,
   });
 }
 
 export function reviewConfessionEmbed(confession, locale) {
-  return pacilPanel({
-    title: t(locale, 'reviewTitle'),
-    description: confession.content,
+  const fromText = confession.from?.trim() || 'Anonim';
+  const toText = confession.to?.trim() || 'Warga Fasilkom UI';
+
+  return buildPacilEmbed({
+    title: '💌 Antrean Review Menfess',
     tone: 'warning',
     fields: [
-      { name: 'Pengirim / Sender', value: `<@${confession.authorId}>\n\`${confession.authorId}\``, inline: true },
+      { name: '👤 Dari (Input Pengirim)', value: fromText, inline: true },
+      { name: '🎯 Untuk (Target)', value: toText, inline: true },
+      { name: '💬 Pesan', value: confession.content, inline: false },
+      { name: '🔒 Pengirim Asli (Rahasia Moderator)', value: `<@${confession.authorId}> (\`${confession.authorId}\`)`, inline: false },
       { name: 'ID', value: `\`${confession.id}\``, inline: true },
     ],
-    footer: 'Hanya moderator yang dapat melihat identitas pengirim.',
+    footer: 'Hanya moderator yang dapat melihat identitas asli pengirim.',
   });
 }
 

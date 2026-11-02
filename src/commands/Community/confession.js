@@ -1,11 +1,11 @@
 import {
   SlashCommandBuilder, PermissionFlagsBits, ChannelType, MessageFlags,
-  ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder,
+  ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle,
 } from 'discord.js';
 import { getGuildConfig, patchGuildConfig } from '../../services/config/guildConfig.js';
 import { findConfessionRecords, getConfessionConfig } from '../../services/confessionService.js';
 import { clampReplyCooldown } from '../../services/confessionLogic.js';
-import { pacilPanel } from '../../ui/pacil.js';
+import { pacilPanel, buildPacilEmbed } from '../../ui/pacil.js';
 import { t } from '../../utils/i18n.js';
 
 const TEXT_CHANNELS = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
@@ -34,7 +34,9 @@ export default {
     .setDescription('Send an anonymous confession')
     .setDescriptionLocalizations({ id: 'Kirim menfess anonim' })
     .setDMPermission(false)
-    .addSubcommand(sub => sub.setName('send').setDescription('Open the anonymous confession form').setDescriptionLocalizations({ id: 'Buka formulir menfess anonim' }))
+    .addSubcommand(sub => sub.setName('send').setDescription('Open the structured confession form').setDescriptionLocalizations({ id: 'Buka formulir menfess terstruktur' }))
+    .addSubcommand(sub => sub.setName('panel').setDescription('Deploy a confession button panel in a channel').setDescriptionLocalizations({ id: 'Pasang panel tombol kirim menfess' })
+      .addChannelOption(opt => opt.setName('channel').setDescription('Target channel').setDescriptionLocalizations({ id: 'Channel target' }).addChannelTypes(...TEXT_CHANNELS)))
     .addSubcommand(sub => sub.setName('configure').setDescription('Configure the confession feature').setDescriptionLocalizations({ id: 'Atur fitur menfess' })
       .addChannelOption(opt => opt.setName('channel').setDescription('Public destination channel').setDescriptionLocalizations({ id: 'Channel tujuan publik' }).addChannelTypes(...TEXT_CHANNELS).setRequired(true))
       .addBooleanOption(opt => opt.setName('enabled').setDescription('Enable the feature').setDescriptionLocalizations({ id: 'Aktifkan fitur' }).setRequired(true))
@@ -55,15 +57,74 @@ export default {
   async execute(interaction, _config, client) {
     const subcommand = interaction.options.getSubcommand();
     const isManager = interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
-    if (['configure', 'status', 'disable', 'lookup'].includes(subcommand) && !isManager) {
+    if (['configure', 'status', 'disable', 'lookup', 'panel'].includes(subcommand) && !isManager) {
       return interaction.reply({ content: t(interaction, 'noPermission'), flags: MessageFlags.Ephemeral });
     }
     const config = getConfessionConfig(await getGuildConfig(client, interaction.guildId));
+
+    if (subcommand === 'panel') {
+      const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
+      const panelEmbed = buildPacilEmbed({
+        title: '💌 Pacil Baik Menfess Corner',
+        description: 'Punya keluh kesah, salam, apresiasi, atau curhatan seputar kampus Fasilkom UI? Kirimkan menfess kamu secara terstruktur dan aman (100% anonim dari publik) melalui tombol di bawah!',
+        tone: 'gold',
+        fields: [
+          { name: '📝 Format Menfess', value: '• **From:** Nama samaran / inisial / anonim\n• **To:** Target (Angkatan/Kelas/Individu)\n• **Message:** Isi pesan atau curhatan kamu', inline: false },
+          { name: '🛡️ Keamanan & Etika', value: 'Harap gunakan bahasa yang sopan. Pesan berisi pelecehan, doxxing, atau ujaran kebencian akan ditindak oleh moderator.', inline: false },
+        ],
+        footer: 'Pacil Baik • Fasilkom UI Community Menfess',
+      });
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('confessOpen')
+          .setLabel('Kirim Menfess')
+          .setEmoji('💌')
+          .setStyle(ButtonStyle.Primary)
+      );
+
+      await targetChannel.send({ embeds: [panelEmbed], components: [row] });
+      return interaction.reply({ content: `✅ Panel Menfess berhasil dikirim ke <#${targetChannel.id}>!`, flags: MessageFlags.Ephemeral });
+    }
+
     if (subcommand === 'send') {
       if (!config.enabled || !config.channelId) return interaction.reply({ content: t(interaction, config.enabled ? 'notConfigured' : 'disabled'), flags: MessageFlags.Ephemeral });
-      const modal = new ModalBuilder().setCustomId(`confession_modal:${interaction.guildId}`).setTitle(t(interaction, 'confessionTitle'));
-      const input = new TextInputBuilder().setCustomId('content').setLabel(t(interaction, 'confessionLabel')).setPlaceholder(t(interaction, 'confessionPlaceholder')).setStyle(TextInputStyle.Paragraph).setMinLength(1).setMaxLength(1800).setRequired(true);
-      modal.addComponents(new ActionRowBuilder().addComponents(input));
+      
+      const modal = new ModalBuilder()
+        .setCustomId(`confession_modal:${interaction.guildId}`)
+        .setTitle('Kirim Menfess Pacil');
+
+      const fromInput = new TextInputBuilder()
+        .setCustomId('from')
+        .setLabel('From (Nama samaran / inisial / kosongkan)')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Contoh: Anonim, Si Kacamata, dll.')
+        .setMaxLength(50)
+        .setRequired(false);
+
+      const toInput = new TextInputBuilder()
+        .setCustomId('to')
+        .setLabel('To (Ditujukan untuk siapa / angkatan / kelas)')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Contoh: Angkatan 24, DAA Kelas B, dll.')
+        .setMaxLength(100)
+        .setRequired(true);
+
+      const messageInput = new TextInputBuilder()
+        .setCustomId('content')
+        .setLabel('Message (Isi curhatan kamu)')
+        .setStyle(TextInputStyle.Paragraph)
+        .setPlaceholder('Tulis pesan kamu di sini...')
+        .setMinLength(1)
+        .setMaxLength(1800)
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(fromInput),
+        new ActionRowBuilder().addComponents(toInput),
+        new ActionRowBuilder().addComponents(messageInput)
+      );
+
       return interaction.showModal(modal);
     }
     if (subcommand === 'lookup') return lookup(interaction, client);

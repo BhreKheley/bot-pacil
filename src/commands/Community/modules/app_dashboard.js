@@ -14,9 +14,6 @@ import {
     MessageFlags,
     ComponentType,
     EmbedBuilder,
-    LabelBuilder,
-    CheckboxBuilder,
-    TextDisplayBuilder,
 } from 'discord.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { successEmbed } from '../../../utils/embeds.js';
@@ -500,22 +497,16 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
             const confirmModal = new ModalBuilder()
                 .setCustomId('app_delete_confirm')
-                .setTitle('Confirm Application Deletion');
+                .setTitle('Konfirmasi Hapus Aplikasi');
 
-            const deleteWarningText = new TextDisplayBuilder()
-                .setContent(`⚠️ You are about to permanently delete **${appNameForDelete}**. All stored applications and settings for this role will be removed and cannot be recovered.`);
-
-            const deleteCheckbox = new CheckboxBuilder()
+            const confirmInput = new TextInputBuilder()
                 .setCustomId('confirm_delete')
-                .setDefault(false);
+                .setLabel('Ketik "DELETE" untuk konfirmasi')
+                .setStyle(TextInputStyle.Short)
+                .setPlaceholder('DELETE')
+                .setRequired(true);
 
-            const deleteCheckboxLabel = new LabelBuilder()
-                .setLabel('I confirm — this cannot be undone')
-                .setCheckboxComponent(deleteCheckbox);
-
-            confirmModal
-                .addTextDisplayComponents(deleteWarningText)
-                .addLabelComponents(deleteCheckboxLabel);
+            confirmModal.addComponents(new ActionRowBuilder().addComponents(confirmInput));
 
             try {
                 await btnInteraction.showModal(confirmModal);
@@ -543,9 +534,9 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
                     return;
                 }
 
-                const confirmed = confirmSubmit.fields.getCheckbox('confirm_delete');
-                if (!confirmed) {
-                    await replyUserError(confirmSubmit, { type: ErrorTypes.VALIDATION, message: 'You must tick the confirmation checkbox to delete the application.' });
+                const confirmedText = confirmSubmit.fields.getTextInputValue('confirm_delete')?.trim();
+                if (confirmedText !== 'DELETE') {
+                    await replyUserError(confirmSubmit, { type: ErrorTypes.VALIDATION, message: 'Ketik "DELETE" dengan huruf besar untuk mengonfirmasi penghapusan.' });
                     return;
                 }
 
@@ -684,20 +675,14 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
         .setCustomId(`app_cfg_log_channel_modal_${guildId}_${selectedRoleId || 'global'}`)
         .setTitle('Configure Log Channel');
 
-    const channelSelect = new ChannelSelectMenuBuilder()
+    const channelInput = new TextInputBuilder()
         .setCustomId('log_channel')
-        .setPlaceholder('Select a text channel...')
-        .setMinValues(1)
-        .setMaxValues(1)
-        .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement)
+        .setLabel('Channel (ID atau Nama)')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Masukkan ID channel atau nama channel')
         .setRequired(true);
 
-    const channelLabel = new LabelBuilder()
-        .setLabel('Log Channel')
-        .setDescription('Channel where new applications will be logged')
-        .setChannelSelectMenuComponent(channelSelect);
-
-    modal.addLabelComponents(channelLabel);
+    modal.addComponents(new ActionRowBuilder().addComponents(channelInput));
 
     await selectInteraction.showModal(modal);
 
@@ -707,7 +692,10 @@ async function handleLogChannel(selectInteraction, rootInteraction, settings, ro
             filter: i => i.user.id === selectInteraction.user.id && i.customId === `app_cfg_log_channel_modal_${guildId}_${selectedRoleId || 'global'}`,
         });
 
-        const channelId = modalSubmission.fields.getField('log_channel').values[0];
+        const rawChannel = modalSubmission.fields.getTextInputValue('log_channel').trim().replace(/[<#>]/g, '');
+        const targetChannel = selectInteraction.guild.channels.cache.get(rawChannel)
+            || selectInteraction.guild.channels.cache.find(c => c.name.toLowerCase() === rawChannel.toLowerCase());
+        const channelId = targetChannel?.id || rawChannel;
         const channel = selectInteraction.guild.channels.cache.get(channelId);
 
         if (selectedRoleId) {
@@ -741,19 +729,14 @@ async function handleManagerRole(selectInteraction, rootInteraction, settings, r
         .setCustomId(`app_cfg_manager_role_modal_${guildId}`)
         .setTitle('Configure Manager Roles');
 
-    const roleSelect = new RoleSelectMenuBuilder()
+    const roleInput = new TextInputBuilder()
         .setCustomId('manager_roles')
-        .setPlaceholder('Select roles to grant manager access...')
-        .setMinValues(1)
-        .setMaxValues(5)
+        .setLabel('Role (ID atau Nama, pisahkan koma)')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Contoh: Admin, Moderator, 123456789')
         .setRequired(true);
 
-    const roleLabel = new LabelBuilder()
-        .setLabel('Manager Roles')
-        .setDescription('Selected roles will be toggled on/off as manager roles')
-        .setRoleSelectMenuComponent(roleSelect);
-
-    modal.addLabelComponents(roleLabel);
+    modal.addComponents(new ActionRowBuilder().addComponents(roleInput));
 
     await selectInteraction.showModal(modal);
 
@@ -763,7 +746,15 @@ async function handleManagerRole(selectInteraction, rootInteraction, settings, r
             filter: i => i.user.id === selectInteraction.user.id && i.customId === `app_cfg_manager_role_modal_${guildId}`,
         });
 
-        const selectedRoleIds = modalSubmission.fields.getField('manager_roles').values;
+        const rawRoles = modalSubmission.fields.getTextInputValue('manager_roles').split(',');
+        const selectedRoleIds = [];
+        for (const r of rawRoles) {
+            const clean = r.trim().replace(/[<@&>]/g, '');
+            if (!clean) continue;
+            const foundRole = selectInteraction.guild.roles.cache.get(clean)
+                || selectInteraction.guild.roles.cache.find(role => role.name.toLowerCase() === clean.toLowerCase());
+            if (foundRole) selectedRoleIds.push(foundRole.id);
+        }
         const roleSet = new Set(settings.managerRoles ?? []);
 
         for (const roleId of selectedRoleIds) {
@@ -907,27 +898,24 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
         .setCustomId(`app_cfg_role_add_modal_${guildId}`)
         .setTitle('Add Application Role');
 
-    const roleSelect = new RoleSelectMenuBuilder()
+    const roleInput = new TextInputBuilder()
         .setCustomId('application_role')
-        .setPlaceholder('Select the role members can apply for...')
-        .setMinValues(1)
-        .setMaxValues(1)
+        .setLabel('Role (ID atau Nama)')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Masukkan ID role atau nama role')
         .setRequired(true);
-
-    const roleLabel = new LabelBuilder()
-        .setLabel('Application Role')
-        .setDescription('Select the Discord role members will be applying for')
-        .setRoleSelectMenuComponent(roleSelect);
 
     const nameInput = new TextInputBuilder()
         .setCustomId('role_name')
-        .setLabel('Display name (leave blank to use role name)')
+        .setLabel('Display name (opsional)')
         .setStyle(TextInputStyle.Short)
         .setMaxLength(50)
         .setRequired(false);
 
-    modal.addLabelComponents(roleLabel);
-    modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
+    modal.addComponents(
+        new ActionRowBuilder().addComponents(roleInput),
+        new ActionRowBuilder().addComponents(nameInput)
+    );
 
     await selectInteraction.showModal(modal);
 
@@ -937,8 +925,11 @@ async function handleRoleAdd(selectInteraction, rootInteraction, settings, roles
             filter: i => i.user.id === selectInteraction.user.id && i.customId === `app_cfg_role_add_modal_${guildId}`,
         });
 
-        const roleId = modalSubmission.fields.getField('application_role').values[0];
-        const role = selectInteraction.guild.roles.cache.get(roleId);
+        const rawRole = modalSubmission.fields.getTextInputValue('application_role').trim();
+        const cleanRoleId = rawRole.replace(/[<@&>]/g, '');
+        const role = selectInteraction.guild.roles.cache.get(cleanRoleId)
+            || selectInteraction.guild.roles.cache.find(r => r.name.toLowerCase() === rawRole.toLowerCase());
+        const roleId = role?.id || cleanRoleId;
         const customName = modalSubmission.fields.getTextInputValue('role_name').trim() || role?.name || roleId;
 
         if (roles.some(r => r.roleId === roleId)) {
@@ -981,19 +972,14 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
         .setCustomId(`app_cfg_role_remove_modal_${guildId}`)
         .setTitle('Remove Application Role');
 
-    const roleSelect = new RoleSelectMenuBuilder()
+    const roleInput = new TextInputBuilder()
         .setCustomId('remove_role')
-        .setPlaceholder('Select the role to remove...')
-        .setMinValues(1)
-        .setMaxValues(1)
+        .setLabel('Role (ID atau Nama)')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Masukkan ID role atau nama role yang ingin dihapus')
         .setRequired(true);
 
-    const roleLabel = new LabelBuilder()
-        .setLabel('Remove Application Role')
-        .setDescription('Select the role to remove from the applications list')
-        .setRoleSelectMenuComponent(roleSelect);
-
-    modal.addLabelComponents(roleLabel);
+    modal.addComponents(new ActionRowBuilder().addComponents(roleInput));
 
     await selectInteraction.showModal(modal);
 
@@ -1003,8 +989,12 @@ async function handleRoleRemove(selectInteraction, rootInteraction, settings, ro
             filter: i => i.user.id === selectInteraction.user.id && i.customId === `app_cfg_role_remove_modal_${guildId}`,
         });
 
-        const roleId = modalSubmission.fields.getField('remove_role').values[0];
-        const index = roles.findIndex(r => r.roleId === roleId);
+        const rawRole = modalSubmission.fields.getTextInputValue('remove_role').trim();
+        const cleanRoleId = rawRole.replace(/[<@&>]/g, '');
+        const role = selectInteraction.guild.roles.cache.get(cleanRoleId)
+            || selectInteraction.guild.roles.cache.find(r => r.name.toLowerCase() === rawRole.toLowerCase());
+        const roleId = role?.id || cleanRoleId;
+        const index = roles.findIndex(r => r.roleId === roleId || r.name.toLowerCase() === rawRole.toLowerCase());
 
         if (index === -1) {
             await replyUserError(modalSubmission, { type: ErrorTypes.USER_INPUT, message: `<@&${roleId}> is not in the application roles list.` });
@@ -1035,40 +1025,28 @@ async function handleRetention(selectInteraction, rootInteraction, settings, rol
         .setCustomId('app_cfg_retention')
         .setTitle('Application Retention Periods');
 
-    const retentionInfo = new TextDisplayBuilder()
-        .setContent(
-            '**Pending** — how long unanswered/in-progress applications are kept before being automatically removed.\n' +
-            '**Reviewed** — how long approved or denied applications are kept.\n' +
-            '-# Enter a whole number between 1 and 3650 (max 10 years).',
-        );
+    const pendingInput = new TextInputBuilder()
+        .setCustomId('pending_days')
+        .setLabel('Pending retention (hari, 1-3650)')
+        .setStyle(TextInputStyle.Short)
+        .setValue(String(settings.pendingApplicationRetentionDays ?? 30))
+        .setMaxLength(4)
+        .setMinLength(1)
+        .setRequired(true);
 
-    const pendingLabel = new LabelBuilder()
-        .setLabel('Pending retention (days)')
-        .setTextInputComponent(
-            new TextInputBuilder()
-                .setCustomId('pending_days')
-                .setStyle(TextInputStyle.Short)
-                .setValue(String(settings.pendingApplicationRetentionDays ?? 30))
-                .setMaxLength(4)
-                .setMinLength(1)
-                .setRequired(true),
-        );
+    const reviewedInput = new TextInputBuilder()
+        .setCustomId('reviewed_days')
+        .setLabel('Reviewed retention (hari, 1-3650)')
+        .setStyle(TextInputStyle.Short)
+        .setValue(String(settings.reviewedApplicationRetentionDays ?? 14))
+        .setMaxLength(4)
+        .setMinLength(1)
+        .setRequired(true);
 
-    const reviewedLabel = new LabelBuilder()
-        .setLabel('Reviewed retention (days)')
-        .setTextInputComponent(
-            new TextInputBuilder()
-                .setCustomId('reviewed_days')
-                .setStyle(TextInputStyle.Short)
-                .setValue(String(settings.reviewedApplicationRetentionDays ?? 14))
-                .setMaxLength(4)
-                .setMinLength(1)
-                .setRequired(true),
-        );
-
-    modal
-        .addTextDisplayComponents(retentionInfo)
-        .addLabelComponents(pendingLabel, reviewedLabel);
+    modal.addComponents(
+        new ActionRowBuilder().addComponents(pendingInput),
+        new ActionRowBuilder().addComponents(reviewedInput)
+    );
 
     await selectInteraction.showModal(modal);
 
