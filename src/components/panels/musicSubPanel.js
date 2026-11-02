@@ -42,3 +42,4 @@ export async function renderMusicSubPanel(client, guild) {
     components: [buttonRow],
   };
 }
+

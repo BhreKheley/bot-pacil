@@ -57,3 +57,4 @@ export async function renderWelcomeSubPanel(client, guild) {
     components: [buttonRow],
   };
 }
+
