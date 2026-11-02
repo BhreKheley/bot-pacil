@@ -20,3 +20,4 @@ export async function saveUserBoosterRole(client, guildId, userId, data) {
 export async function deleteUserBoosterRole(client, guildId, userId) {
   return await client.db.delete(boosterRoleKey(guildId, userId));
 }
+
