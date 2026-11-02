@@ -22,6 +22,67 @@ export const PACIL_TOKENS = Object.freeze({
 
 export const PACIL_FOOTER = 'Pacil Baik • Fasilkom UI';
 
+export const PACIL_COLORS = Object.freeze({
+  navy: 0x0D3A73,
+  gold: 0xF2A900,
+  success: 0x10B981,
+  error: 0xEF4444,
+  warning: 0xF59E0B,
+  info: 0x0284C7,
+});
+
+/**
+ * Utilitas terpusat untuk membuat Embed dengan warna kebanggaan Fasilkom UI.
+ * @param {{
+ *   title: string,
+ *   description?: string,
+ *   tone?: 'navy' | 'gold' | 'success' | 'warning' | 'error' | 'info',
+ *   color?: string | number,
+ *   fields?: { name: string, value: string, inline?: boolean }[],
+ *   footer?: string,
+ *   thumbnail?: string,
+ *   author?: { name: string, iconURL?: string }
+ * }} opts
+ */
+export function buildPacilEmbed({
+  title,
+  description,
+  tone = 'navy',
+  color,
+  fields = [],
+  footer,
+  thumbnail,
+  author,
+} = {}) {
+  const chosenColor = color
+    ? (typeof color === 'string' ? getColor(color) : color)
+    : (PACIL_COLORS[tone] ?? PACIL_COLORS.navy);
+
+  const embed = new EmbedBuilder()
+    .setTitle(title)
+    .setColor(chosenColor)
+    .setFooter({ text: footer ?? PACIL_FOOTER })
+    .setTimestamp();
+
+  if (description) embed.setDescription(description.slice(0, 4000));
+  if (fields.length) {
+    embed.addFields(
+      fields
+        .filter((f) => f?.name && f?.value)
+        .slice(0, 25)
+        .map((f) => ({
+          name: f.name.slice(0, 256),
+          value: String(f.value).slice(0, 1024),
+          inline: Boolean(f.inline),
+        }))
+    );
+  }
+  if (thumbnail) embed.setThumbnail(thumbnail);
+  if (author) embed.setAuthor(author);
+
+  return embed;
+}
+
 /**
  * Embed panel Pacil. Judul diberi satu emoji saja; isi memakai teks biasa.
  * @param {{ title: string, description?: string, icon?: string, tone?: keyof typeof PACIL_TOKENS, color?: string,

@@ -53,8 +53,53 @@ async function openReplyModal(interaction, client, [id]) {
   return interaction.showModal(modal);
 }
 
+async function openConfessModal(interaction, client) {
+  if (!interaction.guildId) return;
+  const config = getConfessionConfig(await getGuildConfig(client, interaction.guildId));
+  if (!config.enabled || !config.channelId) {
+    return interaction.reply({ content: t(interaction, config.enabled ? 'notConfigured' : 'disabled'), flags: MessageFlags.Ephemeral });
+  }
+  const modal = new ModalBuilder()
+    .setCustomId(`confession_modal:${interaction.guildId}`)
+    .setTitle('Kirim Menfess Pacil');
+
+  const fromInput = new TextInputBuilder()
+    .setCustomId('from')
+    .setLabel('From (Nama samaran / inisial / kosongkan)')
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder('Contoh: Anonim, Si Kacamata, dll.')
+    .setMaxLength(50)
+    .setRequired(false);
+
+  const toInput = new TextInputBuilder()
+    .setCustomId('to')
+    .setLabel('To (Target penerima: Angkatan/Kelas/dll)')
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder('Contoh: Angkatan 24, DAA Kelas B, dll.')
+    .setMaxLength(100)
+    .setRequired(true);
+
+  const messageInput = new TextInputBuilder()
+    .setCustomId('content')
+    .setLabel('Message (Isi curhatan kamu)')
+    .setStyle(TextInputStyle.Paragraph)
+    .setPlaceholder('Tulis pesan atau curhatan kamu di sini...')
+    .setMinLength(1)
+    .setMaxLength(1800)
+    .setRequired(true);
+
+  modal.addComponents(
+    new ActionRowBuilder().addComponents(fromInput),
+    new ActionRowBuilder().addComponents(toInput),
+    new ActionRowBuilder().addComponents(messageInput)
+  );
+
+  return interaction.showModal(modal);
+}
+
 export default [
   { name: 'confessApprove', execute: (interaction, client, args) => review(interaction, client, args, 'approve') },
   { name: 'confessReject', execute: (interaction, client, args) => review(interaction, client, args, 'reject') },
   { name: 'confessReply', execute: openReplyModal },
+  { name: 'confessOpen', execute: openConfessModal },
 ];

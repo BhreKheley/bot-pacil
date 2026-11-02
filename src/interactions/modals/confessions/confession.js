@@ -13,6 +13,15 @@ export default {
     if (!config.enabled || !config.channelId) {
       return interaction.reply({ content: t(interaction, config.enabled ? 'missingChannel' : 'disabled'), flags: MessageFlags.Ephemeral });
     }
+    let from = 'Anonim';
+    let to = 'Warga Fasilkom UI';
+    try {
+      from = interaction.fields.getTextInputValue('from')?.trim() || 'Anonim';
+    } catch {}
+    try {
+      to = interaction.fields.getTextInputValue('to')?.trim() || 'Warga Fasilkom UI';
+    } catch {}
+
     const content = interaction.fields.getTextInputValue('content')?.trim();
     if (!content) return interaction.reply({ content: t(interaction, 'invalidContent'), flags: MessageFlags.Ephemeral });
     const cooldownKey = confessionCooldownKey(interaction.guildId, interaction.user.id);
@@ -26,7 +35,16 @@ export default {
     if (!destination?.isTextBased()) {
       return interaction.reply({ content: t(interaction, config.requireApproval ? 'missingReview' : 'missingChannel'), flags: MessageFlags.Ephemeral });
     }
-    const confession = { id: newConfessionId(), guildId: interaction.guildId, authorId: interaction.user.id, content: content.slice(0, MAX_CONTENT), status: config.requireApproval ? 'pending' : 'published', createdAt: Date.now() };
+    const confession = {
+      id: newConfessionId(),
+      guildId: interaction.guildId,
+      authorId: interaction.user.id,
+      from,
+      to,
+      content: content.slice(0, MAX_CONTENT),
+      status: config.requireApproval ? 'pending' : 'published',
+      createdAt: Date.now()
+    };
     // Alur langsung: terbitkan dulu agar publishedMessageId ikut tersimpan (dibutuhkan fitur balasan).
     if (!config.requireApproval) await publishConfession(destination, confession, config, interaction);
     await client.db.set(confessionKey(interaction.guildId, confession.id), confession);
