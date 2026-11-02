@@ -15,7 +15,13 @@ Pakai Postgres online, misalnya [Neon](https://neon.tech) atau [Supabase](https:
    ```
 3. Jalankan `npm start`. Di log harus muncul koneksi sukses dan **tidak ada** tulisan `DATABASE DEGRADED MODE`.
 
-Catatan: pakai connection string versi *direct* bila ada pilihan "pooled" dan "direct". Jangan pernah menaruh `.env` di GitHub.
+### Khusus Supabase
+- Di dasbor Supabase klik **Connect**, lalu pilih **Session pooler** (bukan "Direct connection"). Host direct (`db.<ref>.supabase.co`) hanya IPv6, sehingga di banyak jaringan rumah/VPS akan `ENOTFOUND` atau `ECONNREFUSED`. Usernya berbentuk `postgres.<ref>`.
+- Ganti `[YOUR-PASSWORD]` dengan password database. Kalau lupa, reset di **Project Settings → Database**. Karakter khusus di password harus di-URL-encode (mis. `@` menjadi `%40`).
+- Tambahkan `POSTGRES_MAX_CONNECTIONS=5` dan `POSTGRES_MIN_CONNECTIONS=1` di `.env` agar tidak melewati batas koneksi paket gratis.
+- Peringatan "RLS enabled, no policy" di Supabase wajar: tabel terkunci dari API publik, sedangkan bot masuk lewat koneksi Postgres langsung.
+
+Jangan pernah menaruh `.env` di GitHub.
 
 ## 2. Menyala 24/7
 
