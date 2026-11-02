@@ -33,13 +33,13 @@ Bisa VPS murah atau Oracle Cloud "Always Free" (ketersediaannya berubah-ubah, ce
 ```bash
 sudo apt update && sudo apt install -y docker.io docker-compose-plugin git
 git clone https://github.com/BhreKheley/bot-pacil.git && cd bot-pacil
-git checkout pacil-overhaul
+git checkout refactor/pacil-overhaul-v3
 cp .env.example .env && nano .env      # isi DISCORD_TOKEN, CLIENT_ID, GUILD_ID
 docker compose up -d --build           # bot + Postgres sendiri, otomatis restart
 docker compose logs -f bot             # lihat log
 ```
 
-`docker compose` sudah menyertakan Postgres, jadi di VPS kamu **tidak perlu** Neon. Update bot: `git pull && docker compose up -d --build`.
+`docker compose` sudah menyertakan Postgres dan restart policy `unless-stopped`, jadi di VPS kamu **tidak perlu** repot setup database luar. Update bot cukup: `git pull && docker compose up -d --build`.
 
 Catatan data lama: nama database default tetap `titanbot` supaya data produksi lama tidak hilang. Instalasi baru boleh memakai `POSTGRES_DB=pacilbot` di `.env`.
 

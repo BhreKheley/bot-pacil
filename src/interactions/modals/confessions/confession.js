@@ -46,7 +46,20 @@ export default {
       createdAt: Date.now()
     };
     // Alur langsung: terbitkan dulu agar publishedMessageId ikut tersimpan (dibutuhkan fitur balasan).
-    if (!config.requireApproval) await publishConfession(destination, confession, config, interaction);
+    if (!config.requireApproval) {
+      await publishConfession(destination, confession, config, interaction);
+      
+      // Kirim log internal ke channel review/log admin jika ada, untuk mitigasi cyberbullying
+      if (config.reviewChannelId && config.reviewChannelId !== config.channelId) {
+        const adminLogChannel = await interaction.guild.channels.fetch(config.reviewChannelId).catch(() => null);
+        if (adminLogChannel?.isTextBased()) {
+          await adminLogChannel.send({
+            embeds: [reviewConfessionEmbed(confession, interaction)],
+            allowedMentions: { parse: [] },
+          }).catch(() => {});
+        }
+      }
+    }
     await client.db.set(confessionKey(interaction.guildId, confession.id), confession);
     await registerShortId(client, interaction.guildId, 'confession', confession.id);
     await client.db.set(cooldownKey, Date.now());

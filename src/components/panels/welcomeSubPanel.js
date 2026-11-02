@@ -2,6 +2,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  MessageFlags,
 } from 'discord.js';
 import { buildPacilEmbed } from '../../ui/pacil.js';
 import { getGuildConfig } from '../../services/config/guildConfig.js';
@@ -11,33 +12,29 @@ export async function renderWelcomeSubPanel(client, guild) {
   const welcome = guildConfig.welcome || {};
 
   const embed = buildPacilEmbed({
-    title: '⚙️ Sub-Panel: Welcome System',
+    title: '⚙️ Sub-Panel: Welcome System (Arrival)',
     description:
-      'Konfigurasi salam penyambutan hangat bagi mahasiswa baru yang baru bergabung ke server Pacil Baik Fasilkom UI.',
+      'Pengaturan kedatangan mahasiswa baru di server Pacil Baik Fasilkom UI.\n' +
+      'Desain arrival dibuat minimalis namun berdampak, dilengkapi avatar resolusi tinggi dan info tracker pengundang.',
     tone: 'gold',
     fields: [
       {
         name: '📢 Status Sambutan',
-        value: welcome.enabled ? '🟢 **Aktif**' : '🔴 **Nonaktif**',
+        value: welcome.enabled ? '🟢 **Aktif (Enabled)**' : '🔴 **Nonaktif (Disabled)**',
         inline: true,
       },
       {
         name: '🎯 Channel Tujuan',
-        value: welcome.channelId ? `<#${welcome.channelId}>` : '*Belum diatur*',
+        value: welcome.channelId ? `<#${welcome.channelId}>` : '*Belum dikonfigurasi*',
         inline: true,
       },
       {
-        name: '🎨 Kartu Gambar',
-        value: welcome.cardEnabled !== false ? '🟢 **Aktif**' : '🔴 **Nonaktif**',
-        inline: true,
-      },
-      {
-        name: '💡 Tips',
-        value: 'Gunakan `/greet setup` untuk mengubah template pesan dan gambar secara mendalam.',
+        name: '🎨 Format Tampilan',
+        value: '• High-res avatar thumbnail\n• Pelacak "Diundang oleh"\n• Nomor urut "Member Ke-"\n• Panduan ke `#start-here`',
         inline: false,
       },
     ],
-    footer: 'Pacil Baik • Welcome Automation',
+    footer: 'Makara Fasilkom UI • Pacil Bot',
   });
 
   const buttonRow = new ActionRowBuilder().addComponents(
@@ -45,6 +42,11 @@ export async function renderWelcomeSubPanel(client, guild) {
       .setCustomId('setupAction:toggle_welcome')
       .setLabel(welcome.enabled ? 'Nonaktifkan Welcome' : 'Aktifkan Welcome')
       .setEmoji('⚙️')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('setupAction:test_welcome')
+      .setLabel('Preview Greeting')
+      .setEmoji('👁️')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('setupBackMain')
@@ -57,4 +59,3 @@ export async function renderWelcomeSubPanel(client, guild) {
     components: [buttonRow],
   };
 }
-
