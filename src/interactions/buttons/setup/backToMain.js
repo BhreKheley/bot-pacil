@@ -10,3 +10,4 @@ export default {
     return await interaction.update(panel);
   },
 };
+

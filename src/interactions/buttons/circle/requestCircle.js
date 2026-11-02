@@ -26,3 +26,4 @@ export default {
     return await interaction.showModal(modal);
   },
 };
+
