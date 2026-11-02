@@ -148,3 +148,4 @@ export async function renderRulesGuideSubPanel(client, guild) {
     components: [buttonRow],
   };
 }
+

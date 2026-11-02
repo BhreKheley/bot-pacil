@@ -8,3 +8,4 @@ export default {
     return await interaction.update(updated);
   },
 };
+
