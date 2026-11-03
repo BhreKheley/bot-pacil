@@ -15,6 +15,19 @@ import { renderMusicStatusEmbed } from '../../../ui/panels/musicSubPanel.js';
 
 export async function handleSetupAction(interaction, client, action) {
   {
+    if (action === 'circle_approval_on' || action === 'circle_approval_off') {
+      const on = action === 'circle_approval_on';
+      await patchGuildConfig(client, interaction.guildId, {
+        circle: { requireApproval: on, reviewChannelId: on ? interaction.channelId : null },
+      });
+      return interaction.reply({
+        content: on
+          ? `✅ Permintaan Circle kini butuh persetujuan; antrean dikirim ke <#${interaction.channelId}>.`
+          : '✅ Persetujuan Circle dimatikan; circle langsung dibuat.',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
     // 1. Pasang Panel Publik Circle
     if (action === 'deploy_circle_panel') {
       const panelEmbed = buildPacilEmbed({

@@ -51,6 +51,15 @@ export async function renderCircleSubPanel(client, guild) {
       .setEmoji('📋')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
+      .setCustomId('setup:act:circle_approval_on')
+      .setLabel('Persetujuan: Aktif di Channel Ini')
+      .setEmoji('🛂')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId('setup:act:circle_approval_off')
+      .setLabel('Matikan Persetujuan')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
       .setCustomId('setup:back')
       .setLabel('🔙 Back to Main Menu')
       .setStyle(ButtonStyle.Primary)

@@ -6,43 +6,30 @@ import {
 } from 'discord.js';
 import { buildPacilEmbed } from '../pacil.js';
 
-export function getMusicBotsStatus(guild) {
-  // Daftar prefix / identifikasi nama bot musik umum di komunitas Discord kampus
-  const musicBotKeywords = ['jockie', 'flavi', 'lofi', 'rythm', 'fredboat', 'chip', 'groovy', 'music', 'bot'];
-  
-  const botMembers = guild.members.cache.filter(m => m.user.bot && m.id !== guild.client.user.id);
+const MUSIC_BOT_KEYWORDS = ['jockie', 'flavi', 'lofi', 'rythm', 'fredboat', 'chip', 'groovy', 'music'];
+
+/**
+ * Daftar bot musik: prioritas ID eksplisit (opsi `musicBotIds` atau env MUSIC_BOT_IDS, dipisah koma),
+ * cadangan: tebakan dari nama. Bot sedang di voice = In Use; presence 'offline' eksplisit = Offline;
+ * selain itu Available (presence hanya tersedia bila intent GuildPresences aktif).
+ */
+export function getMusicBotsStatus(guild, musicBotIds = []) {
+  const ids = new Set([...(musicBotIds ?? []), ...(process.env.MUSIC_BOT_IDS ?? '').split(',')].map((v) => String(v).trim()).filter(Boolean));
+  const botMembers = guild.members.cache.filter((m) => m.user.bot && m.id !== guild.client.user.id);
   const detectedMusicBots = [];
 
   for (const [, member] of botMembers) {
     const username = member.user.username.toLowerCase();
-    const isCandidate = musicBotKeywords.some(keyword => username.includes(keyword));
-    
-    if (isCandidate) {
-      const voiceChannel = member.voice?.channel;
-      let status = 'offline';
-      let channelName = '';
+    const isCandidate = ids.size > 0 ? ids.has(member.id) : MUSIC_BOT_KEYWORDS.some((k) => username.includes(k));
+    if (!isCandidate) continue;
 
-      if (member.presence?.status && member.presence.status !== 'offline') {
-        if (voiceChannel) {
-          status = 'in_use';
-          channelName = voiceChannel.name;
-        } else {
-          status = 'available';
-        }
-      } else if (voiceChannel) {
-        status = 'in_use';
-        channelName = voiceChannel.name;
-      }
+    const voiceChannel = member.voice?.channel;
+    let status = 'available';
+    if (voiceChannel) status = 'in_use';
+    else if (member.presence?.status === 'offline') status = 'offline';
 
-      detectedMusicBots.push({
-        id: member.id,
-        name: member.user.username,
-        status,
-        channelName,
-      });
-    }
+    detectedMusicBots.push({ id: member.id, name: member.user.username, status, channelName: voiceChannel?.name ?? '' });
   }
-
   return detectedMusicBots;
 }
 
