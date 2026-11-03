@@ -1,6 +1,7 @@
 // leveling.js
 
-import { EmbedBuilder } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../ui/pacil.js';
+
 import { logger } from '../../utils/logger.js';
 import { getGuildConfig, setGuildConfig } from '../config/guildConfig.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
@@ -118,9 +119,9 @@ export async function getLeaderboard(client, guildId, limit = 10) {
 }
 
 export function createLeaderboardEmbed(leaderboard, guild) {
-  const embed = new EmbedBuilder()
+  const embed = pacilEmbed()
     .setTitle(`🏆 ${guild.name} Leaderboard`)
-    .setColor('#2ecc71')
+    .setColor(PACIL_COLORS.success)
     .setTimestamp();
     
   if (!leaderboard || leaderboard.length === 0) {

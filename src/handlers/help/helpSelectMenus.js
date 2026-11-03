@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../ui/pacil.js';
 import { createEmbed } from '../../utils/embeds.js';
 import { createButton, getPaginationRow } from '../../utils/components.js';
 import { getCommandStatus, CommandStatus } from '../../services/commandStatusService.js';
@@ -15,7 +16,6 @@ const BACK_BUTTON_ID = "help-back-to-main";
 const ALL_COMMANDS_ID = "help-all-commands";
 const PAGINATION_PREFIX = "help-page";
 const CATEGORY_SELECT_ID = "help-category-select";
-const FOOTER_TEXT = "Pacil Baik • Fasilkom UI";
 const SUBCOMMAND_TYPE = 1;
 const SUBCOMMAND_GROUP_TYPE = 2;
 
@@ -254,7 +254,7 @@ export async function createCategoryCommandsMenu(category, client, guildId = nul
         });
     }
 
-    embed.setFooter({ text: FOOTER_TEXT });
+    embed.setFooter({ text: pacilFooter() });
     embed.setTimestamp();
 
     const backButton = createButton(
@@ -363,7 +363,7 @@ export async function createAllCommandsMenu(page = 1, client, guildId = null) {
         color: 'primary',
     });
 
-    embed.setFooter({ text: `${FOOTER_TEXT} • Halaman ${safePage}/${totalPages}` });
+    embed.setFooter({ text: pacilFooter(`Halaman ${safePage}/${totalPages}`) });
     embed.setTimestamp();
 
     if (pageCommandsWithStatus.length > 0) {

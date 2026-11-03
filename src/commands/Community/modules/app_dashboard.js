@@ -1,20 +1,6 @@
+import { pacilEmbed, pacilFooter } from '../../../ui/pacil.js';
 import { getColor, getDefaultApplicationQuestions, botConfig } from '../../../config/bot.js';
-import {
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ChannelSelectMenuBuilder,
-    RoleSelectMenuBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ChannelType,
-    MessageFlags,
-    ComponentType,
-    EmbedBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelSelectMenuBuilder, RoleSelectMenuBuilder, ButtonBuilder, ButtonStyle, ChannelType, MessageFlags, ComponentType } from 'discord.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { successEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -52,7 +38,7 @@ async function buildDashboardEmbed(settings, roles, guild, client) {
             ? `\`${settings.questions[0].length > 55 ? settings.questions[0].substring(0, 55) + '…' : settings.questions[0]}\``
             : '`Not set`';
 
-    return new EmbedBuilder()
+    return pacilEmbed()
         .setTitle('Applications Dashboard')
         .setDescription(`Manage application settings for **${guild.name}**.\nSelect an option below to modify a setting.`)
         .setColor(getColor('info'))
@@ -69,7 +55,7 @@ async function buildDashboardEmbed(settings, roles, guild, client) {
                 inline: false,
             },
         )
-        .setFooter({ text: 'Dashboard closes after 15 minutes of inactivity' })
+        .setFooter({ text: pacilFooter('Dashboard closes after 15 minutes of inactivity') })
         .setTimestamp();
 }
 
@@ -206,7 +192,7 @@ async function showApplicationSelector(interaction, roles, settings, guildId, cl
             ),
         );
 
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('Select Application')
         .setDescription('Choose which application role you want to configure.')
         .setColor(getColor('info'));
@@ -281,7 +267,7 @@ async function showApplicationDashboard(rootInteraction, selectedRole, settings,
         ? settings.managerRoles.map(id => `<@&${id}>`).join(',')
         : '`None configured`';
 
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('📋 Application Dashboard')
         .setDescription(`Configuration for **${selectedRole.name}**`)
         .setColor(isEnabled ? getColor('success') : getColor('error'))
@@ -318,7 +304,7 @@ async function showApplicationDashboard(rootInteraction, selectedRole, settings,
                 inline: false 
             },
         )
-        .setFooter({ text: 'Dashboard closes after 10 minutes of inactivity' })
+        .setFooter({ text: pacilFooter('Dashboard closes after 10 minutes of inactivity') })
         .setTimestamp();
 
     const configMenu = buildApplicationSelectMenu(guildId, selectedRole.roleId);
@@ -410,7 +396,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
     collector.on('end', async (collected, reason) => {
         if (reason === 'time') {
-            const timeoutEmbed = new EmbedBuilder()
+            const timeoutEmbed = pacilEmbed()
                 .setTitle('\u23f0 Dashboard Timed Out')
                 .setDescription('This dashboard has been closed due to inactivity. Please run the command again to continue.')
                 .setColor(getColor('error'));
@@ -468,7 +454,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
         globalToggleCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
-                const timeoutEmbed = new EmbedBuilder()
+                const timeoutEmbed = pacilEmbed()
                     .setTitle('Configuration Timeout')
                     .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
                     .setColor(getColor('warning'));
@@ -555,7 +541,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
         btnCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
-                const timeoutEmbed = new EmbedBuilder()
+                const timeoutEmbed = pacilEmbed()
                     .setTitle('Configuration Timeout')
                     .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
                     .setColor(getColor('warning'));
@@ -622,7 +608,7 @@ function setupCollectors(interaction, settings, roles, guildId, client, selected
 
         toggleCollector.on('end', async (collected, reason) => {
             if (reason === 'time') {
-                const timeoutEmbed = new EmbedBuilder()
+                const timeoutEmbed = pacilEmbed()
                     .setTitle('Configuration Timeout')
                     .setDescription('This dashboard session has timed out due to inactivity (10 minutes).\n\nTo continue configuring your applications, please run the command again.')
                     .setColor(getColor('warning'));

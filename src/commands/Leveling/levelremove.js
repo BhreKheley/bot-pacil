@@ -1,4 +1,5 @@
-import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../ui/pacil.js';
+import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { checkUserPermissions } from '../../utils/permissionGuard.js';
@@ -41,8 +42,8 @@ export default {
     if (!levelingConfig?.enabled) {
       await InteractionHelper.safeEditReply(interaction, {
         embeds: [
-          new EmbedBuilder()
-            .setColor('#f1c40f')
+          pacilEmbed()
+            .setColor(PACIL_COLORS.gold)
             .setDescription('The leveling system is currently disabled on this server.')
         ],
         flags: MessageFlags.Ephemeral

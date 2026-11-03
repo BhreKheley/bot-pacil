@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../../ui/pacil.js';
 import axios from 'axios';
 import { createEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -60,7 +61,7 @@ export default {
                 }
             });
 
-            embed.setFooter({ text: 'Powered by Free Dictionary API' });
+            embed.setFooter({ text: pacilFooter('Powered by Free Dictionary API') });
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
 

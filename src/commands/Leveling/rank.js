@@ -1,4 +1,5 @@
-import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../ui/pacil.js';
+import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { getUserLevelData, getLevelingConfig, getXpForLevel } from '../../services/leveling/leveling.js';
@@ -24,8 +25,8 @@ export default {
     if (!levelingConfig?.enabled) {
       await InteractionHelper.safeEditReply(interaction, {
         embeds: [
-          new EmbedBuilder()
-            .setColor('#f1c40f')
+          pacilEmbed()
+            .setColor(PACIL_COLORS.gold)
             .setDescription('The leveling system is currently disabled on this server.')
         ],
         flags: MessageFlags.Ephemeral
@@ -58,7 +59,7 @@ export default {
     const progress = xpNeeded > 0 ? Math.floor((safeUserData.xp / xpNeeded) * 100) : 0;
     const progressBar = createProgressBar(progress, 20);
 
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
       .setTitle(`${member.displayName}'s Rank`)
       .setThumbnail(member.displayAvatarURL({ dynamic: true }))
       .addFields(
@@ -82,7 +83,7 @@ export default {
           value: `${progressBar} ${progress}%`
         }
       )
-      .setColor('#2ecc71')
+      .setColor(PACIL_COLORS.success)
       .setTimestamp();
 
     await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });

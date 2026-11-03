@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../ui/pacil.js';
 import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ComponentType } from 'discord.js';
 import { createEmbed, successEmbed } from '../../utils/embeds.js';
 import { getColor, getApplicationStatusColor } from '../../config/bot.js';
@@ -533,9 +534,7 @@ async function handleList(interaction) {
                 });
             });
 
-            embed.setFooter({
-                text: "Users can apply with /apply submit or see available roles with /apply list"
-            });
+            embed.setFooter({ text: pacilFooter("Users can apply with /apply submit or see available roles with /apply list") });
 
             return InteractionHelper.safeEditReply(interaction, { embeds: [embed], flags: ["Ephemeral"] });
         } else {

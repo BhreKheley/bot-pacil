@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../ui/pacil.js';
 import { getColor, getDefaultApplicationQuestions } from '../../config/bot.js';
 import { SlashCommandBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { createEmbed, successEmbed } from '../../utils/embeds.js';
@@ -245,9 +246,7 @@ async function handleList(interaction) {
             });
         });
 
-        embed.setFooter({
-            text: "Use /apply submit application:<name> to apply for any of these roles."
-        });
+        embed.setFooter({ text: pacilFooter("Use /apply submit application:<name> to apply for any of these roles.") });
 
         return InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     } catch (error) {
@@ -391,7 +390,7 @@ async function handleStatus(interaction) {
         });
 
         if (applications.length > recentApplications.length) {
-            embed.setFooter({ text: `Showing latest ${recentApplications.length} of ${applications.length} applications.` });
+            embed.setFooter({ text: pacilFooter(`Showing latest ${recentApplications.length} of ${applications.length} applications.`) });
         }
 
         return InteractionHelper.safeEditReply(interaction, { embeds: [embed], flags: ["Ephemeral"] });

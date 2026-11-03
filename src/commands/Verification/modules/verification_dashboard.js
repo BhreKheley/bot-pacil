@@ -1,20 +1,6 @@
+import { pacilEmbed, pacilFooter } from '../../../ui/pacil.js';
 import { botConfig, getColor } from '../../../config/bot.js';
-import {
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ChannelSelectMenuBuilder,
-    RoleSelectMenuBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ChannelType,
-    MessageFlags,
-    ComponentType,
-    EmbedBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelSelectMenuBuilder, RoleSelectMenuBuilder, ButtonBuilder, ButtonStyle, ChannelType, MessageFlags, ComponentType } from 'discord.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { successEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -36,7 +22,7 @@ async function updateLivePanel(guild, cfg) {
         const msg = await channel.messages.fetch(cfg.messageId).catch(() => null);
         if (!msg) return;
 
-        const verifyEmbed = new EmbedBuilder()
+        const verifyEmbed = pacilEmbed()
             .setTitle('Server Verification')
             .setDescription(cfg.message || botConfig.verification.defaultMessage)
             .setColor(getColor('success'));
@@ -63,7 +49,7 @@ function buildDashboardEmbed(cfg, guild, verifiedUserCount = 0, conflictSummary 
     const buttonText = cfg.buttonText || botConfig.verification.defaultButtonText;
     const panelStatusValue = cfg.channelId ? formatPanelStatusField(panelStatus) : '`Not configured`';
 
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('✅ Verification System Dashboard')
         .setDescription(`Manage verification settings for **${guild.name}**.\nSelect an option below to modify a setting.`)
         .setColor(getColor('info'))
@@ -83,7 +69,7 @@ function buildDashboardEmbed(cfg, guild, verifiedUserCount = 0, conflictSummary 
     }
 
     return embed
-        .setFooter({ text: 'Dashboard closes after 10 minutes of inactivity' })
+        .setFooter({ text: pacilFooter('Dashboard closes after 10 minutes of inactivity') })
         .setTimestamp();
 }
 
@@ -155,7 +141,7 @@ async function repostVerificationPanel(guild, cfg) {
         );
     }
 
-    const verifyEmbed = new EmbedBuilder()
+    const verifyEmbed = pacilEmbed()
         .setTitle('Server Verification')
         .setDescription(cfg.message || botConfig.verification.defaultMessage)
         .setColor(getColor('success'));
@@ -373,7 +359,7 @@ export default {
                 onTimeout: async (rootInteraction) => {
                     await InteractionHelper.safeEditReply(rootInteraction, {
                         embeds: [
-                            new EmbedBuilder()
+                            pacilEmbed()
                                 .setTitle('Dashboard Timed Out')
                                 .setDescription('This dashboard has been closed due to inactivity. Please run the command again to continue.')
                                 .setColor(getColor('error')),
@@ -406,7 +392,7 @@ async function handleChannel(selectInteraction, rootInteraction, cfg, guildId, c
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('Change Verification Channel')
                 .setDescription(
                     `**Current:** ${cfg.channelId ?`<#${cfg.channelId}>`: '`Not set`'}\n\nSelect the channel where the verification panel will be posted.\n\n> ⚠️ The existing panel will be deleted and re-posted in the new channel.`,
@@ -451,7 +437,7 @@ async function handleChannel(selectInteraction, rootInteraction, cfg, guildId, c
 
         if (cfg.enabled !== false) {
             try {
-                const verifyEmbed = new EmbedBuilder()
+                const verifyEmbed = pacilEmbed()
                     .setTitle('Server Verification')
                     .setDescription(cfg.message || botConfig.verification.defaultMessage)
                     .setColor(getColor('success'));
@@ -504,7 +490,7 @@ async function handleRole(selectInteraction, rootInteraction, cfg, guildId, clie
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('Change Verified Role')
                 .setDescription(
                     `**Current:** ${cfg.roleId ?`<@&${cfg.roleId}>`: '`Not set`'}\n\nSelect the role to assign when a user verifies.`,

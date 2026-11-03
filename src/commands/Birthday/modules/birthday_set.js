@@ -1,4 +1,5 @@
-import { EmbedBuilder } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../../ui/pacil.js';
+
 import { setBirthday } from '../../../services/birthdayService.js';
 
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
@@ -13,8 +14,8 @@ export default {
 
         const result = await setBirthday(client, guildId, userId, month, day);
 
-        const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+        const embed = pacilEmbed()
+            .setColor(PACIL_COLORS.success)
             .setTitle('Birthday Set!')
             .setDescription(`Your birthday has been set to **${result.data.monthName} ${result.data.day}**!`);
 

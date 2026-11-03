@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../ui/pacil.js';
 import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import { createEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
 import { logger } from '../../utils/logger.js';
@@ -59,7 +60,7 @@ export default {
                     .setImage(colorPreviewUrl);
 
                 if (isRandom) {
-                    embed.setFooter({ text: 'Randomly generated color' });
+                    embed.setFooter({ text: pacilFooter('Randomly generated color') });
                 }
 
                 await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });

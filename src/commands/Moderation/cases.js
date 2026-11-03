@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../ui/pacil.js';
 import { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, MessageFlags } from 'discord.js';
 import { createEmbed, successEmbed } from '../../utils/embeds.js';
 import { getModerationCases } from '../../utils/moderation.js';
@@ -91,7 +92,7 @@ export default {
                 });
 
                 embed.setFooter({
-                    text: `Total cases: ${cases.length} | Filter: ${filterType}${targetUser ?` | User: ${targetUser.tag}`: ''}`
+                    text: pacilFooter(`Total kasus: ${cases.length} | Filter: ${filterType}${targetUser ? ` | User: ${targetUser.tag}` : ''}`),
                 });
 
                 return embed;

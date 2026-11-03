@@ -1,22 +1,6 @@
+import { pacilEmbed, pacilFooter } from '../../../ui/pacil.js';
 import { getColor } from '../../../config/bot.js';
-import {
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ChannelSelectMenuBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ChannelType,
-    MessageFlags,
-    ComponentType,
-    EmbedBuilder,
-    LabelBuilder,
-    FileUploadBuilder,
-    TextDisplayBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelSelectMenuBuilder, ButtonBuilder, ButtonStyle, ChannelType, MessageFlags, ComponentType, LabelBuilder, FileUploadBuilder, TextDisplayBuilder } from 'discord.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { successEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -58,7 +42,7 @@ function buildDashboardEmbed(cfg, guild) {
     const welcomePreview = `\`${rawWelcome.length > 55 ? rawWelcome.substring(0, 55) + '…' : rawWelcome}\``;
     const goodbyePreview = `\`${rawGoodbye.length > 55 ? rawGoodbye.substring(0, 55) + '…' : rawGoodbye}\``;
 
-    return new EmbedBuilder()
+    return pacilEmbed()
         .setTitle('👋 Greet System Dashboard')
         .setDescription(
             `Manage welcome & goodbye settings for **${guild.name}**.\nUse the toggles to enable/disable each side, then select an option to edit.`,
@@ -74,7 +58,7 @@ function buildDashboardEmbed(cfg, guild) {
             { name: 'Welcome Message', value: welcomePreview, inline: false },
             { name: 'Goodbye Message', value: goodbyePreview, inline: false },
         )
-        .setFooter({ text: 'Dashboard closes after 10 minutes of inactivity' })
+        .setFooter({ text: pacilFooter('Dashboard closes after 10 minutes of inactivity') })
         .setTimestamp();
 }
 
@@ -329,7 +313,7 @@ export default {
                     try {
                         await InteractionHelper.safeEditReply(interaction, {
                             embeds: [
-                                new EmbedBuilder()
+                                pacilEmbed()
                                     .setTitle('Dashboard Timed Out')
                                     .setDescription('This dashboard has been closed due to inactivity. Please run the command again to continue.')
                                     .setColor(getColor('error'))
@@ -366,7 +350,7 @@ async function handleWelcomeChannel(selectInteraction, rootInteraction, cfg, gui
 
     await sendEphemeralFollowUp(selectInteraction, {
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('🟢 Welcome Channel')
                 .setDescription(
                     `**Current:** ${cfg.channelId ?`<#${cfg.channelId}>`: '`Not set`'}\n\nSelect the channel where welcome messages will be sent.`,
@@ -569,7 +553,7 @@ async function handleGoodbyeChannel(selectInteraction, rootInteraction, cfg, gui
 
     await sendEphemeralFollowUp(selectInteraction, {
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('🔴 Goodbye Channel')
                 .setDescription(
                     `**Current:** ${cfg.goodbyeChannelId ?`<#${cfg.goodbyeChannelId}>`: '`Not set`'}\n\nSelect the channel where goodbye messages will be sent.`,

@@ -1,4 +1,5 @@
-import { EmbedBuilder } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../../ui/pacil.js';
+
 import { getAllBirthdays } from '../../../services/birthdayService.js';
 import { deleteBirthday } from '../../../utils/database.js';
 import { logger } from '../../../utils/logger.js';
@@ -13,8 +14,8 @@ export default {
         const sortedBirthdays = await getAllBirthdays(client, guildId);
 
         if (sortedBirthdays.length === 0) {
-            const embed = new EmbedBuilder()
-                .setColor(0xFF0000)
+            const embed = pacilEmbed()
+                .setColor(PACIL_COLORS.error)
                 .setTitle('No Birthdays')
                 .setDescription('No birthdays have been set in this server yet.');
             return await InteractionHelper.safeEditReply(interaction, {
@@ -45,8 +46,8 @@ export default {
         }
 
         if (displayIndex === 0) {
-            const embed = new EmbedBuilder()
-                .setColor(0xFF0000)
+            const embed = pacilEmbed()
+                .setColor(PACIL_COLORS.error)
                 .setTitle('No Birthdays')
                 .setDescription('No birthdays have been set by current server members.');
             return await InteractionHelper.safeEditReply(interaction, {
@@ -56,8 +57,8 @@ export default {
 
         birthdayList = `**${displayIndex} birthday${displayIndex !== 1 ? 's' : ''} in ${interaction.guild.name}**\n\n` + birthdayList;
 
-        const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+        const embed = pacilEmbed()
+            .setColor(PACIL_COLORS.success)
             .setTitle('Server Birthdays')
             .setDescription(`${birthdayList}\n\nTotal: ${displayIndex} birthday${displayIndex !== 1 ? 's' : ''}`);
 

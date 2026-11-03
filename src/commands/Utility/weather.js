@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../ui/pacil.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { createEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
 import { logger } from '../../utils/logger.js';
@@ -90,9 +91,7 @@ export default {
                     inline: true,
                 },
             )
-            .setFooter({
-                text: `Latitude: ${latitude.toFixed(2)} | Longitude: ${longitude.toFixed(2)}`,
-            });
+            .setFooter({ text: pacilFooter(`Latitude: ${latitude.toFixed(2)} | Longitude: ${longitude.toFixed(2)}`) });
 
         await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
         logger.info(`Weather command executed`, {

@@ -1,21 +1,6 @@
+import { pacilEmbed, pacilFooter } from '../../../ui/pacil.js';
 import { getColor } from '../../../config/bot.js';
-import {
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ChannelSelectMenuBuilder,
-    RoleSelectMenuBuilder,
-    LabelBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ChannelType,
-    MessageFlags,
-    ComponentType,
-    EmbedBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelSelectMenuBuilder, RoleSelectMenuBuilder, LabelBuilder, ButtonBuilder, ButtonStyle, ChannelType, MessageFlags, ComponentType } from 'discord.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { successEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -43,7 +28,7 @@ function buildDashboardEmbed(cfg, guild) {
     const ignoredChValue = ignoredChannels.length > 0 ? ignoredChannels.map(id => `<#${id}>`).join(',') : '`None`';
     const ignoredRoValue = ignoredRoles.length > 0 ? ignoredRoles.map(id => `<@&${id}>`).join(',') : '`None`';
 
-    return new EmbedBuilder()
+    return pacilEmbed()
         .setTitle('⚡ Leveling System Dashboard')
         .setDescription(`Manage leveling settings for **${guild.name}**.\nSelect an option below to modify a setting.`)
         .setColor(getColor('info'))
@@ -59,7 +44,7 @@ function buildDashboardEmbed(cfg, guild) {
             { name: 'Ignored Channels', value: ignoredChValue, inline: true },
             { name: 'Ignored Roles', value: ignoredRoValue, inline: true },
         )
-        .setFooter({ text: 'Dashboard closes after 10 minutes of inactivity' })
+        .setFooter({ text: pacilFooter('Dashboard closes after 10 minutes of inactivity') })
         .setTimestamp();
 }
 

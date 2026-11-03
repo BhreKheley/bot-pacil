@@ -1,4 +1,5 @@
-import { EmbedBuilder, MessageFlags } from 'discord.js';
+import { pacilEmbed } from '../../ui/pacil.js';
+import { MessageFlags } from 'discord.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { logger } from '../../utils/logger.js';
 import { handleInteractionError, createError, ErrorTypes } from '../../utils/errorHandler.js';
@@ -28,7 +29,7 @@ export async function handleReactionRolesSelectMenu(interaction, client) {
             logger.warn(`Reaction role data not found for message ${interaction.message.id} in guild ${interaction.guildId}`);
             return interaction.editReply({
                 embeds: [
-                    new EmbedBuilder()
+                    pacilEmbed()
                         .setDescription('❌ This reaction role message is no longer active.')
                         .setColor(getColor('error'))
                 ]
@@ -153,7 +154,7 @@ export async function handleReactionRolesSelectMenu(interaction, client) {
             description += `\n⚠️ **Skipped:** ${skippedRoles.length} role${skippedRoles.length !== 1 ? 's' : ''} (permission issues)`;
         }
 
-        const responseEmbed = new EmbedBuilder()
+        const responseEmbed = pacilEmbed()
             .setDescription(description)
             .setColor(getColor('success'))
             .setTimestamp();

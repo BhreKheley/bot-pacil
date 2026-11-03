@@ -1,146 +1,27 @@
 // embeds.js
 
-import { EmbedBuilder } from 'discord.js';
-import { getColor, botConfig } from '../config/bot.js';
+import { buildPacilEmbed } from '../ui/pacil.js';
 
-function sanitizeEmbedText(text = '') {
-  if (typeof text !== 'string') {
-    return text;
-  }
-
-  return text
-    .replace(/[ \t]+/g, ' ') // Replace consecutive spaces/tabs with single space
-    .replace(/[ \t]\n/g, '\n') // Remove spaces before newlines
-    .replace(/\n[ \t]/g, '\n') // Remove spaces after newlines
-    .replace(/\n{3,}/g, '\n\n') // Limit consecutive newlines to 2
-    .trim();
-}
-
-function sanitizeEmbedField(field) {
-  if (!field || typeof field !== 'object') {
-    return field;
-  }
-
-  return {
-    ...field,
-    name: sanitizeEmbedText(field.name),
-    value: sanitizeEmbedText(field.value),
-  };
-}
-
+/**
+ * Pembungkus kompatibilitas: semua embed dibangun oleh buildPacilEmbed (src/ui/pacil.js)
+ * sehingga warna, footer, dan pembersih teks seragam di seluruh bot.
+ */
 export function createEmbed({
-  title = '',
-  description = '',
-  color = 'primary',
-  fields = [],
-  author = null,
-  footer = null,
-  thumbnail = null,
-  image = null,
-  timestamp = true,
-  url = null
+  title = '', description = '', color = 'primary', fields = [], author = null,
+  footer = null, thumbnail = null, image = null, timestamp = true, url = null,
 } = {}) {
-  const embed = new EmbedBuilder();
-
-  if (title && typeof title === 'string' && title.length > 0) {
-    embed.setTitle(title.substring(0, 256));
-  }
-
-  if (description && typeof description === 'string' && description.length > 0) {
-    embed.setDescription(description.substring(0, 4096));
-  }
-
-  try {
-    const embedColor = getColor(color) || '#FFD700';
-    embed.setColor(embedColor);
-  } catch (error) {
-    embed.setColor('#FFD700');
-  }
-
-  if (Array.isArray(fields) && fields.length > 0) {
-    const validFields = fields.filter(f => f && f.name && f.value);
-    if (validFields.length > 0) {
-      embed.addFields(validFields.slice(0, 25)); 
-    }
-  }
-
-  if (author) {
-    try {
-      if (typeof author === 'string' && author.length > 0) {
-        embed.setAuthor({ name: author.substring(0, 256) });
-      } else if (author && typeof author.name === 'string') {
-        embed.setAuthor(author);
-      }
-    } catch (error) {
-      
-    }
-  } else if (botConfig.embeds?.author?.name) {
-    embed.setAuthor({
-      name: botConfig.embeds.author.name,
-      ...(botConfig.embeds.author.icon ? { iconURL: botConfig.embeds.author.icon } : {}),
-      ...(botConfig.embeds.author.url ? { url: botConfig.embeds.author.url } : {}),
-    });
-  }
-
-  if (footer) {
-    try {
-      if (typeof footer === 'string' && footer.length > 0) {
-        embed.setFooter({ text: footer.substring(0, 2048) });
-      } else if (footer && typeof footer.text === 'string') {
-        embed.setFooter(footer);
-      }
-    } catch (error) {
-      
-    }
-  } else if (botConfig.embeds?.footer?.text) {
-    const defaultFooter = {
-      text: botConfig.embeds.footer.text,
-      ...(botConfig.embeds.footer.icon ? { iconURL: botConfig.embeds.footer.icon } : {}),
-    };
-    embed.setFooter(defaultFooter);
-  }
-
-  if (thumbnail) {
-    try {
-      if (typeof thumbnail === 'string' && thumbnail.length > 0) {
-        embed.setThumbnail(thumbnail);
-      } else if (thumbnail && typeof thumbnail.url === 'string') {
-        embed.setThumbnail(thumbnail.url);
-      }
-    } catch (error) {
-      
-    }
-  } else if (botConfig.embeds?.thumbnail) {
-    embed.setThumbnail(botConfig.embeds.thumbnail);
-  }
-
-  if (image) {
-    try {
-      if (typeof image === 'string' && image.length > 0) {
-        embed.setImage(image);
-      } else if (image && typeof image.url === 'string') {
-        embed.setImage(image.url);
-      }
-    } catch (error) {
-      
-    }
-  }
-
-  if (timestamp === true) {
-    embed.setTimestamp();
-  } else if (timestamp instanceof Date) {
-    embed.setTimestamp(timestamp);
-  }
-
-  if (url && typeof url === 'string' && url.length > 0) {
-    try {
-      embed.setURL(url);
-    } catch (error) {
-      
-    }
-  }
-
-  return embed;
+  return buildPacilEmbed({
+    title: title || undefined,
+    description: description || undefined,
+    color,
+    fields,
+    author: author || undefined,
+    footer: footer || undefined,
+    thumbnail: typeof thumbnail === 'object' && thumbnail ? thumbnail.url : thumbnail || undefined,
+    image: typeof image === 'object' && image ? image.url : image || undefined,
+    timestamp,
+    url: url || undefined,
+  });
 }
 
 /**
@@ -161,7 +42,7 @@ export function createPacilEmbed({
     color,
     fields,
     thumbnail,
-    footer: footer || { text: 'Pacil Baik • Fasilkom UI' },
+    footer: footer || undefined,
     timestamp: true,
     ...rest,
   });
