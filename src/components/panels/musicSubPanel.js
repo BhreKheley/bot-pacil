@@ -95,17 +95,17 @@ export async function renderMusicSubPanel(client, guild) {
 
   const buttonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('setupAction:deploy_music_tracker')
+      .setCustomId('setup:act:deploy_music_tracker')
       .setLabel('Pasang Tracker Publik')
       .setEmoji('📌')
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setCustomId('setupAction:refresh_music_panel')
+      .setCustomId('setup:act:refresh_music_panel')
       .setLabel('Refresh Status')
       .setEmoji('🔄')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId('setupBackMain')
+      .setCustomId('setup:back')
       .setLabel('🔙 Back to Main Menu')
       .setStyle(ButtonStyle.Primary)
   );

@@ -141,6 +141,8 @@ export const botConfig = {
     },
     // Default thumbnail URL for embeds (null = no thumbnail).
     thumbnail: null,
+    // Logo Makara untuk dashboard (URL gambar). Isi lewat env PACIL_LOGO_URL; kosong = tanpa logo.
+    logo: process.env.PACIL_LOGO_URL || null,
     author: {
       // Optional default embed author block.
       name: null,

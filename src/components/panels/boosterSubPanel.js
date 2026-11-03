@@ -38,12 +38,12 @@ export async function renderBoosterSubPanel(client, guild) {
 
   const buttonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('setupAction:deploy_booster_panel')
+      .setCustomId('setup:act:deploy_booster_panel')
       .setLabel('Pasang Panel Publik Booster')
       .setEmoji('📌')
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setCustomId('setupBackMain')
+      .setCustomId('setup:back')
       .setLabel('🔙 Back to Main Menu')
       .setStyle(ButtonStyle.Primary)
   );

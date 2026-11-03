@@ -41,17 +41,17 @@ export async function renderCircleSubPanel(client, guild) {
 
   const buttonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('setupAction:deploy_circle_panel')
+      .setCustomId('setup:act:deploy_circle_panel')
       .setLabel('Pasang Panel Publik')
       .setEmoji('📌')
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setCustomId('setupAction:list_circles')
+      .setCustomId('setup:act:list_circles')
       .setLabel('Daftar Circle Aktif')
       .setEmoji('📋')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId('setupBackMain')
+      .setCustomId('setup:back')
       .setLabel('🔙 Back to Main Menu')
       .setStyle(ButtonStyle.Primary)
   );

@@ -103,7 +103,7 @@ export async function createInitialHelpMenu(client, guildId = null) {
                 value: [
                     '**1. Buka Direktori** — Gunakan dropdown menu di bawah untuk memilih kategori fitur.',
                     '**2. Cek Status** — Klik tombol **Cek Status Bot** untuk melihat latensi, database, & kesehatan node musik.',
-                    '**3. Konfigurasi Server** — Pengurus server bisa menjalankan `/configwizard` atau `/commands dashboard`.',
+                    '**3. Konfigurasi Server** — Pengurus server bisa menjalankan `/pacilsetup` (khusus Administrator).',
                 ].join('\n'),
                 inline: false,
             },

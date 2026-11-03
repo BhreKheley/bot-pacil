@@ -128,17 +128,17 @@ export async function renderRulesGuideSubPanel(client, guild) {
 
   const buttonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('setupAction:deploy_rules')
+      .setCustomId('setup:act:deploy_rules')
       .setLabel('Pasang Embed Rules')
       .setEmoji('📜')
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setCustomId('setupAction:deploy_guide')
+      .setCustomId('setup:act:deploy_guide')
       .setLabel('Pasang Interactive Guide')
       .setEmoji('📖')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId('setupBackMain')
+      .setCustomId('setup:back')
       .setLabel('🔙 Back to Main Menu')
       .setStyle(ButtonStyle.Primary)
   );
