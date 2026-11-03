@@ -1,15 +1,6 @@
+import { pacilEmbed, PACIL_COLORS, pacilFooter } from '../../../ui/pacil.js';
 import { getColor } from '../../../config/bot.js';
-import {
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    ChannelType,
-    MessageFlags,
-    ComponentType,
-    EmbedBuilder,
-    ButtonBuilder,
-    ButtonStyle
-} from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ChannelType, MessageFlags, ComponentType, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { successEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -37,7 +28,7 @@ export default {
             );
         }
 
-        const embed = new EmbedBuilder()
+        const embed = pacilEmbed()
             .setTitle('Join to Create Configuration')
             .setDescription(`Configure settings for ${triggerChannel}`)
             .setColor(getColor('info'))
@@ -58,7 +49,7 @@ export default {
                     inline: true
                 }
             )
-            .setFooter({ text: 'Select an option to configure below' })
+            .setFooter({ text: pacilFooter('Select an option to configure below') })
             .setTimestamp();
 
         const selectMenu = new StringSelectMenuBuilder()
@@ -169,7 +160,7 @@ time: 60000
 };
 
 async function handleNameTemplateChange(interaction, triggerChannel, currentConfig, client) {
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('Channel Name Template Configuration')
         .setDescription('Please enter the new channel name template.')
         .addFields(
@@ -185,7 +176,7 @@ async function handleNameTemplateChange(interaction, triggerChannel, currentConf
             }
         )
         .setColor(getColor('info'))
-        .setFooter({ text: 'Type your new template in the chat below' });
+        .setFooter({ text: pacilFooter('Type your new template in the chat below') });
 
     await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
 
@@ -252,7 +243,7 @@ time: 600_000,
 }
 
 async function handleUserLimitChange(interaction, triggerChannel, currentConfig, client) {
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('User Limit Configuration')
         .setDescription('Please enter the new user limit (0-99, where 0 = no limit).')
         .addFields(
@@ -263,7 +254,7 @@ async function handleUserLimitChange(interaction, triggerChannel, currentConfig,
             }
         )
         .setColor(getColor('info'))
-        .setFooter({ text: 'Type the new limit in the chat below' });
+        .setFooter({ text: pacilFooter('Type the new limit in the chat below') });
 
     await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
 
@@ -330,7 +321,7 @@ async function handleUserLimitChange(interaction, triggerChannel, currentConfig,
 }
 
 async function handleBitrateChange(interaction, triggerChannel, currentConfig, client) {
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('Bitrate Configuration')
         .setDescription('Please enter the new bitrate in kbps (8-384).')
         .addFields(
@@ -346,7 +337,7 @@ async function handleBitrateChange(interaction, triggerChannel, currentConfig, c
             }
         )
         .setColor(getColor('info'))
-        .setFooter({ text: 'Type the new bitrate in the chat below' });
+        .setFooter({ text: pacilFooter('Type the new bitrate in the chat below') });
 
     await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
 
@@ -413,11 +404,11 @@ async function handleBitrateChange(interaction, triggerChannel, currentConfig, c
 }
 
 async function handleRemoveTrigger(interaction, triggerChannel, currentConfig, client) {
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('Remove Trigger Channel')
         .setDescription(`Are you sure you want to remove ${triggerChannel} from the Join to Create system?`)
-        .setColor('#ff6600')
-        .setFooter({ text: 'This action cannot be undone' });
+        .setColor(PACIL_COLORS.warning)
+        .setFooter({ text: pacilFooter('This action cannot be undone') });
 
     const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -499,7 +490,7 @@ async function handleRemoveTrigger(interaction, triggerChannel, currentConfig, c
 async function handleViewSettings(interaction, triggerChannel, currentConfig, client) {
     const channelConfig = currentConfig.channelOptions?.[triggerChannel.id] || {};
     
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('Current Settings')
         .setDescription(`Configuration for ${triggerChannel}`)
         .setColor(getColor('info'))

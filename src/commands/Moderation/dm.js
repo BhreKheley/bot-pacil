@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../ui/pacil.js';
 import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType, MessageFlags } from 'discord.js';
 import { createEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
 import { logEvent } from '../../utils/moderation.js';
@@ -66,9 +67,7 @@ export default {
                     successEmbed(
                         anonymous ? "Message from the Staff Team" : `Message from ${interaction.user.tag}`,
                         sanitized
-                    ).setFooter({
-                        text: `You cannot reply to this message. | Logger ID: ${interaction.id}`
-                    })
+                    ).setFooter({ text: pacilFooter(`You cannot reply to this message. | Logger ID: ${interaction.id}`) })
                 ]
             });
 

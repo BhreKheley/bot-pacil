@@ -1,4 +1,5 @@
-import { EmbedBuilder, MessageFlags } from 'discord.js';
+import { pacilEmbed } from '../../../ui/pacil.js';
+import { MessageFlags } from 'discord.js';
 import { getTicketData, saveTicketData } from '../../../utils/database.js';
 import { logger } from '../../../utils/logger.js';
 import { getColor } from '../../../config/bot.js';
@@ -6,7 +7,7 @@ import { logTicketFeedback } from '../../../utils/ticket/ticketLogging.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 
 function buildEmbed(title, description, color) {
-    return new EmbedBuilder()
+    return pacilEmbed()
         .setTitle(title)
         .setDescription(description)
         .setColor(color);

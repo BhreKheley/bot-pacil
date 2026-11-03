@@ -1,4 +1,5 @@
-import { EmbedBuilder } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../../ui/pacil.js';
+
 import { getUserBirthday } from '../../../services/birthdayService.js';
 import { logger } from '../../../utils/logger.js';
 
@@ -14,8 +15,8 @@ export default {
         const birthdayData = await getUserBirthday(client, guildId, userId);
 
         if (!birthdayData) {
-            const embed = new EmbedBuilder()
-                .setColor(0xFF0000)
+            const embed = pacilEmbed()
+                .setColor(PACIL_COLORS.error)
                 .setTitle('No Birthday Found')
                 .setDescription(targetUser.id === interaction.user.id 
                     ? "You haven't set your birthday yet. Use `/birthday set` to add it!"
@@ -25,8 +26,8 @@ export default {
             });
         }
 
-        const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+        const embed = pacilEmbed()
+            .setColor(PACIL_COLORS.success)
             .setTitle('Birthday Information')
             .setDescription(`**Date:** ${birthdayData.monthName} ${birthdayData.day}\n**User:** ${targetUser.toString()}`);
 

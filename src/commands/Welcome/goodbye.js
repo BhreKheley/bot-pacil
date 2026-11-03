@@ -1,5 +1,6 @@
+import { pacilEmbed, pacilFooter } from '../../ui/pacil.js';
 import { getColor } from '../../config/bot.js';
-import { SlashCommandBuilder, PermissionFlagsBits, ChannelType, EmbedBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits, ChannelType, MessageFlags } from 'discord.js';
 import { getWelcomeConfig, updateWelcomeConfig } from '../../utils/database.js';
 import { formatWelcomeMessage, truncateForEmbedField } from '../../utils/welcome.js';
 import { logger } from '../../utils/logger.js';
@@ -100,7 +101,7 @@ export default {
                     guild
                 });
 
-                const embed = new EmbedBuilder()
+                const embed = pacilEmbed()
                     .setColor(getColor('success'))
                     .setTitle('Goodbye System Configured')
                     .setDescription(`Goodbye messages will now be sent to ${channel}`)
@@ -109,7 +110,7 @@ export default {
                         { name: 'Ping User', value: ping ? 'Yes' : 'No' },
                         { name: 'Status', value: 'Enabled' }
                     )
-                    .setFooter({ text: 'Tip: Use /greet dashboard to customize goodbye settings' });
+                    .setFooter({ text: pacilFooter('Tip: Use /greet dashboard to customize goodbye settings') });
 
                 if (image) {
                     embed.setImage(image);

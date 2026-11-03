@@ -3,7 +3,6 @@ import {
   ButtonBuilder,
   ButtonStyle,
   MessageFlags,
-  EmbedBuilder,
 } from 'discord.js';
 import { buildPacilEmbed } from '../../../ui/pacil.js';
 import { getGuildConfig, patchGuildConfig } from '../../../services/config/guildConfig.js';

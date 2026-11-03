@@ -1,4 +1,5 @@
-import { ComponentType, EmbedBuilder } from 'discord.js';
+import { pacilEmbed } from '../ui/pacil.js';
+import { ComponentType } from 'discord.js';
 import { getColor } from '../config/bot.js';
 import { PacilBotError, ErrorTypes, replyUserError } from './errorHandler.js';
 import { InteractionHelper } from './interactionHelper.js';
@@ -100,7 +101,7 @@ export async function startDashboardSession({
                 return;
             }
 
-            const timeoutEmbed = new EmbedBuilder()
+            const timeoutEmbed = pacilEmbed()
                 .setTitle('Dashboard Timed Out')
                 .setDescription(
                     'This dashboard has been closed due to inactivity. Please run the command again to continue.',

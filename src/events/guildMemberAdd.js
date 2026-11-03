@@ -1,4 +1,5 @@
-import { Events, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS, PACIL_FOOTER } from '../ui/pacil.js';
+import { Events, PermissionFlagsBits } from 'discord.js';
 import { getColor, botConfig } from '../config/bot.js';
 import { getGuildConfig } from '../services/config/guildConfig.js';
 import { getWelcomeConfig } from '../utils/database.js';
@@ -52,8 +53,8 @@ export default {
                         content: messageContent || welcomeMessage
                     });
                 } else {
-                    const embed = new EmbedBuilder()
-                        .setColor(0xF2A900) // Makara Gold
+                    const embed = pacilEmbed()
+                        .setColor(PACIL_COLORS.gold) // Makara Gold
                         .setTitle(`Selamat Datang di Pacil Baik, ${user.username}! 🎉`)
                         .setDescription(
                             `Halo <@${user.id}>, selamat datang di rumah digital mahasiswa Fakultas Ilmu Komputer Universitas Indonesia!\n\n` +
@@ -67,7 +68,7 @@ export default {
                             { name: '📚 Langkah Pertama', value: 'Buka `/guide` atau kunjungi `#start-here` untuk orientasi awal!', inline: false }
                         )
                         .setTimestamp()
-                        .setFooter({ text: 'Makara Fasilkom UI • Pacil Bot' });
+                        .setFooter({ text: PACIL_FOOTER });
                     
                     if (welcomeConfig.welcomeImage) {
                         embed.setImage(welcomeConfig.welcomeImage);

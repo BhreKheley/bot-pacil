@@ -1,4 +1,5 @@
-import { EmbedBuilder, MessageFlags, PermissionsBitField } from 'discord.js';
+import { pacilEmbed, pacilFooter } from '../../../ui/pacil.js';
+import { MessageFlags, PermissionsBitField } from 'discord.js';
 import { getColor } from '../../../config/bot.js';
 import { getGuildConfig } from '../../../services/config/guildConfig.js';
 import { getLoggingStatus } from '../../../services/loggingService.js';
@@ -52,7 +53,7 @@ export async function buildLoggingDashboardView(interaction, client) {
   const ignore = loggingStatus.ignore || { users: [], channels: [] };
   const { enabled: enabledCount, total } = countEnabledCategories(loggingStatus.enabledEvents, auditEnabled);
 
-  const embed = new EmbedBuilder()
+  const embed = pacilEmbed()
     .setTitle('📝 Logging Dashboard')
     .setDescription(`Manage server logging for **${interaction.guild.name}**. Use the menu below to configure channels, categories, and filters.`)
     .setColor(auditEnabled ? getColor('success') : getColor('warning'))
@@ -90,7 +91,7 @@ export async function buildLoggingDashboardView(interaction, client) {
         inline: false,
       },
     )
-    .setFooter({ text: 'Ticket channels: configure via /ticket dashboard' })
+    .setFooter({ text: pacilFooter('Ticket channels: configure via /ticket dashboard') })
     .setTimestamp();
 
   const components = createLoggingDashboardComponents(loggingStatus.enabledEvents, auditEnabled);
@@ -107,7 +108,7 @@ export async function buildLoggingCategoriesView(interaction, client) {
     return `${on ? '✅' : '❌'} ${label}`;
   }).join('\n');
 
-  const embed = new EmbedBuilder()
+  const embed = pacilEmbed()
     .setTitle('📋 Event Categories')
     .setDescription(
       auditEnabled
@@ -116,7 +117,7 @@ export async function buildLoggingCategoriesView(interaction, client) {
     )
     .setColor(getColor('info'))
     .addFields({ name: 'Category Status', value: categoryLines, inline: false })
-    .setFooter({ text: 'Green = logging on · Red = logging off' })
+    .setFooter({ text: pacilFooter('Green = logging on · Red = logging off') })
     .setTimestamp();
 
   const components = createLoggingCategoryViewComponents(loggingStatus.enabledEvents, auditEnabled);
@@ -135,7 +136,7 @@ export async function buildLoggingFilterView(interaction, client) {
     ? ignore.channels.map((id) => `• Channel \`${id}\``).join('\n')
     : '*No ignored channels*';
 
-  const embed = new EmbedBuilder()
+  const embed = pacilEmbed()
     .setTitle('🔇 Log Ignore Filters')
     .setDescription('Users and channels on this list will be skipped when sending audit logs.')
     .setColor(getColor('info'))
@@ -143,7 +144,7 @@ export async function buildLoggingFilterView(interaction, client) {
       { name: 'Ignored Users', value: userLines.slice(0, 1024), inline: false },
       { name: 'Ignored Channels', value: channelLines.slice(0, 1024), inline: false },
     )
-    .setFooter({ text: 'Use the buttons below to add or remove filters' })
+    .setFooter({ text: pacilFooter('Use the buttons below to add or remove filters') })
     .setTimestamp();
 
   const components = createLoggingFilterComponents();

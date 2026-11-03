@@ -1,4 +1,5 @@
-import { Events, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { pacilEmbed } from '../ui/pacil.js';
+import { Events, PermissionFlagsBits } from 'discord.js';
 import { getColor, botConfig } from '../config/bot.js';
 import { getWelcomeConfig, getUserApplications, deleteApplication } from '../utils/database.js';
 import { formatWelcomeMessage } from '../utils/welcome.js';
@@ -51,7 +52,7 @@ export default {
                         allowedMentions: welcomeConfig?.goodbyePing ? { users: [user.id] } : { parse: [] }
                     });
                 } else {
-                    const embed = new EmbedBuilder()
+                    const embed = pacilEmbed()
                         .setTitle(embedTitle)
                         .setDescription(goodbyeMessage)
                         .setColor(welcomeConfig.leaveEmbed?.color || getColor('error'))

@@ -1,3 +1,4 @@
+import { pacilEmbed, pacilFooter } from '../../ui/pacil.js';
 import { getColor } from '../../config/bot.js';
 import { SlashCommandBuilder, PermissionFlagsBits, ChannelType, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, RoleSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ButtonBuilder, ButtonStyle, MessageFlags, ComponentType, EmbedBuilder, LabelBuilder, CheckboxBuilder, TextDisplayBuilder } from 'discord.js';
 import { createEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
@@ -272,7 +273,7 @@ async function handleSetup(interaction) {
             )
     );
 
-    const panelEmbed = new EmbedBuilder()
+    const panelEmbed = pacilEmbed()
         .setTitle(title)
         .setDescription(description)
         .setColor(getColor('info'))
@@ -280,7 +281,7 @@ async function handleSetup(interaction) {
             name: 'Available Roles',
             value: roles.map(role => `• ${role}`).join('\n')
         })
-        .setFooter({ text: 'Select roles from the dropdown menu below' });
+        .setFooter({ text: pacilFooter('Select roles from the dropdown menu below') });
 
     const message = await channel.send({
         embeds: [panelEmbed],
@@ -432,7 +433,7 @@ function buildReactionRoleDashboardPayload(panelData, discordMsg, guildId, guild
 
     const showRepost = panelStatus?.exists === false && panelStatus?.reason === 'panel_deleted';
 
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
         .setTitle('Reaction Roles Dashboard')
         .setDescription(
             `**Title:** ${title}\n\nSelect an option below to modify a setting.${discordMsg ? `\n[Click Here to View Panel](${discordMsg.url})` : ''}`,
@@ -445,7 +446,7 @@ function buildReactionRoleDashboardPayload(panelData, discordMsg, guildId, guild
             { name: '\u200B', value: '\u200B', inline: true },
             { name: 'Role List', value: roleList, inline: false },
         )
-        .setFooter({ text: 'Dashboard closes after 10 minutes of inactivity' })
+        .setFooter({ text: pacilFooter('Dashboard closes after 10 minutes of inactivity') })
         .setTimestamp();
 
     const buttons = [];
@@ -532,7 +533,7 @@ async function repostReactionRolePanel(guild, panelData, client, guildId, fallba
     const title = fallbackEmbed?.title || 'Reaction Roles';
     const description = fallbackEmbed?.description || 'Select your roles using the menu below.';
 
-    const panelEmbed = new EmbedBuilder()
+    const panelEmbed = pacilEmbed()
         .setTitle(title)
         .setDescription(description)
         .setColor(getColor('info'))
@@ -765,7 +766,7 @@ async function handleAddRole(selectInteraction, rootInteraction, panelData, guil
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('Add Role')
                 .setDescription(
                     `**Current roles:** ${panelData.roles.length}/25\n\nSelect a role to add to this panel.`,
@@ -882,7 +883,7 @@ async function handleRemoveRole(selectInteraction, rootInteraction, panelData, p
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('Remove Role')
                 .setDescription('Select the role you want to remove from this panel.')
                 .setColor(getColor('info')),
@@ -932,7 +933,7 @@ async function handleRemoveRole(selectInteraction, rootInteraction, panelData, p
             if (panels.length === 0) {
                 await InteractionHelper.safeEditReply(rootInteraction, {
                     embeds: [
-                        new EmbedBuilder()
+                        pacilEmbed()
                             .setTitle('Reaction Roles Dashboard')
                             .setDescription('No panels remain. Use `/reactroles setup` to create one.')
                             .setColor(getColor('info')),
@@ -944,7 +945,7 @@ async function handleRemoveRole(selectInteraction, rootInteraction, panelData, p
 
                 await InteractionHelper.safeEditReply(rootInteraction, {
                     embeds: [
-                        new EmbedBuilder()
+                        pacilEmbed()
                             .setTitle('Reaction Roles Dashboard')
                             .setDescription('Panel deleted. Run `/reactroles dashboard` to manage another panel.')
                             .setColor(getColor('success')),
@@ -1073,7 +1074,7 @@ async function handleDeletePanel(btnInteraction, rootInteraction, panelData, pan
     if (panels.length === 0) {
         await InteractionHelper.safeEditReply(rootInteraction, {
             embeds: [
-                new EmbedBuilder()
+                pacilEmbed()
                     .setTitle('Reaction Roles Dashboard')
                     .setDescription('No panels remain. Use `/reactroles setup` to create one.')
                     .setColor(getColor('info')),
@@ -1084,7 +1085,7 @@ async function handleDeletePanel(btnInteraction, rootInteraction, panelData, pan
     } else {
         await InteractionHelper.safeEditReply(rootInteraction, {
             embeds: [
-                new EmbedBuilder()
+                pacilEmbed()
                     .setTitle('Reaction Roles Dashboard')
                     .setDescription('Panel deleted. Run `/reactroles dashboard` to manage another panel.')
                     .setColor(getColor('success')),

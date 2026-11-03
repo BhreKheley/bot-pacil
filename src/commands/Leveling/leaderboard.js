@@ -1,4 +1,5 @@
-import { SlashCommandBuilder, EmbedBuilder, MessageFlags } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../ui/pacil.js';
+import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { getLeaderboard, getLevelingConfig, getXpForLevel } from '../../services/leveling/leveling.js';
@@ -19,8 +20,8 @@ export default {
     if (!levelingConfig?.enabled) {
       await InteractionHelper.safeEditReply(interaction, {
         embeds: [
-          new EmbedBuilder()
-            .setColor('#f1c40f')
+          pacilEmbed()
+            .setColor(PACIL_COLORS.gold)
             .setDescription('The leveling system is currently disabled on this server.')
         ],
         flags: MessageFlags.Ephemeral
@@ -38,9 +39,9 @@ export default {
       );
     }
 
-    const embed = new EmbedBuilder()
+    const embed = pacilEmbed()
       .setTitle('Level Leaderboard')
-      .setColor('#2ecc71')
+      .setColor(PACIL_COLORS.success)
       .setDescription("Top 10 most active members in this server:")
       .setTimestamp();
 

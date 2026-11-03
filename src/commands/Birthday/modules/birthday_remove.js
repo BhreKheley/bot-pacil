@@ -1,4 +1,5 @@
-import { EmbedBuilder } from 'discord.js';
+import { pacilEmbed, PACIL_COLORS } from '../../../ui/pacil.js';
+
 import { deleteBirthday } from '../../../services/birthdayService.js';
 
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
@@ -12,8 +13,8 @@ export default {
         const result = await deleteBirthday(client, guildId, userId);
 
         if (result.status === 'not_found') {
-            const embed = new EmbedBuilder()
-                .setColor(0xFF0000)
+            const embed = pacilEmbed()
+                .setColor(PACIL_COLORS.error)
                 .setTitle('No Birthday Found')
                 .setDescription('You don\'t have a birthday set to remove.');
             await InteractionHelper.safeEditReply(interaction, {
@@ -22,8 +23,8 @@ export default {
             return;
         }
 
-        const embed = new EmbedBuilder()
-            .setColor(0x00FF00)
+        const embed = pacilEmbed()
+            .setColor(PACIL_COLORS.success)
             .setTitle('Birthday Removed')
             .setDescription('Your birthday has been successfully removed from the server.');
         await InteractionHelper.safeEditReply(interaction, {

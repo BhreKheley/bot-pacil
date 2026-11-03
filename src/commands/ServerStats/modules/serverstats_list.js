@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../../ui/pacil.js';
 import { getColor } from '../../../config/bot.js';
 import { PermissionFlagsBits } from 'discord.js';
 import { createEmbed } from '../../../utils/embeds.js';
@@ -62,9 +63,7 @@ export async function handleList(interaction, client) {
                 inline: false
             });
 
-            embed.setFooter({ 
-                text: "Counter System • Automatic updates every 15 minutes" 
-            });
+            embed.setFooter({ text: pacilFooter("Counter System • Automatic updates every 15 minutes") });
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] }).catch(logger.error);
             return;
@@ -111,9 +110,7 @@ export async function handleList(interaction, client) {
             inline: false
         });
 
-        embed.setFooter({ 
-            text: "Counter System • Automatic updates every 15 minutes" 
-        });
+        embed.setFooter({ text: pacilFooter("Counter System • Automatic updates every 15 minutes") });
         embed.setTimestamp();
 
         await InteractionHelper.safeEditReply(interaction, { embeds: [embed] }).catch(logger.error);

@@ -1,6 +1,7 @@
 // giveawayService.js
 
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
+import { pacilEmbed } from '../ui/pacil.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
 import { logger } from '../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../utils/errorHandler.js';
 import { getColor, botConfig } from '../config/bot.js';
@@ -138,7 +139,7 @@ export function createGiveawayEmbed(giveaway, status, winners = []) {
         const isEnded = status === 'ended' || status === 'reroll';
         const color = isEnded ? getColor('giveaway.ended') : getColor('giveaway.active');
         
-        const embed = new EmbedBuilder()
+        const embed = pacilEmbed()
             .setTitle(`${statusEmoji} ${giveaway.prize}`)
             .setDescription('React with the button below to enter!')
             .setColor(color)

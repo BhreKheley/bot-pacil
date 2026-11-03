@@ -1,6 +1,7 @@
 // logEmbeds.js — shared helpers for clean, scannable log embeds
 
-import { EmbedBuilder } from 'discord.js';
+import { pacilEmbed } from '../../ui/pacil.js';
+
 
 const EMOJI_PREFIX = /^[\p{Extended_Pictographic}\uFE0F\s]+/u;
 
@@ -137,7 +138,7 @@ export function buildStandardLogEmbed({
   timestamp = true,
   footer,
 }) {
-  const embed = new EmbedBuilder().setColor(color);
+  const embed = pacilEmbed().setColor(color);
 
   if (title) embed.setTitle(title.slice(0, 256));
   if (description) embed.setDescription(description);

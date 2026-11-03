@@ -1,3 +1,4 @@
+import { pacilFooter } from '../../../ui/pacil.js';
 import axios from 'axios';
 import { createEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -81,10 +82,7 @@ export default {
                     inline: true
                 }
             )
-            .setFooter({
-                text: 'Urban Dictionary',
-                iconURL: 'https://i.imgur.com/8aQrX3a.png'
-            });
+            .setFooter({ text: pacilFooter('Urban Dictionary') });
 
             await InteractionHelper.safeReply(interaction, { embeds: [embed] });
 

@@ -1,3 +1,4 @@
+import { PACIL_COLORS } from '../../ui/pacil.js';
 import { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { createEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
 import { logger } from '../../utils/logger.js';
@@ -98,7 +99,7 @@ export default {
             { name: 'Bot', value: user.bot ? 'Yes' : 'No', inline: true },
             { name: `Roles (${roles.length})`, value: roles.length > 0 ? roles.slice(0, 5).join('') + (roles.length > 5 ? `+${roles.length - 5} more` : '') : 'No roles', inline: false }
         )
-        .setColor('primary');
+        .setColor(PACIL_COLORS.gold);
 
         const row = new ActionRowBuilder()
             .addComponents(

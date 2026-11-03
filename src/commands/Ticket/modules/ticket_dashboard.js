@@ -1,21 +1,6 @@
+import { pacilEmbed, pacilFooter } from '../../../ui/pacil.js';
 import { getColor } from '../../../config/bot.js';
-import {
-    ActionRowBuilder,
-    StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    RoleSelectMenuBuilder,
-    ChannelSelectMenuBuilder,
-    UserSelectMenuBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ChannelType,
-    MessageFlags,
-    ComponentType,
-    EmbedBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, RoleSelectMenuBuilder, ChannelSelectMenuBuilder, UserSelectMenuBuilder, ButtonBuilder, ButtonStyle, ChannelType, MessageFlags, ComponentType } from 'discord.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { successEmbed, infoEmbed } from '../../../utils/embeds.js';
 import { logger } from '../../../utils/logger.js';
@@ -80,7 +65,7 @@ async function persistPanelMessageId(client, guildId, guildConfig, messageId) {
 }
 
 function buildPanelEmbed(config) {
-    return new EmbedBuilder()
+    return pacilEmbed()
         .setTitle('Support Tickets')
         .setDescription(config.ticketPanelMessage || 'Click the button below to create a support ticket.')
         .setColor(getColor('info'));
@@ -147,7 +132,7 @@ function buildDashboardEmbed(config, guild, panelStatus = null, ticketStats = nu
         ? `${ticketStats.avgRating}/5 (${ticketStats.feedbackCount} rating${ticketStats.feedbackCount !== 1 ? 's' : ''})`
         : '`No ratings yet`';
 
-    return new EmbedBuilder()
+    return pacilEmbed()
         .setTitle('🎫 Ticket System Dashboard')
         .setDescription(`Manage ticket system settings for **${guild.name}**.\nSelect an option below to modify a setting.`)
         .setColor(getColor('info'))
@@ -170,7 +155,7 @@ function buildDashboardEmbed(config, guild, panelStatus = null, ticketStats = nu
             { name: 'Avg Close Time', value: avgCloseTime, inline: true },
             { name: 'Feedback Rating', value: feedbackSummary, inline: true },
         )
-        .setFooter({ text: 'Select an option below • Dashboard closes after 10 minutes of inactivity' })
+        .setFooter({ text: pacilFooter('Select an option below • Dashboard closes after 10 minutes of inactivity') })
         .setTimestamp();
 }
 
@@ -464,7 +449,7 @@ async function handleStaffRole(selectInteraction, rootInteraction, guildConfig, 
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('🛡️ Change Staff Role')
                 .setDescription(
                     `**Current:** ${guildConfig.ticketStaffRoleId ? `<@&${guildConfig.ticketStaffRoleId}>` : '`Not set`'}\n\nSelect the role that should have staff access to manage tickets.`,
@@ -519,7 +504,7 @@ async function handleOpenCategory(selectInteraction, rootInteraction, guildConfi
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('📁 Change Open Tickets Category')
                 .setDescription(
                     `**Current:** ${guildConfig.ticketCategoryId ? `<#${guildConfig.ticketCategoryId}>` : '`Not set`'}\n\nSelect the category where new tickets will be created.`,
@@ -579,7 +564,7 @@ async function handleClosedCategory(selectInteraction, rootInteraction, guildCon
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('📂 Change Closed Tickets Category')
                 .setDescription(
                     `**Current:** ${guildConfig.ticketClosedCategoryId ? `<#${guildConfig.ticketClosedCategoryId}>` : '`Not set`'}\n\nSelect the category where closed tickets will be moved.`,
@@ -716,7 +701,7 @@ async function handleLogsChannel(selectInteraction, rootInteraction, guildConfig
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('🎫 Select Ticket Logs Channel')
                 .setDescription('Choose where ticket feedback, lifecycle events (open, close, claim, etc.), and other logs will be sent.')
                 .setColor(getColor('info')),
@@ -768,7 +753,7 @@ async function handleTranscriptChannel(selectInteraction, rootInteraction, guild
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('📜 Select Transcript Channel')
                 .setDescription('Choose where auto-generated transcripts will be sent when tickets are deleted.')
                 .setColor(getColor('info'))
@@ -821,7 +806,7 @@ async function handleCheckUser(selectInteraction, rootInteraction, guildConfig, 
 
     await selectInteraction.followUp({
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('Check User Tickets')
                 .setDescription('Select a user to view their current open ticket count.')
                 .setColor(getColor('info')),
@@ -847,7 +832,7 @@ async function handleCheckUser(selectInteraction, rootInteraction, guildConfig, 
 
         await userInteraction.followUp({
             embeds: [
-                new EmbedBuilder()
+                pacilEmbed()
                     .setTitle(`Ticket Check — ${targetUser.username}`)
                     .setDescription(
                         `**Open Tickets:** ${openCount} / ${maxTickets}\n` +
@@ -1009,7 +994,7 @@ async function handleDeleteSystem(btnInteraction, rootInteraction, guildConfig, 
 
     await InteractionHelper.safeEditReply(rootInteraction, {
         embeds: [
-            new EmbedBuilder()
+            pacilEmbed()
                 .setTitle('Ticket System Deleted')
                 .setDescription('The ticket system configuration has been cleared.')
                 .setColor(getColor('error'))
