@@ -156,7 +156,6 @@ export const OTHER_DASHBOARDS = [
   ['👋 Welcome & Goodbye', '/greet dashboard'],
   ['✅ Verifikasi', '/verification dashboard'],
   ['📊 Leveling', '/level dashboard'],
-  ['💰 Ekonomi', '/economy dashboard'],
   ['🎭 Reaction Role', '/reactroles dashboard'],
   ['📋 Aplikasi', '/app-admin dashboard'],
 ];

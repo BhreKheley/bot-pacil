@@ -62,4 +62,4 @@ Banyak platform gratis yang menidurkan aplikasi atau menghapus paket gratisnya (
 Bot membuka `http://HOST:3000/health` dan `/ready`; bisa dipasang di UptimeRobot atau dipakai healthcheck platform.
 
 ## Batas 100 command
-Discord membatasi 100 slash command global. Command yang tidak dipakai bisa dimatikan dengan `register: false` di file command-nya (contoh: `src/commands/Economy/slut.js`).
+Discord membatasi 100 slash command global. Command yang tidak dipakai bisa dimatikan dengan `register: false` di file command-nya (contoh: `src/commands/Core/uptime.js`).

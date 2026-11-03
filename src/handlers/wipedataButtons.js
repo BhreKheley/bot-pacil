@@ -23,6 +23,7 @@ const wipedataConfirmHandler = {
       const userId = interaction.user.id;
       const guildId = interaction.guildId;
 
+      // Kunci lama (saldo/inventaris/toko) tetap dihapus agar data lama pengguna ikut bersih.
       const dataKeyPatterns = [
         getEconomyKey(guildId, userId),
         getUserLevelKey(guildId, userId),
@@ -117,7 +118,7 @@ const wipedataConfirmHandler = {
         `✅ **Your data has been successfully wiped!**\n\n` +
         `**Records Deleted:** ${deletedCount}\n\n` +
         `Your account has been reset to default values. You can now start fresh!\n\n` +
-        `*All your economy balance, levels, items, and personal data have been removed.*`;
+        `*Semua level, data lama, dan data pribadimu di server ini sudah dihapus.*`;
 
       await interaction.editReply({
         embeds: [successEmbed('Data Wipe Complete', successMessage)],

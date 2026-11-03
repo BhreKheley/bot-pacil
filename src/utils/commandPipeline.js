@@ -4,7 +4,7 @@
  * Usage:
  *   export default defineSlashCommand({
  *     data: new SlashCommandBuilder()...,
- *     category: 'economy',
+ *     category: 'utility',
  *     async execute(interaction, config, client) {
  *       // throw PacilBotError / createError on failure
  *       // use replyUserError for early validation returns
