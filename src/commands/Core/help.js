@@ -111,7 +111,7 @@ export async function createInitialHelpMenu(client, guildId = null) {
                 name: '⚡ Fitur Utama Pacil Baik',
                 value: [
                     '• **🎵 Music**: Putar musik santai temen begadang nugas SDA / Basdat',
-                    '• **📊 Leveling & Economy**: Sistem XP ngobrol dan saldo koin Pacil',
+                    '• **📊 Leveling**: Sistem XP ngobrol dan peringkat server',
                     '• **🛡️ Moderasi & Log**: Jaga ketertiban server pacil baik tetap aman & kondusif',
                     '• **🎉 Giveaway & Birthday**: Rayakan ulang tahun & event angkatan',
                 ].join('\n'),

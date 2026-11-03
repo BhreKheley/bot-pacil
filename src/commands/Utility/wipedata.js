@@ -14,10 +14,8 @@ export default {
         const warningMessage = 
             `⚠️ **THIS ACTION IS IRREVERSIBLE!** ⚠️\n\n` +
             `This will permanently delete **ALL** your data from this server including:\n` +
-            `• 💰 Economy balance (wallet & bank)\n` +
             `• 📊 Levels and XP\n` +
-            `• 🎒 Inventory items\n` +
-            `• 🛍️ Shop purchases\n` +
+            `• 🗃️ Data lama dari fitur yang sudah dihapus\n` +
             `• 🎂 Birthday information\n` +
             `• 🔢 Counter data\n` +
             `• 📋 All other personal data\n\n` +
