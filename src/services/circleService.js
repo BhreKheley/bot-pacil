@@ -54,10 +54,7 @@ export function checkServerLimits(guild) {
   return { ok: true };
 }
 
-/**
- * Membuat Private Circle baru secara transaksional
- */
-export async function createPrivateCircle(client, guild, member, rawCircleName) {
+async function buildCircle(client, guild, member, rawCircleName, created) {
   const circleName = String(rawCircleName || '').trim().replace(/[\n\r]/g, '');
   if (!circleName || circleName.length < 2 || circleName.length > 32) {
     throw new Error('Nama circle harus antara 2 hingga 32 karakter.');
@@ -84,6 +81,7 @@ export async function createPrivateCircle(client, guild, member, rawCircleName) 
     reason: `Private Circle created by ${member.user.tag}`,
   });
 
+  created.push(role);
   // Berikan role ke pembuat
   await member.roles.add(role);
 
@@ -122,6 +120,7 @@ export async function createPrivateCircle(client, guild, member, rawCircleName) 
     ],
     reason: `Private Category for Circle ${circleName}`,
   });
+  created.push(category);
 
   // 3. Buat Text Channel
   const cleanSlug = circleName
@@ -138,6 +137,7 @@ export async function createPrivateCircle(client, guild, member, rawCircleName) 
     topic: `Ruang privat Circle: ${circleName} • Owner: <@${member.id}>`,
     reason: `Circle text channel for ${circleName}`,
   });
+  created.push(textChannel);
 
   // 4. Buat Voice Channel
   const voiceChannel = await guild.channels.create({
@@ -146,6 +146,7 @@ export async function createPrivateCircle(client, guild, member, rawCircleName) 
     parent: category.id,
     reason: `Circle voice channel for ${circleName}`,
   });
+  created.push(voiceChannel);
 
   // 5. Sambut di Text Channel
   const welcomeEmbed = buildPacilEmbed({
@@ -284,4 +285,22 @@ export async function deleteCircle(client, guild, circleData, reason = 'Circle d
   await client.db.set(guildCirclesListKey(guild.id), updatedList);
 
   return true;
+}
+
+/** Membuat Private Circle; bila gagal di tengah jalan, semua resource yang sudah dibuat dibatalkan (rollback). */
+export async function createPrivateCircle(client, guild, member, rawCircleName) {
+  const created = [];
+  try {
+    return await buildCircle(client, guild, member, rawCircleName, created);
+  } catch (error) {
+    for (const res of created.reverse()) await res.delete('Rollback: pembuatan circle gagal').catch(() => {});
+    throw error;
+  }
+}
+
+export const circleRequestKey = (guildId, reqId) => `guild:${guildId}:circle_requests:${reqId}`;
+
+export function getCircleConfig(guildConfig) {
+  const c = guildConfig?.circle ?? {};
+  return { requireApproval: c.requireApproval === true, reviewChannelId: c.reviewChannelId ?? null };
 }

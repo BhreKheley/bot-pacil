@@ -7,6 +7,7 @@ import { formatWelcomeMessage } from '../utils/welcome.js';
 import { logEvent, EVENT_TYPES } from '../services/loggingService.js';
 import { getServerCounters, updateCounter } from '../services/serverstatsService.js';
 import { setBirthday as dbSetBirthday } from '../utils/database.js';
+import { resolveInviter } from '../services/inviteTracker.js';
 import { logger } from '../utils/logger.js';
 
 export default {
@@ -53,6 +54,7 @@ export default {
                         content: messageContent || welcomeMessage
                     });
                 } else {
+                    const inviterId = await resolveInviter(guild).catch(() => null);
                     const embed = pacilEmbed()
                         .setColor(PACIL_COLORS.gold) // Makara Gold
                         .setTitle(`Selamat Datang di Pacil Baik, ${user.username}! 🎉`)
@@ -64,7 +66,7 @@ export default {
                         .addFields(
                             { name: '👤 Username', value: `${user.tag}`, inline: true },
                             { name: '📍 Member Ke-', value: `#${guild.memberCount}`, inline: true },
-                            { name: '🔗 Diundang oleh', value: 'Direct / Server Link', inline: true },
+                            { name: '🔗 Diundang oleh', value: inviterId ? `<@${inviterId}>` : 'Tidak terdeteksi (link langsung)', inline: true },
                             { name: '📚 Langkah Pertama', value: 'Buka `/guide` atau kunjungi `#start-here` untuk orientasi awal!', inline: false }
                         )
                         .setTimestamp()
