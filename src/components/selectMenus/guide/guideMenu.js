@@ -1,4 +1,4 @@
-import { renderRulesGuidePublicEmbed } from '../../../components/panels/rulesGuideSubPanel.js';
+import { renderRulesGuidePublicEmbed } from '../../../ui/panels/rulesGuideSubPanel.js';
 
 export default {
   name: 'guideMenuSelect',

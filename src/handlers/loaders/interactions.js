@@ -27,7 +27,7 @@ async function getAllInteractionFiles(directory, fileList = []) {
 
 export default async (client) => {
   try {
-    const interactionsPath = join(__dirname, '../../interactions');
+    const interactionsPath = join(__dirname, '../../components');
 
     for (const type of interactionTypes) {
       const typePath = join(interactionsPath, type);

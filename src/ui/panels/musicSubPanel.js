@@ -4,7 +4,7 @@ import {
   ButtonStyle,
   ChannelType,
 } from 'discord.js';
-import { buildPacilEmbed } from '../../ui/pacil.js';
+import { buildPacilEmbed } from '../pacil.js';
 
 export function getMusicBotsStatus(guild) {
   // Daftar prefix / identifikasi nama bot musik umum di komunitas Discord kampus

@@ -1,7 +1,7 @@
 // Router tombol dashboard /pacilsetup. customId: setup:back | setup:act:<aksi>
 // Nama lama (setupBackMain, setupAction) tetap terdaftar agar panel yang sudah terpasang di server tetap jalan.
 
-import { renderMainDashboard } from '../../../components/panels/mainDashboard.js';
+import { renderMainDashboard } from '../../../ui/panels/mainDashboard.js';
 import { denyIfNoSetupAccess } from '../../../utils/setupGuard.js';
 import { handleSetupAction } from './setupActions.js';
 

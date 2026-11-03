@@ -5,7 +5,7 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { buildPacilEmbed } from '../../ui/pacil.js';
+import { buildPacilEmbed } from '../pacil.js';
 
 export const GUIDE_PAGES = {
   server: {

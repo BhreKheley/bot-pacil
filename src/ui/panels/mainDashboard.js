@@ -2,7 +2,7 @@
 
 import { ActionRowBuilder, StringSelectMenuBuilder } from 'discord.js';
 import { botConfig } from '../../config/bot.js';
-import { buildPacilEmbed } from '../../ui/pacil.js';
+import { buildPacilEmbed } from '../pacil.js';
 
 export const SETUP_MENU_ID = 'setup:menu';
 export const SETUP_BACK_ID = 'setup:back';

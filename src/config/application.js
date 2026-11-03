@@ -14,7 +14,7 @@ const appConfig = {
     utils: path.join(__dirname, "../utils"),
     services: path.join(__dirname, "../services"),
     handlers: path.join(__dirname, "../handlers"),
-    interactions: path.join(__dirname, "../interactions"),
+    components: path.join(__dirname, "../components"),
   },
 
   bot: {

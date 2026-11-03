@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
-import { renderMainDashboard } from '../../components/panels/mainDashboard.js';
+import { renderMainDashboard } from '../../ui/panels/mainDashboard.js';
 import { denyIfNoSetupAccess } from '../../utils/setupGuard.js';
 
 export default {
