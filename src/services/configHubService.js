@@ -19,7 +19,7 @@ import {
   accessView, cid, jtcView, menfessView, otherView, permCategoryView, permCommandsView,
   policyView, stickyView,
 } from '../ui/configHub.js';
-import { renderMainDashboard } from '../components/panels/mainDashboard.js';
+import { renderMainDashboard } from '../ui/panels/mainDashboard.js';
 import { denyIfNoSetupAccess } from '../utils/setupGuard.js';
 
 const ephemeral = { flags: MessageFlags.Ephemeral };

@@ -4,7 +4,7 @@ import {
   ButtonStyle,
   ChannelType,
 } from 'discord.js';
-import { buildPacilEmbed } from '../../ui/pacil.js';
+import { buildPacilEmbed } from '../pacil.js';
 import { guildCirclesListKey } from '../../services/circleService.js';
 
 export async function renderCircleSubPanel(client, guild) {

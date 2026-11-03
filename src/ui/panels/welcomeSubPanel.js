@@ -4,7 +4,7 @@ import {
   ButtonStyle,
   MessageFlags,
 } from 'discord.js';
-import { buildPacilEmbed } from '../../ui/pacil.js';
+import { buildPacilEmbed } from '../pacil.js';
 import { getGuildConfig } from '../../services/config/guildConfig.js';
 
 export async function renderWelcomeSubPanel(client, guild) {

@@ -3,7 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from 'discord.js';
-import { buildPacilEmbed } from '../../ui/pacil.js';
+import { buildPacilEmbed } from '../pacil.js';
 
 export async function renderBoosterSubPanel(client, guild) {
   const boostCount = guild.premiumSubscriptionCount || 0;

@@ -8,10 +8,10 @@ import { buildPacilEmbed } from '../../../ui/pacil.js';
 import { getGuildConfig, patchGuildConfig } from '../../../services/config/guildConfig.js';
 import { getConfessionConfig } from '../../../services/confessionService.js';
 import { guildCirclesListKey, getCircle } from '../../../services/circleService.js';
-import { renderWelcomeSubPanel } from '../../../components/panels/welcomeSubPanel.js';
-import { renderRulesGuidePublicEmbed } from '../../../components/panels/rulesGuideSubPanel.js';
-import { renderBoosterPublicPanel } from '../../../components/panels/boosterSubPanel.js';
-import { renderMusicStatusEmbed } from '../../../components/panels/musicSubPanel.js';
+import { renderWelcomeSubPanel } from '../../../ui/panels/welcomeSubPanel.js';
+import { renderRulesGuidePublicEmbed } from '../../../ui/panels/rulesGuideSubPanel.js';
+import { renderBoosterPublicPanel } from '../../../ui/panels/boosterSubPanel.js';
+import { renderMusicStatusEmbed } from '../../../ui/panels/musicSubPanel.js';
 
 export async function handleSetupAction(interaction, client, action) {
   {
