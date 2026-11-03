@@ -1,4 +1,4 @@
-// Tampilan hub /config. Semua fungsi menerima data biasa (tanpa akses database)
+// Tampilan modul hub dashboard /pacilsetup. Semua fungsi menerima data biasa (tanpa akses database)
 // dan mengembalikan payload pesan { content, embeds, components } yang siap dikirim/diedit.
 
 import {
@@ -26,34 +26,6 @@ const mentionIds = (ids, format, cap = 8) => {
 const payload = (notice, embed, components) => ({ content: notice ?? '', embeds: [embed], components });
 const row = (...components) => new ActionRowBuilder().addComponents(...components);
 const backButton = (to = 'home') => ({ id: cid('go', to), label: 'Kembali', emoji: '↩️', style: 'secondary' });
-
-export const HOME_SECTIONS = [
-  { value: 'menfess', label: 'Menfess', emoji: '💌', description: 'Channel, persetujuan, balasan, dan jeda kirim' },
-  { value: 'sticky', label: 'Sticky Message', emoji: '📌', description: 'Pesan yang selalu muncul di bawah channel' },
-  { value: 'jtc', label: 'Join to Create', emoji: '🎙️', description: 'Ruang voice sementara dan panel pemiliknya' },
-  { value: 'perm', label: 'Izin Command', emoji: '🛡️', description: 'Role, channel, dan cooldown per command' },
-  { value: 'access', label: 'Aktif / Nonaktif Command', emoji: '🚦', description: 'Matikan atau hidupkan command per kategori' },
-  { value: 'other', label: 'Fitur Lainnya', emoji: '🧰', description: 'Tiket, logging, welcome, verifikasi, dan lain-lain' },
-];
-
-export function homeView({ guildName, notice } = {}) {
-  const embed = pacilPanel({
-    title: 'Pusat Pengaturan Pacil Bot',
-    icon: '⚙️',
-    tone: 'panel',
-    description: [
-      `Atur semua fitur bot untuk **${guildName ?? 'server ini'}** dari satu tempat.`,
-      'Pilih bagian yang mau diatur di menu bawah. Perubahan langsung tersimpan.',
-    ].join('\n'),
-    fields: HOME_SECTIONS.map((s) => ({ name: `${s.emoji} ${s.label}`, value: s.description, inline: true })),
-    footer: 'Pacil Baik • Hanya yang punya izin Manage Server bisa membuka ini',
-  });
-  const menu = new StringSelectMenuBuilder()
-    .setCustomId(cid('go'))
-    .setPlaceholder('Pilih bagian yang mau diatur…')
-    .addOptions(HOME_SECTIONS.map((s) => ({ label: s.label, value: s.value, emoji: s.emoji, description: s.description })));
-  return payload(notice, embed, [row(menu)]);
-}
 
 export function menfessView({ config, notice }) {
   const embed = pacilPanel({
@@ -98,7 +70,11 @@ export function menfessView({ config, notice }) {
   if (config.reviewChannelId) reviewSelect.setDefaultChannels(config.reviewChannelId);
   if (config.moderatorRoleId) roleSelect.setDefaultRoles(config.moderatorRoleId);
 
-  return payload(notice, embed, [...toggles, row(publicSelect), row(reviewSelect), row(roleSelect)]);
+  const deploy = pacilButtons([
+    { id: 'setup:act:deploy_confess_panel', label: 'Pasang Panel Publik', emoji: '📌', style: 'success' },
+  ]);
+
+  return payload(notice, embed, [...toggles, row(publicSelect), row(reviewSelect), row(roleSelect), ...deploy]);
 }
 
 export function stickyView({ stickies, limit, notice }) {
@@ -140,7 +116,7 @@ export function accessView({ disabledCommands, disabledCategories, notice }) {
     title: 'Aktif / Nonaktif Command',
     icon: '🚦',
     tone: 'panel',
-    description: 'Matikan command atau satu kategori penuh untuk server ini. Command `/config`, `/commands`, dan `/configwizard` selalu aktif supaya kamu tidak terkunci.',
+    description: 'Matikan command atau satu kategori penuh untuk server ini. Command `/pacilsetup`, `/commands`, dan `/configwizard` selalu aktif supaya kamu tidak terkunci.',
     fields: [
       { name: 'Command nonaktif', value: String(disabledCommands), inline: true },
       { name: 'Kategori nonaktif', value: String(disabledCategories), inline: true },

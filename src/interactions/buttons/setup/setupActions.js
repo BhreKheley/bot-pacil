@@ -8,15 +8,13 @@ import { buildPacilEmbed } from '../../../ui/pacil.js';
 import { getGuildConfig, patchGuildConfig } from '../../../services/config/guildConfig.js';
 import { getConfessionConfig } from '../../../services/confessionService.js';
 import { guildCirclesListKey, getCircle } from '../../../services/circleService.js';
-import { renderConfessionSubPanel } from '../../../components/panels/confessionSubPanel.js';
 import { renderWelcomeSubPanel } from '../../../components/panels/welcomeSubPanel.js';
 import { renderRulesGuidePublicEmbed } from '../../../components/panels/rulesGuideSubPanel.js';
 import { renderBoosterPublicPanel } from '../../../components/panels/boosterSubPanel.js';
 import { renderMusicStatusEmbed } from '../../../components/panels/musicSubPanel.js';
 
-export default {
-  name: 'setupAction',
-  async execute(interaction, client, [action]) {
+export async function handleSetupAction(interaction, client, action) {
+  {
     // 1. Pasang Panel Publik Circle
     if (action === 'deploy_circle_panel') {
       const panelEmbed = buildPacilEmbed({
@@ -38,7 +36,6 @@ export default {
             inline: false,
           },
         ],
-        footer: 'Makara Fasilkom UI • Pacil Bot',
       });
 
       const buttonRow = new ActionRowBuilder().addComponents(
@@ -118,7 +115,6 @@ export default {
             inline: false,
           },
         ],
-        footer: 'Makara Fasilkom UI • Pacil Bot',
       });
 
       const row = new ActionRowBuilder().addComponents(
@@ -134,34 +130,6 @@ export default {
         content: `✅ Panel Menfess berhasil dikirim ke <#${interaction.channelId}>!`,
         flags: MessageFlags.Ephemeral,
       });
-    }
-
-    // 4. Toggle Review Moderator Menfess
-    if (action === 'toggle_confess_approval') {
-      const guildConfig = await getGuildConfig(client, interaction.guildId);
-      const config = getConfessionConfig(guildConfig);
-      const nextApproval = !config.requireApproval;
-
-      await patchGuildConfig(client, interaction.guildId, {
-        confessions: { ...config, requireApproval: nextApproval },
-      });
-
-      const updatedPanel = await renderConfessionSubPanel(client, interaction.guild);
-      return interaction.update(updatedPanel);
-    }
-
-    // 5. Toggle Balasan Menfess
-    if (action === 'toggle_confess_replies') {
-      const guildConfig = await getGuildConfig(client, interaction.guildId);
-      const config = getConfessionConfig(guildConfig);
-      const nextReplies = config.repliesEnabled === false;
-
-      await patchGuildConfig(client, interaction.guildId, {
-        confessions: { ...config, repliesEnabled: nextReplies },
-      });
-
-      const updatedPanel = await renderConfessionSubPanel(client, interaction.guild);
-      return interaction.update(updatedPanel);
     }
 
     // 6. Toggle Welcome System
@@ -194,7 +162,6 @@ export default {
           { name: '🔗 Diundang oleh', value: 'Direct / Server Link', inline: true },
           { name: '📚 Langkah Pertama', value: 'Baca panduan di `#start-here` dan ambil role angkatanmu di `#reaction-roles`!', inline: false },
         ],
-        footer: 'Makara Fasilkom UI • Pacil Bot',
       });
 
       return interaction.reply({
@@ -274,17 +241,17 @@ export default {
       const trackerEmbed = renderMusicStatusEmbed(interaction.guild);
       const buttonRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-          .setCustomId('setupAction:deploy_music_tracker')
+          .setCustomId('setup:act:deploy_music_tracker')
           .setLabel('Pasang Tracker Publik')
           .setEmoji('📌')
           .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
-          .setCustomId('setupAction:refresh_music_panel')
+          .setCustomId('setup:act:refresh_music_panel')
           .setLabel('Refresh Status')
           .setEmoji('🔄')
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
-          .setCustomId('setupBackMain')
+          .setCustomId('setup:back')
           .setLabel('🔙 Back to Main Menu')
           .setStyle(ButtonStyle.Primary)
       );
@@ -294,5 +261,5 @@ export default {
         components: [buttonRow],
       });
     }
-  },
-};
+  }
+}

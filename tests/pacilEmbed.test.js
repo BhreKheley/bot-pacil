@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { buildPacilEmbed, pacilNotice, PACIL_FOOTER, PACIL_COLORS } from '../src/ui/pacil.js';
+import { buildPacilEmbed, pacilFooter, pacilNotice, PACIL_FOOTER, PACIL_COLORS } from '../src/ui/pacil.js';
 import { createEmbed } from '../src/utils/embeds.js';
 
 // Kompatibel dengan discord.js asli (huruf kecil) maupun harness tiruan (huruf kapital).
@@ -67,4 +67,18 @@ test('warna selalu dari token pusat, tidak ada hex/angka literal di setColor', (
 test('footer selalu lewat pacilFooter, tidak ada teks literal', () => {
   const allow = new Set(['src/ui/pacil.js', 'src/commands/Tools/embedbuilder.js', 'src/utils/logging/logEmbeds.js']);
   assert.deepEqual(scan(/\.setFooter\(\{\s*text:\s*['"`]/, allow), []);
+});
+
+test('pacilFooter menormalkan awalan merek lama dan menambah petunjuk', () => {
+  assert.equal(pacilFooter(), PACIL_FOOTER);
+  assert.equal(pacilFooter('Makara Fasilkom UI • Pacil Bot'), PACIL_FOOTER);
+  assert.equal(pacilFooter('Makara Fasilkom UI • Pacil Bot • Panduan Interaktif'), `${PACIL_FOOTER} • Panduan Interaktif`);
+  assert.equal(pacilFooter('Pacil Baik • #ab12'), `${PACIL_FOOTER} • #ab12`);
+  assert.equal(pacilFooter('Halaman 1/3'), `${PACIL_FOOTER} • Halaman 1/3`);
+  assert.equal(pacilFooter(PACIL_FOOTER), PACIL_FOOTER);
+});
+
+test('footer string dan objek di buildPacilEmbed ikut dinormalkan', () => {
+  assert.equal(field(buildPacilEmbed({ title: 'x', footer: 'Makara Fasilkom UI • Booster Perks' }).toJSON(), 'footer').text, `${PACIL_FOOTER} • Booster Perks`);
+  assert.equal(field(buildPacilEmbed({ title: 'x', footer: { text: 'Ticket ID: 7' } }).toJSON(), 'footer').text, `${PACIL_FOOTER} • Ticket ID: 7`);
 });

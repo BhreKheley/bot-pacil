@@ -19,7 +19,7 @@ export const GLOBAL_BLOCKED_SUBCOMMANDS = new Set([
 
 /** Subcommand groups blocked for every command when invoked via prefix. */
 export const GLOBAL_BLOCKED_SUBCOMMAND_GROUPS = new Set([
-  'config',
+  'pacilsetup',
 ]);
 
 /** Per-command subcommands that stay slash-only (beyond the global block list). */

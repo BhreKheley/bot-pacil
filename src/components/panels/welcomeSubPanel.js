@@ -39,17 +39,17 @@ export async function renderWelcomeSubPanel(client, guild) {
 
   const buttonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('setupAction:toggle_welcome')
+      .setCustomId('setup:act:toggle_welcome')
       .setLabel(welcome.enabled ? 'Nonaktifkan Welcome' : 'Aktifkan Welcome')
       .setEmoji('⚙️')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId('setupAction:test_welcome')
+      .setCustomId('setup:act:test_welcome')
       .setLabel('Preview Greeting')
       .setEmoji('👁️')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
-      .setCustomId('setupBackMain')
+      .setCustomId('setup:back')
       .setLabel('🔙 Back to Main Menu')
       .setStyle(ButtonStyle.Primary)
   );

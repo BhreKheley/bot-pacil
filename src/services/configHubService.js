@@ -1,6 +1,6 @@
 // Catatan: patchPolicy/resetPolicy sudah mengunci per server di dalamnya; jangan dibungkus Mutex
 // dengan kunci yang sama (Mutex tidak reentrant dan akan menggantung).
-// Hub /config: ambil data, render view, dan jalankan aksi komponennya.
+// Modul hub dashboard /pacilsetup: ambil data, render view, dan jalankan aksi komponennya.
 // Tampilan murni ada di src/ui/configHub.js; logika izin murni di commandPolicyLogic.js.
 
 import { MessageFlags, ModalBuilder, PermissionFlagsBits, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
@@ -16,9 +16,11 @@ import { buildCommandRegistry, isProtectedCommand } from './commandAccessService
 import { getPolicies, patchPolicy, resetPolicy } from './commandPolicyService.js';
 import { formatCooldown, normalizeCommandKey, parseCooldownInput } from './commandPolicyLogic.js';
 import {
-  accessView, cid, homeView, jtcView, menfessView, otherView, permCategoryView, permCommandsView,
+  accessView, cid, jtcView, menfessView, otherView, permCategoryView, permCommandsView,
   policyView, stickyView,
 } from '../ui/configHub.js';
+import { renderMainDashboard } from '../components/panels/mainDashboard.js';
+import { denyIfNoSetupAccess } from '../utils/setupGuard.js';
 
 const ephemeral = { flags: MessageFlags.Ephemeral };
 export const configLockKey = (guildId) => `guildcfg:${guildId}`;
@@ -84,7 +86,7 @@ export async function renderConfigView(client, guild, view, opts = {}) {
       notice,
     });
   }
-  return homeView({ guildName: guild.name, notice });
+  return renderMainDashboard(guild, { notice });
 }
 
 /** Bot butuh izin ini untuk memposting menfess; kembalikan nama izin yang kurang. */
@@ -119,9 +121,7 @@ const VIEWS = new Set(['home', 'menfess', 'sticky', 'jtc', 'perm', 'access', 'ot
 
 /** Titik masuk semua komponen hub (tombol, menu, modal). `args` = customId tanpa awalan "pacilcfg". */
 export async function handleConfigInteraction(interaction, client, args) {
-  if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild) || !interaction.guild) {
-    return interaction.reply({ content: 'Kamu perlu izin **Manage Server** untuk memakai pengaturan ini.', ...ephemeral });
-  }
+  if (await denyIfNoSetupAccess(interaction)) return;
   const guild = interaction.guild;
   const [action, ...rest] = args;
   const show = async (view, opts) => interaction.update(await renderConfigView(client, guild, view, opts));

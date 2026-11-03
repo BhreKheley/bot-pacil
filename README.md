@@ -7,7 +7,7 @@ Bot Discord resmi komunitas **Pacil Baik**, server mahasiswa Fasilkom UI. Dibang
 - **Menfess (confession)** anonim dengan antrean moderator, tombol **Balas**, dan balasan anonim di thread.
 - **Sticky message**: pesan embed yang selalu muncul di bagian bawah channel pilihanmu.
 - **Join to Create**: ruang voice sementara dengan panel kontrol lengkap untuk pemiliknya.
-- **Hub `/config`**: satu pintu untuk mengatur semua fitur, plus izin per command (role, channel, cooldown).
+- **Dashboard `/pacilsetup`**: satu pintu (khusus Administrator) untuk mengatur semua fitur, plus izin per command (role, channel, cooldown).
 - Moderasi, tiket, verifikasi, welcome, leveling, ekonomi, giveaway, ulang tahun, reaction role, musik, dan alat bantu lainnya.
 
 ### Menfess
@@ -37,7 +37,7 @@ Jalankan `/jointocreate setup`. Setiap ruang voice sementara mendapat panel kont
 
 - **Panduan permanen:** `/configwizard guide_channel:#panduan-bot` memposting direktori bantuan interaktif.
 - **Pengumuman berdesain:** `/say message:<isi> title:<judul> color:<warna> channel:<tujuan>`.
-- **Atur semuanya:** `/config`.
+- **Atur semuanya:** `/pacilsetup`.
 
 ## Deploy dengan Docker
 

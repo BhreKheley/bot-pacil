@@ -168,7 +168,7 @@ export default {
               });
             }
 
-            // Izin per command dari /config (role, channel, cooldown).
+            // Izin per command dari /pacilsetup (role, channel, cooldown).
             const policyDenial = enforceCommandPolicy(interaction, guildConfig, accessKey, client);
             if (policyDenial) {
               return await InteractionHelper.safeReply(interaction, {
@@ -387,7 +387,7 @@ export default {
             }, interactionTraceContext));
           }
         } else if (interaction.isAnySelectMenu()) {
-          // User/role/channel select (panel voice, /config) memakai registry yang sama dengan select menu string.
+          // User/role/channel select (panel voice, /pacilsetup) memakai registry yang sama dengan select menu string.
           const [customId, ...args] = interaction.customId.split(':');
           const selectMenu = client.selectMenus.get(customId);
 

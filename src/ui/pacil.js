@@ -38,8 +38,16 @@ export const PACIL_FOOTER = botConfig.embeds?.footer?.text ?? 'Pacil Baik • Fa
 
 const clip = (value, max) => String(value).slice(0, max);
 
-/** Footer seragam: selalu diawali merek Pacil, petunjuk kontekstual ditambahkan setelahnya. */
-export const pacilFooter = (hint) => (hint ? clip(`${PACIL_FOOTER} • ${hint}`, 2048) : PACIL_FOOTER);
+const BRAND_PREFIX = /^(?:Makara Fasilkom UI|Pacil Baik)(?:\s*•\s*(?:Pacil Bot|Fasilkom UI))?(?:\s*•\s*)?/i;
+
+/**
+ * Footer seragam: selalu "Pacil Baik • Fasilkom UI", diikuti petunjuk kontekstual bila ada.
+ * Awalan merek lama (mis. "Makara Fasilkom UI • Pacil Bot") dibuang agar tidak dobel.
+ */
+export function pacilFooter(hint) {
+  const rest = String(hint ?? '').replace(BRAND_PREFIX, '').trim();
+  return rest ? clip(`${PACIL_FOOTER} • ${rest}`, 2048) : PACIL_FOOTER;
+}
 
 function cleanText(text = '') {
   if (typeof text !== 'string') return text;
@@ -94,8 +102,11 @@ export function buildPacilEmbed({
   if (typeof authorValue === 'string' && authorValue) embed.setAuthor({ name: clip(authorValue, 256) });
   else if (authorValue?.name) embed.setAuthor(authorValue);
 
-  if (footer && typeof footer === 'object' && footer.text) embed.setFooter(footer);
-  else embed.setFooter({ text: clip(typeof footer === 'string' && footer ? footer : PACIL_FOOTER, 2048) });
+  if (footer && typeof footer === 'object' && footer.text) {
+    embed.setFooter({ ...footer, text: pacilFooter(footer.text) });
+  } else {
+    embed.setFooter({ text: pacilFooter(typeof footer === 'string' ? footer : '') });
+  }
 
   const thumb = thumbnail ?? botConfig.embeds?.thumbnail;
   if (thumb) embed.setThumbnail(typeof thumb === 'object' ? thumb.url : thumb);
