@@ -38,6 +38,10 @@ export const PACIL_FOOTER = botConfig.embeds?.footer?.text ?? 'Pacil Baik • Fa
 
 const clip = (value, max) => String(value).slice(0, max);
 
+// Status tidak boleh bergantung pada warna saja (WCAG 1.4.1): tone status otomatis diberi penanda teks.
+const STATUS_ICONS = Object.freeze({ success: '✅', warning: '⚠️', error: '❌' });
+const STARTS_WITH_EMOJI = /^\p{Extended_Pictographic}/u;
+
 const BRAND_PREFIX = /^(?:Makara Fasilkom UI|Pacil Baik)(?:\s*•\s*(?:Pacil Bot|Fasilkom UI))?(?:\s*•\s*)?/i;
 
 /**
@@ -84,7 +88,8 @@ export function buildPacilEmbed({
 } = {}) {
   const embed = new EmbedBuilder().setColor(resolveColor(color, tone));
 
-  if (title || icon) embed.setTitle(clip(icon ? `${icon}  ${title ?? ''}`.trim() : title, 256));
+  const marker = icon ?? (title && !STARTS_WITH_EMOJI.test(title) ? STATUS_ICONS[tone] : undefined);
+  if (title || icon) embed.setTitle(clip(marker ? `${marker}  ${title ?? ''}`.trim() : title, 256));
   if (description) embed.setDescription(clip(cleanText(description), 4096));
 
   const validFields = (Array.isArray(fields) ? fields : []).filter((f) => f?.name && f?.value);

@@ -82,3 +82,9 @@ test('footer string dan objek di buildPacilEmbed ikut dinormalkan', () => {
   assert.equal(field(buildPacilEmbed({ title: 'x', footer: 'Makara Fasilkom UI • Booster Perks' }).toJSON(), 'footer').text, `${PACIL_FOOTER} • Booster Perks`);
   assert.equal(field(buildPacilEmbed({ title: 'x', footer: { text: 'Ticket ID: 7' } }).toJSON(), 'footer').text, `${PACIL_FOOTER} • Ticket ID: 7`);
 });
+
+test('tone status memberi penanda ikon pada judul (tidak hanya warna)', () => {
+  assert.match(String(field(buildPacilEmbed({ title: 'Gagal', tone: 'error' }).toJSON(), 'title')), /^❌ {2}Gagal$/);
+  assert.equal(field(buildPacilEmbed({ title: '✅ Siap', tone: 'success' }).toJSON(), 'title'), '✅ Siap');
+  assert.equal(field(buildPacilEmbed({ title: 'Info', tone: 'navy' }).toJSON(), 'title'), 'Info');
+});
