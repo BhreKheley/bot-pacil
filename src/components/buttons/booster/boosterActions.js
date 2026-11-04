@@ -5,7 +5,7 @@ import {
   ActionRowBuilder,
   MessageFlags,
 } from 'discord.js';
-import { getUserBoosterRole, deleteUserBoosterRole } from '../../../services/boosterService.js';
+import { getBoosterConfig, getUserBoosterRole, deleteUserBoosterRole } from '../../../services/boosterService.js';
 import { buildPacilEmbed } from '../../../ui/pacil.js';
 
 export default {
@@ -20,6 +20,12 @@ export default {
         flags: MessageFlags.Ephemeral,
       });
     }
+
+    const cfg = await getBoosterConfig(client, interaction.guildId);
+    const refuse = (content) => interaction.reply({ content: `❌ ${content}`, flags: MessageFlags.Ephemeral });
+    if (!cfg.enabled) return refuse('Fitur custom role booster sedang dinonaktifkan oleh pengurus.');
+    if (action === 'gift' && !cfg.allowGift) return refuse('Fitur Gift Role sedang dinonaktifkan.');
+    if (action === 'icon' && !cfg.allowIcon) return refuse('Fitur Icon Role sedang dinonaktifkan.');
 
     // 1. Create Role
     if (action === 'create') {
@@ -41,7 +47,7 @@ export default {
         .setStyle(TextInputStyle.Short)
         .setPlaceholder('Contoh: Sepuh Basdat, Elite Pacil, dll.')
         .setMinLength(2)
-        .setMaxLength(30)
+        .setMaxLength(cfg.nameMaxLength)
         .setRequired(true);
 
       const colorInput = new TextInputBuilder()
@@ -80,7 +86,7 @@ export default {
         .setStyle(TextInputStyle.Short)
         .setValue(existing.name || '')
         .setMinLength(2)
-        .setMaxLength(30)
+        .setMaxLength(cfg.nameMaxLength)
         .setRequired(true);
 
       modal.addComponents(new ActionRowBuilder().addComponents(nameInput));

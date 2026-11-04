@@ -45,3 +45,23 @@ test('applyRoleColors: gradien ditolak Discord -> jatuh ke solid', async () => {
   assert.deepEqual(r, { gradient: false, fallback: true });
   assert.equal(calls.length, 2);
 });
+
+import { BOOSTER_DEFAULTS, getBoosterConfig, saveBoosterConfig, saveUserBoosterRole, getUserBoosterRole, cleanupBoosterRole } from '../src/services/boosterService.js';
+
+const memDb = () => { const m = new Map(); return { get: async (k, d) => (m.has(k) ? m.get(k) : d), set: async (k, v) => { m.set(k, v); }, delete: async (k) => { m.delete(k); } }; };
+
+test('konfigurasi booster: default, simpan parsial, dan cleanup role', async () => {
+  const client = { db: memDb() };
+  assert.deepEqual(await getBoosterConfig(client, 'g'), BOOSTER_DEFAULTS);
+  await saveBoosterConfig(client, 'g', { allowGift: false });
+  assert.equal((await getBoosterConfig(client, 'g')).allowGift, false);
+  assert.equal((await getBoosterConfig(client, 'g')).autoCleanup, true);
+
+  let deleted = false;
+  const guild = { id: 'g', roles: { cache: new Map([['r1', { delete: async () => { deleted = true; } }]]), fetch: async () => null } };
+  assert.equal(await cleanupBoosterRole(client, guild, 'u'), false);
+  await saveUserBoosterRole(client, 'g', 'u', { roleId: 'r1' });
+  assert.equal(await cleanupBoosterRole(client, guild, 'u'), true);
+  assert.equal(deleted, true);
+  assert.equal(await getUserBoosterRole(client, 'g', 'u'), null);
+});
