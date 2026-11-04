@@ -3,8 +3,10 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ChannelType,
+  UserSelectMenuBuilder,
 } from 'discord.js';
 import { buildPacilEmbed } from '../pacil.js';
+import { MAX_TRACKED_BOTS, getTrackedBotIds } from '../../services/musicTrackerService.js';
 
 const MUSIC_BOT_KEYWORDS = ['jockie', 'flavi', 'lofi', 'rythm', 'fredboat', 'chip', 'groovy', 'music'];
 
@@ -33,8 +35,8 @@ export function getMusicBotsStatus(guild, musicBotIds = []) {
   return detectedMusicBots;
 }
 
-export function renderMusicStatusEmbed(guild) {
-  const bots = getMusicBotsStatus(guild);
+export function renderMusicStatusEmbed(guild, botIds = []) {
+  const bots = getMusicBotsStatus(guild, botIds);
 
   const statusLines = bots.length > 0
     ? bots.map(b => {
@@ -46,7 +48,7 @@ export function renderMusicStatusEmbed(guild) {
           return `⚪ **${b.name}** — *Offline*`;
         }
       }).join('\n')
-    : '*(Tidak ada bot musik sekunder yang terdeteksi di server ini)*';
+    : '*Belum ada bot musik yang dipantau. Admin: pilih bot lewat `/pacilsetup` → Music Bot Status.*';
 
   const embed = buildPacilEmbed({
     title: '🎶 Live Music Bot Tracker — Pacil Baik',
@@ -78,7 +80,17 @@ export function renderMusicStatusEmbed(guild) {
 }
 
 export async function renderMusicSubPanel(client, guild) {
-  const embed = renderMusicStatusEmbed(guild);
+  const botIds = await getTrackedBotIds(client, guild.id);
+  if (botIds.length) await guild.members.fetch({ user: botIds }).catch(() => {});
+  const embed = renderMusicStatusEmbed(guild, botIds);
+  const picker = new UserSelectMenuBuilder()
+    .setCustomId('setup:music:bots')
+    .setPlaceholder('Pilih bot musik yang dipantau (maks. 10)')
+    .setMinValues(0)
+    .setMaxValues(MAX_TRACKED_BOTS);
+  if (botIds.length) picker.setDefaultUsers(botIds.slice(0, MAX_TRACKED_BOTS));
+  const pickerRow = new ActionRowBuilder().addComponents(picker);
+
 
   const buttonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -99,6 +111,6 @@ export async function renderMusicSubPanel(client, guild) {
 
   return {
     embeds: [embed],
-    components: [buttonRow],
+    components: [pickerRow, buttonRow],
   };
 }
