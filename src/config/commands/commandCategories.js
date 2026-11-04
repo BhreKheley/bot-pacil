@@ -18,7 +18,6 @@ export const CATEGORY_ICONS = {
   Tools: '🛠️',
   Utility: '🔧',
   Verification: '✅',
-  Welcome: '👋',
 };
 
 /** Commands that always stay available so admins can recover access. */

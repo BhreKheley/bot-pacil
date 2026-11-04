@@ -344,8 +344,8 @@ function normalizeWelcomeConfig(raw = {}) {
     const channelId = base.channelId ?? null;
     const goodbyeChannelId = base.goodbyeChannelId ?? null;
 
-    const welcomeMessage = base.welcomeMessage ?? "Welcome {user} to {server}!";
-    const leaveMessage = base.leaveMessage ?? "{user.tag} has left the server.";
+    const welcomeMessage = base.welcomeMessage ?? "";
+    const leaveMessage = base.leaveMessage ?? "";
 
     const welcomeEmbed = base.welcomeEmbed ?? {
         title: "🎉 Welcome!",
@@ -372,6 +372,9 @@ function normalizeWelcomeConfig(raw = {}) {
         welcomeMessage,
         welcomeEmbed,
         welcomePing: Boolean(base.welcomePing),
+        welcomeTitle: base.welcomeTitle ?? "",
+        goodbyeTitle: base.goodbyeTitle ?? "",
+        guideChannelId: base.guideChannelId ?? null,
         welcomeImage: base.welcomeImage ?? null,
         goodbyeEnabled: Boolean(base.goodbyeEnabled),
         goodbyeChannelId,

@@ -41,10 +41,6 @@ export const commandAliases = {
     'vadmin': 'verification',
     'av': 'autoverify',
 
-    'welcome': 'welcome',
-    'greet': 'greet',
-    'goodbye': 'goodbye',
-    'autorole': 'autorole',
 
     'report': 'report',
     'userinfo': 'userinfo',

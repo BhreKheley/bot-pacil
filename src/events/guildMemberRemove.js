@@ -1,8 +1,6 @@
-import { pacilEmbed } from '../ui/pacil.js';
+import { buildGoodbyeEmbed } from '../services/welcomeService.js';
 import { Events, PermissionFlagsBits } from 'discord.js';
-import { getColor, botConfig } from '../config/bot.js';
 import { getWelcomeConfig, getUserApplications, deleteApplication } from '../utils/database.js';
-import { formatWelcomeMessage } from '../utils/welcome.js';
 import { logEvent, EVENT_TYPES } from '../services/loggingService.js';
 import { getServerCounters, updateCounter } from '../services/serverstatsService.js';
 import { getGuildBirthdays, deleteBirthday } from '../utils/database.js';
@@ -30,52 +28,14 @@ export default {
                     return;
                 }
 
-                const formatData = { user, guild, member };
-                const goodbyeMessage = formatWelcomeMessage(
-                    welcomeConfig.leaveMessage || welcomeConfig.leaveEmbed?.description || botConfig.welcome?.defaultGoodbyeMessage || '{user} has left the server.',
-                    formatData
-                );
-
-                const embedTitle = formatWelcomeMessage(
-                    welcomeConfig.leaveEmbed?.title || '👋 Goodbye',
-                    formatData
-                );
-                const embedFooter = welcomeConfig.leaveEmbed?.footer
-                    ? formatWelcomeMessage(welcomeConfig.leaveEmbed.footer, formatData)
-                    : `Goodbye from ${guild.name}!`;
-
+                const embed = buildGoodbyeEmbed({ member, config: welcomeConfig });
                 const canEmbed = permissions.has(PermissionFlagsBits.EmbedLinks);
-
-                if (!canEmbed) {
-                    await channel.send({
-                        content: welcomeConfig?.goodbyePing ? `<@${user.id}> ${goodbyeMessage}` : goodbyeMessage,
-                        allowedMentions: welcomeConfig?.goodbyePing ? { users: [user.id] } : { parse: [] }
-                    });
-                } else {
-                    const embed = pacilEmbed()
-                        .setTitle(embedTitle)
-                        .setDescription(goodbyeMessage)
-                        .setColor(welcomeConfig.leaveEmbed?.color || getColor('error'))
-                        .setThumbnail(user.displayAvatarURL())
-                        .addFields(
-                            { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
-                            { name: 'Member Count', value: guild.memberCount.toString(), inline: true }
-                        )
-                        .setTimestamp()
-                        .setFooter({ text: embedFooter });
-
-                    if (typeof welcomeConfig.leaveEmbed?.image === 'string') {
-                        embed.setImage(welcomeConfig.leaveEmbed.image);
-                    } else if (welcomeConfig.leaveEmbed?.image?.url) {
-                        embed.setImage(welcomeConfig.leaveEmbed.image.url);
-                    }
-
-                    await channel.send({
-                        content: welcomeConfig?.goodbyePing ? `<@${user.id}>` : undefined,
-                        allowedMentions: welcomeConfig?.goodbyePing ? { users: [user.id] } : { parse: [] },
-                        embeds: [embed]
-                    });
-                }
+                const mention = welcomeConfig.goodbyePing ? user.toString() : undefined;
+                await channel.send({
+                    content: canEmbed ? mention : [mention, embed.data.description].filter(Boolean).join(' '),
+                    embeds: canEmbed ? [embed] : [],
+                    allowedMentions: welcomeConfig.goodbyePing ? { users: [user.id] } : { parse: [] },
+                });
             }
         }
 
