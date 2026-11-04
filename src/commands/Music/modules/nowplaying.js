@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { InteractionHelper } from '../../utils/interactionHelper.js';
-import { buildNowPlayingReply } from '../../services/music/musicActions.js';
-import { deferMusicCommand } from '../../services/music/prefixSupport.js';
+import { InteractionHelper } from '../../../utils/interactionHelper.js';
+import { buildNowPlayingReply } from '../../../services/music/musicActions.js';
+import { deferMusicCommand } from '../../../services/music/prefixSupport.js';
 
 export default {
     category: 'Music',

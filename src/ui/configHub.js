@@ -116,7 +116,7 @@ export function accessView({ disabledCommands, disabledCategories, notice }) {
     title: 'Aktif / Nonaktif Command',
     icon: '🚦',
     tone: 'panel',
-    description: 'Matikan command atau satu kategori penuh untuk server ini. Command `/pacilsetup`, `/commands`, dan `/configwizard` selalu aktif supaya kamu tidak terkunci.',
+    description: 'Matikan command atau satu kategori penuh untuk server ini. Command `/pacilsetup` dan `/commands` selalu aktif supaya kamu tidak terkunci.',
     fields: [
       { name: 'Command nonaktif', value: String(disabledCommands), inline: true },
       { name: 'Kategori nonaktif', value: String(disabledCategories), inline: true },

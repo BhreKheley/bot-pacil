@@ -22,6 +22,18 @@ function applyOption(sub, opt) {
   });
 }
 
+/** Tambahkan modul command lama sebagai satu subcommand pada builder induk. */
+export function addModuleSubcommand(data, subName, mod) {
+  const json = mod.data.toJSON();
+  if (json.options?.some((o) => o.type <= 2)) throw new Error(`Modul "${subName}" sudah punya subcommand; tidak bisa dibungkus`);
+  data.addSubcommand((sub) => {
+    sub.setName(subName).setDescription(json.description);
+    for (const opt of json.options ?? []) applyOption(sub, opt);
+    return sub;
+  });
+  return data;
+}
+
 /**
  * Menyusun satu command induk dari beberapa modul command (tiap modul menjadi subcommand).
  * Modul aslinya tidak diubah: opsi top-level miliknya menjadi opsi subcommand.
@@ -30,15 +42,7 @@ function applyOption(sub, opt) {
 export function composeCommand({ name, description, category, permissions = null, subs }) {
   const data = new SlashCommandBuilder().setName(name).setDescription(description);
   if (permissions !== null) data.setDefaultMemberPermissions(permissions);
-  for (const [subName, mod] of Object.entries(subs)) {
-    const json = mod.data.toJSON();
-    if (json.options?.some((o) => o.type <= 2)) throw new Error(`Modul "${subName}" sudah punya subcommand; tidak bisa dibungkus`);
-    data.addSubcommand((sub) => {
-      sub.setName(subName).setDescription(json.description);
-      for (const opt of json.options ?? []) applyOption(sub, opt);
-      return sub;
-    });
-  }
+  for (const [subName, mod] of Object.entries(subs)) addModuleSubcommand(data, subName, mod);
   return {
     data,
     category,
