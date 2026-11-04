@@ -5,7 +5,6 @@
 
 export const commandAliases = {
 
-    'ping': 'ping',
     'help': 'help',
     'h': 'help',
     'info': 'help',
@@ -16,8 +15,6 @@ export const commandAliases = {
     'warn': 'warn',
     'clear': 'purge',
     'purge': 'purge',
-    'untimeout': 'untimeout',
-    'unmute': 'untimeout',
 
     'rank': 'rank',
     'lvl': 'rank',
@@ -35,13 +32,6 @@ export const commandAliases = {
     'bday': 'birthday',
     'b': 'birthday',
 
-    'gcreate': 'gcreate',
-    'gstart': 'gcreate',
-    'gend': 'gend',
-    'gstop': 'gend',
-    'gdelete': 'gdelete',
-    'greroll': 'greroll',
-    'groll': 'greroll',
 
     'ticket': 'ticket',
     't': 'ticket',
