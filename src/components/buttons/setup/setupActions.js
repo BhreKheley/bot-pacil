@@ -8,6 +8,7 @@ import { buildPacilEmbed } from '../../../ui/pacil.js';
 import { getGuildConfig, patchGuildConfig } from '../../../services/config/guildConfig.js';
 import { getConfessionConfig } from '../../../services/confessionService.js';
 import { guildCirclesListKey, getCircle } from '../../../services/circleService.js';
+import { getGuideOverrides } from '../../../services/guideService.js';
 import { renderRulesGuidePublicEmbed } from '../../../ui/panels/rulesGuideSubPanel.js';
 import { renderBoosterPublicPanel } from '../../../ui/panels/boosterSubPanel.js';
 import { getTrackedBotIds } from '../../../services/musicTrackerService.js';
@@ -182,7 +183,7 @@ export async function handleSetupAction(interaction, client, action) {
 
     // 9. Pasang Interactive Guide
     if (action === 'deploy_guide') {
-      const guidePayload = renderRulesGuidePublicEmbed('server');
+      const guidePayload = renderRulesGuidePublicEmbed('server', await getGuideOverrides(client, interaction.guildId));
       await interaction.channel.send(guidePayload);
       return interaction.reply({
         content: `✅ Interactive Guide berhasil dipasang di <#${interaction.channelId}>!`,
