@@ -1,10 +1,10 @@
-import { getColor } from '../../config/bot.js';
+import { getColor } from '../../../config/bot.js';
 import { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { createEmbed } from '../../utils/embeds.js';
-import { logEvent } from '../../utils/moderation.js';
-import { logger } from '../../utils/logger.js';
-import { WarningService } from '../../services/moderation/warningService.js';
-import { InteractionHelper } from '../../utils/interactionHelper.js';
+import { createEmbed } from '../../../utils/embeds.js';
+import { logEvent } from '../../../utils/moderation.js';
+import { logger } from '../../../utils/logger.js';
+import { WarningService } from '../../../services/moderation/warningService.js';
+import { InteractionHelper } from '../../../utils/interactionHelper.js';
 
 export default {
     data: new SlashCommandBuilder()

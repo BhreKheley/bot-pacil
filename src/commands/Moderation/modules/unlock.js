@@ -1,11 +1,11 @@
 import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType } from 'discord.js';
-import { createEmbed, successEmbed, infoEmbed, warningEmbed } from '../../utils/embeds.js';
-import { logEvent } from '../../utils/moderation.js';
-import { logger } from '../../utils/logger.js';
-import { getColor } from '../../config/bot.js';
+import { createEmbed, successEmbed, infoEmbed, warningEmbed } from '../../../utils/embeds.js';
+import { logEvent } from '../../../utils/moderation.js';
+import { logger } from '../../../utils/logger.js';
+import { getColor } from '../../../config/bot.js';
 
-import { InteractionHelper } from '../../utils/interactionHelper.js';
-import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
+import { InteractionHelper } from '../../../utils/interactionHelper.js';
+import { replyUserError, ErrorTypes } from '../../../utils/errorHandler.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("unlock")
