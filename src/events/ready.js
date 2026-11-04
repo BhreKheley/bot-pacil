@@ -21,7 +21,7 @@ export default {
 
       primeInviteCache(client).catch(() => {});
 
-      if (client.config?.features?.music) {
+      if (client.riffy && client.user?.id) {
         initRiffyAfterReady(client);
       }
 
