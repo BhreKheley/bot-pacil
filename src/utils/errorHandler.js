@@ -58,13 +58,21 @@ const DISCORD_PERMISSION_CODES = new Set([
     160002, // Cannot reply without permission to read message history
 ]);
 
-// PostgreSQL / node-postgres error codes and errno values that indicate database trouble.
+// PostgreSQL / node-postgres error codes that indicate database trouble.
 const DATABASE_ERROR_CODES = new Set([
-    'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT',
     '57014', // query_canceled (statement timeout)
     '53300', // too_many_connections
     '08006', '08001', '08003', // connection failures
     '40001', '40P01', // serialization failure / deadlock
+    '23505', // unique_violation
+    '23503', // foreign_key_violation
+    '42P01', // undefined_table
+    '42703', // undefined_column
+]);
+
+// Generic network socket error codes.
+const NETWORK_ERROR_CODES = new Set([
+    'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAI_AGAIN', 'ENETUNREACH', 'EHOSTUNREACH', 'ECONNABORTED'
 ]);
 
 const TECHNICAL_ERROR_PATTERNS = [
@@ -183,7 +191,7 @@ function normalizeInteractionError(error, context = {}) {
 
 // Pesan driver pg yang khas. Kata umum seperti "connection"/"timeout" saja BUKAN tanda masalah database
 // (mis. error voice/Lavalink: "Player connection is not initiated").
-const DB_CONNECTION_PATTERN = /connection terminated|connection error|timeout exceeded when trying to connect|remaining connection slots|pool (is )?(ended|closed)/;
+const DB_CONNECTION_PATTERN = /connection terminated|timeout exceeded when trying to connect|remaining connection slots|pool (is )?(ended|closed)|database connection error|pg connection error/i;
 
 export function categorizeError(error) {
     if (error instanceof PacilBotError) {
@@ -193,8 +201,29 @@ export function categorizeError(error) {
     const message = error?.message?.toLowerCase() || '';
     const code = error?.code;
 
+    // Prioritaskan error Lavalink, suara, atau streaming audio
+    if (
+        message.includes('lavalink')
+        || message.includes('riffy')
+        || message.includes('loadtracks')
+        || message.includes('voice connection')
+        || message.includes('voice session')
+        || message.includes('player connection')
+        || message.includes('no available nodes')
+        || message.includes('node request')
+    ) {
+        return ErrorTypes.NETWORK;
+    }
+
     if (typeof code === 'string' && DATABASE_ERROR_CODES.has(code)) {
         return ErrorTypes.DATABASE;
+    }
+
+    if (typeof code === 'string' && NETWORK_ERROR_CODES.has(code)) {
+        if (message.includes('postgres') || message.includes('database') || message.includes('pg') || message.includes('supabase')) {
+            return ErrorTypes.DATABASE;
+        }
+        return ErrorTypes.NETWORK;
     }
 
     if (message.includes('rate limit') || code === 429) {

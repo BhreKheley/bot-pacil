@@ -15,9 +15,9 @@ const TEXT_CHANNELS = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
 const button = (id, label, emoji, style = ButtonStyle.Secondary) =>
   new ButtonBuilder().setCustomId(id).setLabel(label).setEmoji(emoji).setStyle(style);
 
-const channelSelect = (id, placeholder, current) => {
+const channelSelect = (id, placeholder, current, guild) => {
   const menu = new ChannelSelectMenuBuilder().setCustomId(id).setPlaceholder(placeholder).setChannelTypes(TEXT_CHANNELS).setMinValues(0).setMaxValues(1);
-  if (current) menu.setDefaultChannels(current);
+  if (current && guild?.channels?.cache?.has(current)) menu.setDefaultChannels(current);
   return new ActionRowBuilder().addComponents(menu);
 };
 
@@ -49,11 +49,12 @@ export async function renderWelcomeSubPanel(client, guild, { view = 'arrival', n
 
   const rows = [];
   if (arrival) {
-    rows.push(channelSelect('setup:welcome:ch:welcome', 'Pilih channel sambutan', config.channelId));
-    rows.push(channelSelect('setup:welcome:ch:guide', 'Pilih channel panduan (mis. #start-here)', config.guideChannelId));
+    rows.push(channelSelect('setup:welcome:ch:welcome', 'Pilih channel sambutan', config.channelId, guild));
+    rows.push(channelSelect('setup:welcome:ch:guide', 'Pilih channel panduan (mis. #start-here)', config.guideChannelId, guild));
     const roles = new RoleSelectMenuBuilder().setCustomId('setup:welcome:roles').setPlaceholder('Pilih auto-role untuk member baru (opsional)')
       .setMinValues(0).setMaxValues(MAX_AUTOROLES);
-    if (config.roleIds?.length) roles.setDefaultRoles(config.roleIds.slice(0, MAX_AUTOROLES));
+    const validRoles = (config.roleIds || []).filter((rId) => guild.roles.cache.has(rId)).slice(0, MAX_AUTOROLES);
+    if (validRoles.length) roles.setDefaultRoles(validRoles);
     rows.push(new ActionRowBuilder().addComponents(roles));
     rows.push(new ActionRowBuilder().addComponents(
       button('setup:welcome:toggle', config.enabled ? 'Nonaktifkan' : 'Aktifkan', config.enabled ? '⏸️' : '▶️', config.enabled ? ButtonStyle.Secondary : ButtonStyle.Success),
@@ -67,7 +68,7 @@ export async function renderWelcomeSubPanel(client, guild, { view = 'arrival', n
       button('setup:back', 'Menu Utama', '🔙', ButtonStyle.Primary),
     ));
   } else {
-    rows.push(channelSelect('setup:welcome:ch:goodbye', 'Pilih channel perpisahan', config.goodbyeChannelId));
+    rows.push(channelSelect('setup:welcome:ch:goodbye', 'Pilih channel perpisahan', config.goodbyeChannelId, guild));
     rows.push(new ActionRowBuilder().addComponents(
       button('setup:welcome:gtoggle', config.goodbyeEnabled ? 'Nonaktifkan' : 'Aktifkan', config.goodbyeEnabled ? '⏸️' : '▶️', config.goodbyeEnabled ? ButtonStyle.Secondary : ButtonStyle.Success),
       button('setup:welcome:gedit', 'Edit Pesan', '✏️'),

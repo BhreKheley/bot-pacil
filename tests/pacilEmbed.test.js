@@ -38,8 +38,9 @@ test('tidak ada new EmbedBuilder mentah di luar builder pusat', () => {
   (function walk(dir) {
     for (const entry of readdirSync(dir)) {
       const path = join(dir, entry);
+      const normalized = path.replaceAll('\\', '/');
       if (statSync(path).isDirectory()) walk(path);
-      else if (path.endsWith('.js') && !allow.has(path) && /new EmbedBuilder\(/.test(readFileSync(path, 'utf8'))) offenders.push(path);
+      else if (path.endsWith('.js') && !allow.has(normalized) && /new EmbedBuilder\(/.test(readFileSync(path, 'utf8'))) offenders.push(normalized);
     }
   })('src');
   assert.deepEqual(offenders, []);
@@ -50,9 +51,10 @@ function scan(pattern, allow) {
   (function walk(dir) {
     for (const entry of readdirSync(dir)) {
       const path = join(dir, entry);
+      const normalized = path.replaceAll('\\', '/');
       if (statSync(path).isDirectory()) walk(path);
-      else if (path.endsWith('.js') && !allow.has(path)) {
-        readFileSync(path, 'utf8').split('\n').forEach((line, i) => { if (pattern.test(line)) hits.push(`${path}:${i + 1}`); });
+      else if (path.endsWith('.js') && !allow.has(normalized)) {
+        readFileSync(path, 'utf8').split('\n').forEach((line, i) => { if (pattern.test(line)) hits.push(`${normalized}:${i + 1}`); });
       }
     }
   })('src');

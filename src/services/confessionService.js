@@ -31,9 +31,9 @@ export function publicConfessionEmbed(confession, locale) {
     title: '💌 Pacil Menfess',
     tone: 'gold',
     fields: [
-      { name: '👤 Dari (From)', value: fromText, inline: true },
-      { name: '🎯 Untuk (To)', value: toText, inline: true },
-      { name: '💬 Pesan (Message)', value: confession.content, inline: false },
+      { name: '👤 From:', value: fromText, inline: true },
+      { name: '🎯 To:', value: toText, inline: true },
+      { name: '💬 Message:', value: confession.content, inline: false },
     ],
     footer: `Pacil Baik • #${shortId(confession.id)}`,
   });
@@ -47,11 +47,11 @@ export function reviewConfessionEmbed(confession, locale) {
     title: '💌 Antrean Review Menfess',
     tone: 'warning',
     fields: [
-      { name: '👤 Dari (Input Pengirim)', value: fromText, inline: true },
-      { name: '🎯 Untuk (Target)', value: toText, inline: true },
-      { name: '💬 Pesan', value: confession.content, inline: false },
-      { name: '🔒 Pengirim Asli (Rahasia Moderator)', value: `<@${confession.authorId}> (\`${confession.authorId}\`)`, inline: false },
-      { name: 'ID', value: `\`${confession.id}\``, inline: true },
+      { name: '👤 From:', value: fromText, inline: true },
+      { name: '🎯 To:', value: toText, inline: true },
+      { name: '💬 Message:', value: confession.content, inline: false },
+      { name: '🔒 Pengirim Asli:', value: `<@${confession.authorId}> (\`${confession.authorId}\`)`, inline: false },
+      { name: 'ID:', value: `\`${confession.id}\``, inline: true },
     ],
     footer: 'Hanya moderator yang dapat melihat identitas asli pengirim.',
   });

@@ -91,15 +91,13 @@ async function startPlayback(player) {
         await player.play();
     } catch (error) {
         // Node Lavalink putus / sesi suara belum dikonfirmasi: buang player basi agar percobaan berikutnya bersih.
-        if (/connection is not initiated/i.test(error?.message ?? '')) {
-            player.destroy?.();
-            throw new PacilBotError(
-                'Lavalink voice session not ready',
-                ErrorTypes.NETWORK,
-                'Koneksi ke server musik belum siap (node Lavalink sedang tidak stabil). Coba lagi beberapa detik lagi.',
-            );
-        }
-        throw error;
+        player.destroy?.();
+        throw new PacilBotError(
+            `Playback error: ${error?.message || error}`,
+            ErrorTypes.NETWORK,
+            'Koneksi ke server musik belum siap atau terputus (node Lavalink sedang tidak stabil). Coba lagi beberapa detik lagi.',
+            { originalError: error },
+        );
     }
 }
 
@@ -219,10 +217,20 @@ export async function playQuery(client, interaction, query) {
 
     const { player, guildData } = await ensurePlayer(client, interaction);
 
-    const result = await client.riffy.resolve({
-        query,
-        requester: interaction.user,
-    });
+    let result;
+    try {
+        result = await client.riffy.resolve({
+            query,
+            requester: interaction.user,
+        });
+    } catch (error) {
+        throw new PacilBotError(
+            `Lavalink resolve error: ${error?.message || error}`,
+            ErrorTypes.NETWORK,
+            'Gagal mencari atau memuat lagu dari server musik (Lavalink node sedang gangguan atau offline). Silakan coba lagi beberapa saat lagi.',
+            { originalError: error },
+        );
+    }
 
     const { loadType, tracks, playlistInfo } = result;
 

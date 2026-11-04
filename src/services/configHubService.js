@@ -41,7 +41,7 @@ function findCommand(registry, commandKey) {
 export async function renderConfigView(client, guild, view, opts = {}) {
   const { notice } = opts;
   if (view === 'menfess') {
-    return menfessView({ config: getConfessionConfig(await getGuildConfig(client, guild.id)), notice });
+    return menfessView({ config: getConfessionConfig(await getGuildConfig(client, guild.id)), notice, guild });
   }
   if (view === 'sticky') {
     return stickyView({ stickies: await listStickies(client, guild.id), limit: STICKY_LIMITS.maxPerGuild, notice });
