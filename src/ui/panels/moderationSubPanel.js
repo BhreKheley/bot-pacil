@@ -25,6 +25,20 @@ export async function renderModerationSubPanel(client, guild, { notice = null } 
         ].join('\n'),
         inline: false,
       },
+      {
+        name: '📋 Template Alasan Pelanggaran (Fasilkom UI Standard)',
+        value: [
+          '• **Spam**: Pesan berulang / flood teks / mention massal',
+          '• **Harassment**: Ujaran kebencian / provokasi tidak etis',
+          '• **NSFW**: Konten tidak pantas / materi eksplisit',
+          '• **Akademik**: Joki tugas / plagiarisme / kebocoran soal kuis',
+          '• **Iklan**: Promosi liar / tautan tanpa izin pengurus',
+          '• **Impersonation**: Meniru civitas akademika / asdos / dosen',
+          '• **Voice**: Gangguan voice channel / soundboard spam',
+          '*(Tersedia otomatis via autocomplete pada `/warn`, `/timeout`, `/kick`, `/ban`)*',
+        ].join('\n'),
+        inline: false,
+      },
     ],
   });
 

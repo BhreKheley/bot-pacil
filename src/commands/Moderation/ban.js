@@ -3,6 +3,7 @@ import { successEmbed } from '../../utils/embeds.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { ModerationService } from '../../services/moderation/moderationService.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
+import { handleModerationReasonAutocomplete } from '../../services/moderation/moderationTemplates.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -15,10 +16,17 @@ export default {
                 .setRequired(true),
         )
         .addStringOption((option) =>
-            option.setName("reason").setDescription("Reason for the ban"),
+            option
+                .setName("reason")
+                .setDescription("Alasan ban (pilih template atau ketik kustom)")
+                .setAutocomplete(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
     category: "moderation",
+
+    async autocomplete(interaction) {
+        return handleModerationReasonAutocomplete(interaction);
+    },
 
     async execute(interaction, config, client) {
         const user = interaction.options.getUser("target");

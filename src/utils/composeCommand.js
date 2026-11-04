@@ -49,5 +49,12 @@ export function composeCommand({ name, description, category, permissions = null
     async execute(interaction, ...rest) {
       return subs[interaction.options.getSubcommand()].execute(interaction, ...rest);
     },
+    async autocomplete(interaction, client) {
+      const subName = interaction.options.getSubcommand(false);
+      const mod = subs[subName];
+      if (typeof mod?.autocomplete === 'function') {
+        return mod.autocomplete(interaction, client);
+      }
+    },
   };
 }

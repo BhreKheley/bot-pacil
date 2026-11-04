@@ -1,19 +1,5 @@
 [
   {
-    "host": "lavalink-v4.triniumhost.com",
-    "port": 443,
-    "password": "free",
-    "secure": true,
-    "name": "TriniumHost"
-  },
-  {
-    "host": "lava2.kasawa.pro",
-    "port": 2334,
-    "password": "youshallnotpass",
-    "secure": false,
-    "name": "Kasawa"
-  },
-  {
     "host": "lavalink.nazha.online",
     "port": 443,
     "password": "nazhafreelava",
@@ -21,11 +7,11 @@
     "name": "Nazha"
   },
   {
-    "host": "lavalink.triniumhost.com",
-    "port": 4333,
-    "password": "free",
+    "host": "lava2.kasawa.pro",
+    "port": 2334,
+    "password": "youshallnotpass",
     "secure": false,
-    "name": "Trinium4333"
+    "name": "Kasawa"
   },
   {
     "host": "lava-v4.millohost.my.id",
