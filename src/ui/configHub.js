@@ -27,7 +27,7 @@ const payload = (notice, embed, components) => ({ content: notice ?? '', embeds:
 const row = (...components) => new ActionRowBuilder().addComponents(...components);
 const backButton = (to = 'home') => ({ id: cid('go', to), label: 'Kembali', emoji: '↩️', style: 'secondary' });
 
-export function menfessView({ config, notice }) {
+export function menfessView({ config, notice, guild }) {
   const embed = pacilPanel({
     title: 'Pengaturan Menfess',
     icon: '💌',
@@ -66,9 +66,9 @@ export function menfessView({ config, notice }) {
     .setCustomId(cid('mfrole'))
     .setPlaceholder('Role moderator yang boleh meninjau')
     .setMinValues(0).setMaxValues(1);
-  if (config.channelId) publicSelect.setDefaultChannels(config.channelId);
-  if (config.reviewChannelId) reviewSelect.setDefaultChannels(config.reviewChannelId);
-  if (config.moderatorRoleId) roleSelect.setDefaultRoles(config.moderatorRoleId);
+  if (config.channelId && (!guild || guild.channels?.cache?.has(config.channelId))) publicSelect.setDefaultChannels(config.channelId);
+  if (config.reviewChannelId && (!guild || guild.channels?.cache?.has(config.reviewChannelId))) reviewSelect.setDefaultChannels(config.reviewChannelId);
+  if (config.moderatorRoleId && (!guild || guild.roles?.cache?.has(config.moderatorRoleId))) roleSelect.setDefaultRoles(config.moderatorRoleId);
 
   const deploy = pacilButtons([
     { id: 'setup:act:deploy_confess_panel', label: 'Pasang Panel Publik', emoji: '📌', style: 'success' },

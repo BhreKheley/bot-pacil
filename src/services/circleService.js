@@ -76,7 +76,7 @@ async function buildCircle(client, guild, member, rawCircleName, created) {
 
   // 1. Buat Role Circle Khusus
   const role = await guild.roles.create({
-    name: `Circle: ${circleName}`,
+    name: `${circleName}`,
     color: PACIL_COLORS.gold,
     reason: `Private Circle created by ${member.user.tag}`,
   });
@@ -87,7 +87,7 @@ async function buildCircle(client, guild, member, rawCircleName, created) {
 
   // 2. Buat Private Category
   const category = await guild.channels.create({
-    name: `🔒 ${circleName}`,
+    name: `⩵⩵⩵ ${circleName} ⩵⩵⩵`,
     type: ChannelType.GuildCategory,
     permissionOverwrites: [
       {
@@ -131,7 +131,7 @@ async function buildCircle(client, guild, member, rawCircleName, created) {
     .slice(0, 24) || 'room';
 
   const textChannel = await guild.channels.create({
-    name: `💬-${cleanSlug}`,
+    name: `💬・${cleanSlug}`,
     type: ChannelType.GuildText,
     parent: category.id,
     topic: `Ruang privat Circle: ${circleName} • Owner: <@${member.id}>`,
@@ -141,7 +141,7 @@ async function buildCircle(client, guild, member, rawCircleName, created) {
 
   // 4. Buat Voice Channel
   const voiceChannel = await guild.channels.create({
-    name: `🔊-${circleName.slice(0, 28)}`,
+    name: `🔊・${circleName.slice(0, 28)}`,
     type: ChannelType.GuildVoice,
     parent: category.id,
     reason: `Circle voice channel for ${circleName}`,
@@ -233,7 +233,7 @@ export async function removeMemberFromCircle(client, guild, circleData, targetMe
     || (await guild.roles.fetch(circleData.roleId).catch(() => null));
 
   if (role) {
-    await targetMember.roles.remove(role).catch(() => {});
+    await targetMember.roles.remove(role).catch(() => { });
   }
 
   circleData.members = circleData.members.filter((id) => id !== targetMember.id);
@@ -253,27 +253,27 @@ export async function deleteCircle(client, guild, circleData, reason = 'Circle d
   if (circleData.textChannelId) {
     const textCh = guild.channels.cache.get(circleData.textChannelId)
       || (await guild.channels.fetch(circleData.textChannelId).catch(() => null));
-    if (textCh) await textCh.delete(reason).catch(() => {});
+    if (textCh) await textCh.delete(reason).catch(() => { });
   }
 
   if (circleData.voiceChannelId) {
     const voiceCh = guild.channels.cache.get(circleData.voiceChannelId)
       || (await guild.channels.fetch(circleData.voiceChannelId).catch(() => null));
-    if (voiceCh) await voiceCh.delete(reason).catch(() => {});
+    if (voiceCh) await voiceCh.delete(reason).catch(() => { });
   }
 
   // Hapus kategori
   if (circleData.categoryId) {
     const cat = guild.channels.cache.get(circleData.categoryId)
       || (await guild.channels.fetch(circleData.categoryId).catch(() => null));
-    if (cat) await cat.delete(reason).catch(() => {});
+    if (cat) await cat.delete(reason).catch(() => { });
   }
 
   // Hapus role
   if (circleData.roleId) {
     const role = guild.roles.cache.get(circleData.roleId)
       || (await guild.roles.fetch(circleData.roleId).catch(() => null));
-    if (role) await role.delete(reason).catch(() => {});
+    if (role) await role.delete(reason).catch(() => { });
   }
 
   // Bersihkan DB
@@ -293,7 +293,7 @@ export async function createPrivateCircle(client, guild, member, rawCircleName) 
   try {
     return await buildCircle(client, guild, member, rawCircleName, created);
   } catch (error) {
-    for (const res of created.reverse()) await res.delete('Rollback: pembuatan circle gagal').catch(() => {});
+    for (const res of created.reverse()) await res.delete('Rollback: pembuatan circle gagal').catch(() => { });
     throw error;
   }
 }

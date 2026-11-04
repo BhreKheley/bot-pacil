@@ -86,6 +86,13 @@ import { categorizeError } from '../src/utils/errorHandler.js';
 test('categorizeError: error voice/Lavalink bukan "database", error driver pg tetap database', () => {
   assert.notEqual(categorizeError(new Error('Player connection is not initiated. Kindly use Riffy.createConnection()')), 'database');
   assert.notEqual(categorizeError(new Error('Voice connection timeout')), 'database');
+  assert.equal(categorizeError(new Error('There was an Error while Making Node Request')), 'network');
+  const econn = new Error('connect ECONNREFUSED 127.0.0.1:2333');
+  econn.code = 'ECONNREFUSED';
+  assert.equal(categorizeError(econn), 'network');
+  const pgConn = new Error('postgres connection failed');
+  pgConn.code = 'ECONNREFUSED';
+  assert.equal(categorizeError(pgConn), 'database');
   assert.equal(categorizeError(new Error('Connection terminated unexpectedly')), 'database');
   assert.equal(categorizeError(new Error('timeout exceeded when trying to connect')), 'database');
   assert.equal(categorizeError(new Error('PostgreSQL unavailable for readGuildConfig')), 'database');
