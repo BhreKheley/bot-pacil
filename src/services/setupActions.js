@@ -236,5 +236,85 @@ export async function handleSetupAction(interaction, client, action) {
         components: [buttonRow],
       });
     }
+
+    // 13. Pasang Panel Tiket
+    if (action === 'deploy_ticket_panel') {
+      const panelEmbed = buildPacilEmbed({
+        title: '🎫 Pusat Bantuan & Tiket Mahasiswa',
+        description:
+          'Ada kendala terkait server, bot, akademik, atau butuh bantuan moderator?\n\n' +
+          'Tekan tombol di bawah untuk membuat tiket bantuan privat bersama tim staf Pacil Baik.',
+        tone: 'gold',
+        fields: [
+          {
+            name: '📌 Ketentuan Tiket',
+            value: '• Jelaskan pertanyaan atau kendala kamu dengan sopan dan rinci.\n• Tiket hanya dapat diakses oleh kamu dan tim staf yang bertugas.',
+            inline: false,
+          },
+        ],
+      });
+
+      const buttonRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('create_ticket')
+          .setLabel('Buka Tiket Bantuan')
+          .setEmoji('📩')
+          .setStyle(ButtonStyle.Primary)
+      );
+
+      const sent = await interaction.channel.send({ embeds: [panelEmbed], components: [buttonRow] });
+      await patchGuildConfig(client, interaction.guildId, {
+        ticketPanelChannelId: interaction.channelId,
+        ticketPanelMessageId: sent.id,
+      });
+
+      return interaction.reply({
+        content: `✅ Panel Tiket Bantuan berhasil dipasang di <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 14. Pasang Panel Verifikasi
+    if (action === 'deploy_verify_panel') {
+      const config = await getGuildConfig(client, interaction.guildId);
+      const roleMention = config.verification?.roleId ? `<@&${config.verification.roleId}>` : 'Role Mahasiswa';
+      const panelEmbed = buildPacilEmbed({
+        title: '✅ Verifikasi Mahasiswa Fasilkom UI',
+        description:
+          'Selamat datang di server komunitas **Pacil Baik**!\n\n' +
+          'Untuk mendapatkan akses penuh ke seluruh channel akademik, ruang tugas, dan interaksi mahasiswa, silakan verifikasi dirimu dengan menekan tombol di bawah.',
+        tone: 'gold',
+        fields: [
+          {
+            name: '🎓 Benefit Verifikasi',
+            value: `• Membuka channel diskusi dan ruang tugas\n• Mendapatkan peran ${roleMention}\n• Menghindari batasan akun baru`,
+            inline: false,
+          },
+        ],
+      });
+
+      const buttonRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('verify_user')
+          .setLabel('Verifikasi Sekarang')
+          .setEmoji('✅')
+          .setStyle(ButtonStyle.Success)
+      );
+
+      const sent = await interaction.channel.send({ embeds: [panelEmbed], components: [buttonRow] });
+      await patchGuildConfig(client, interaction.guildId, {
+        verification: {
+          ...(config.verification || {}),
+          enabled: true,
+          channelId: interaction.channelId,
+          messageId: sent.id,
+        },
+      });
+
+      return interaction.reply({
+        content: `✅ Panel Verifikasi berhasil dipasang di <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
   }
 }

@@ -1,1 +1,2 @@
-export { default } from './modules/autoVerify.js';
+import autoVerify from './modules/autoVerify.js';
+export default { ...autoVerify, register: false };

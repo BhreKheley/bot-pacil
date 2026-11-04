@@ -63,6 +63,27 @@ export default {
             subcommand
                 .setName('dashboard')
                 .setDescription('Open the interactive leveling configuration dashboard'),
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName('add')
+                .setDescription('Tambahkan level ke seorang member')
+                .addUserOption((opt) => opt.setName('user').setDescription('Target member').setRequired(true))
+                .addIntegerOption((opt) => opt.setName('levels').setDescription('Jumlah level yang ditambahkan').setRequired(true).setMinValue(1)),
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName('set')
+                .setDescription('Tetapkan level seorang member')
+                .addUserOption((opt) => opt.setName('user').setDescription('Target member').setRequired(true))
+                .addIntegerOption((opt) => opt.setName('level').setDescription('Level target baru').setRequired(true).setMinValue(0)),
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName('remove')
+                .setDescription('Kurangi level seorang member')
+                .addUserOption((opt) => opt.setName('user').setDescription('Target member').setRequired(true))
+                .addIntegerOption((opt) => opt.setName('levels').setDescription('Jumlah level yang dikurangi').setRequired(true).setMinValue(1)),
         ),
     category: 'Leveling',
 
@@ -80,6 +101,21 @@ export default {
 
         if (subcommand === 'dashboard') {
             return levelDashboard.execute(interaction, config, client);
+        }
+
+        if (subcommand === 'add') {
+            const { default: addModule } = await import('./modules/leveladd.js');
+            return addModule.execute(interaction, config, client);
+        }
+
+        if (subcommand === 'set') {
+            const { default: setModule } = await import('./modules/levelset.js');
+            return setModule.execute(interaction, config, client);
+        }
+
+        if (subcommand === 'remove') {
+            const { default: removeModule } = await import('./modules/levelremove.js');
+            return removeModule.execute(interaction, config, client);
         }
 
         if (subcommand === 'setup') {

@@ -127,24 +127,33 @@ export function accessView({ disabledCommands, disabledCategories, notice }) {
 }
 
 export const OTHER_DASHBOARDS = [
-  ['🎫 Tiket', '/ticket dashboard'],
-  ['📝 Logging', '/logging dashboard'],
-  ['👋 Welcome & Goodbye', '/pacilsetup → Welcome System'],
-  ['✅ Verifikasi', '/verification dashboard'],
-  ['📊 Leveling', '/level dashboard'],
+  ['🎫 Tiket Bantuan', '/ticket dashboard'],
+  ['📝 Audit Logging', '/logging dashboard'],
+  ['✅ Verifikasi Mahasiswa', '/verification dashboard'],
+  ['📊 Leveling & XP', '/level dashboard'],
   ['🎭 Reaction Role', '/reactroles dashboard'],
-  ['📋 Aplikasi', '/app-admin dashboard'],
+  ['📋 Rekrutmen & Aplikasi', '/app-admin dashboard'],
 ];
 
 export function otherView({ notice } = {}) {
   const embed = pacilPanel({
-    title: 'Fitur Lainnya',
+    title: 'Pusat Kontrol Fitur Tambahan',
     icon: '🧰',
     tone: 'panel',
-    description: 'Fitur-fitur ini punya dashboard sendiri. Jalankan command-nya untuk mengaturnya, lalu atur izin pemakaian tiap command lewat **Izin Command**.',
-    fields: OTHER_DASHBOARDS.map(([name, command]) => ({ name, value: `\`${command}\``, inline: true })),
+    description: [
+      'Setiap modul berikut memiliki panel pengaturan dan dashboard khusus.',
+      'Gunakan tombol di bawah untuk memasang panel publik langsung ke channel ini, atau jalankan command terkait.',
+    ].join('\n'),
+    fields: OTHER_DASHBOARDS.map(([name, command]) => ({ name, value: `Command: \`${command}\``, inline: true })),
   });
-  return payload(notice, embed, pacilButtons([backButton()]));
+
+  const deployButtons = pacilButtons([
+    { id: 'setup:act:deploy_ticket_panel', label: 'Pasang Panel Tiket', emoji: '🎫', style: 'success' },
+    { id: 'setup:act:deploy_verify_panel', label: 'Pasang Panel Verifikasi', emoji: '✅', style: 'success' },
+    backButton(),
+  ]);
+
+  return payload(notice, embed, deployButtons);
 }
 
 export function permCategoryView({ categories, notice }) {

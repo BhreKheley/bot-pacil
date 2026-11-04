@@ -4,10 +4,15 @@ import add from './modules/leveladd.js';
 import set from './modules/levelset.js';
 import remove from './modules/levelremove.js';
 
-export default composeCommand({
+const xpCmd = composeCommand({
   name: 'xp',
   description: 'Atur level member: tambah, set, atau kurangi',
   category: 'leveling',
   permissions: PermissionFlagsBits.ManageGuild,
   subs: { add, set, remove },
 });
+
+export default {
+  ...xpCmd,
+  register: false,
+};

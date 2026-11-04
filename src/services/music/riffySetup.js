@@ -32,6 +32,7 @@ export function initializeMusic(client) {
         },
         defaultSearchPlatform: lavalinkConfig.defaultSearchPlatform,
         restVersion: lavalinkConfig.restVersion,
+        migrateOnDisconnect: true,
         bypassChecks: {
             nodeFetchInfo: true,
         },

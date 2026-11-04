@@ -90,6 +90,40 @@ export default {
             subcommand
                 .setName("dashboard")
                 .setDescription("Open the interactive ticket system dashboard"),
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName("claim")
+                .setDescription("Klaim tiket bantuan yang sedang dibuka untuk kamu tangani."),
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName("close")
+                .setDescription("Tutup tiket bantuan yang sedang aktif.")
+                .addStringOption((option) =>
+                    option
+                        .setName("reason")
+                        .setDescription("Alasan penutupan tiket (opsional).")
+                        .setRequired(false),
+                ),
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
+                .setName("priority")
+                .setDescription("Atur tingkat prioritas tiket bantuan saat ini.")
+                .addStringOption((option) =>
+                    option
+                        .setName("level")
+                        .setDescription("Tingkat prioritas tiket")
+                        .setRequired(true)
+                        .addChoices(
+                            { name: "Urgent", value: "urgent" },
+                            { name: "High", value: "high" },
+                            { name: "Medium", value: "medium" },
+                            { name: "Low", value: "low" },
+                            { name: "None", value: "none" },
+                        ),
+                ),
         ),
     category: "ticket",
 
@@ -97,6 +131,58 @@ export default {
         const deferred = await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
         if (!deferred) {
             return;
+        }
+
+        const subcommand = interaction.options.getSubcommand();
+
+        if (subcommand === "claim") {
+            const { getTicketPermissionContext } = await import('../../utils/ticket/ticketPermissions.js');
+            const { claimTicket } = await import('../../services/ticket.js');
+            const permissionContext = await getTicketPermissionContext({ client, interaction });
+            if (!permissionContext.ticketData) {
+                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Command ini hanya dapat digunakan di channel tiket yang valid.' });
+            }
+            if (!permissionContext.canManageTicket) {
+                return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Kamu membutuhkan izin `Manage Channels` atau role Ticket Staff untuk mengklaim tiket.' });
+            }
+            await claimTicket(interaction.channel, interaction.user);
+            return await InteractionHelper.safeEditReply(interaction, {
+                embeds: [successEmbed('Tiket Diklaim', 'Kamu telah berhasil mengklaim tiket ini.')],
+            });
+        }
+
+        if (subcommand === "close") {
+            const { getTicketPermissionContext } = await import('../../utils/ticket/ticketPermissions.js');
+            const { closeTicket } = await import('../../services/ticket.js');
+            const permissionContext = await getTicketPermissionContext({ client, interaction });
+            if (!permissionContext.ticketData) {
+                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Command ini hanya dapat digunakan di channel tiket yang valid.' });
+            }
+            if (!permissionContext.canCloseTicket) {
+                return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Kamu membutuhkan izin `Manage Channels`, role Ticket Staff, atau menjadi pembuat tiket untuk menutupnya.' });
+            }
+            const reason = interaction.options?.getString("reason") || 'Ditutup via command tanpa alasan spesifik.';
+            await closeTicket(interaction.channel, interaction.user, reason);
+            return await InteractionHelper.safeEditReply(interaction, {
+                embeds: [successEmbed('Tiket Ditutup', 'Tiket ini telah berhasil ditutup.')],
+            });
+        }
+
+        if (subcommand === "priority") {
+            const { getTicketPermissionContext } = await import('../../utils/ticket/ticketPermissions.js');
+            const { updateTicketPriority } = await import('../../services/ticket.js');
+            const permissionContext = await getTicketPermissionContext({ client, interaction });
+            if (!permissionContext.ticketData) {
+                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Command ini hanya dapat digunakan di channel tiket yang valid.' });
+            }
+            if (!permissionContext.canManageTicket) {
+                return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Kamu membutuhkan izin `Manage Channels` atau role Ticket Staff untuk mengubah prioritas tiket.' });
+            }
+            const priorityLevel = interaction.options.getString("level");
+            await updateTicketPriority(interaction.channel, priorityLevel, interaction.user);
+            return await InteractionHelper.safeEditReply(interaction, {
+                embeds: [successEmbed('Prioritas Diperbarui', `Prioritas tiket berhasil diubah menjadi **${priorityLevel.toUpperCase()}**.')],
+            });
         }
 
         if (
@@ -111,8 +197,6 @@ export default {
             });
             return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'You need the `Manage Channels` permission for this action.' });
         }
-
-        const subcommand = interaction.options.getSubcommand();
 
         if (subcommand === "dashboard") {
             return ticketConfig.execute(interaction, config, client);

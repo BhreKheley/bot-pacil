@@ -7,6 +7,7 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { getTicketPermissionContext } from '../../utils/ticket/ticketPermissions.js';
 import { closeTicket } from '../../services/ticket.js';
 export default {
+    register: false,
     data: new SlashCommandBuilder()
         .setName("close")
         .setDescription("Closes the current ticket.")

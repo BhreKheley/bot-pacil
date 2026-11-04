@@ -54,17 +54,17 @@ function assertBotVoicePermissions(channel) {
 }
 
 async function waitForPlayerConnection(player) {
-    if (player.connected) {
+    if (player.connection?.isReady && !player.connection?.pendingUpdate) {
         return;
     }
 
     try {
-        await player.connection.resolve();
+        await player.connection?.resolve();
     } catch {
         // Fall through to event-based wait below.
     }
 
-    if (player.connected) {
+    if (player.connection?.isReady && !player.connection?.pendingUpdate) {
         return;
     }
 
@@ -76,11 +76,12 @@ async function waitForPlayerConnection(player) {
         // Timed out waiting for Lavalink to confirm the voice session.
     }
 
-    if (!player.connected) {
+    if (!player.connection?.isReady && !player.connected) {
+        player.destroy?.();
         throw new PacilBotError(
             'Voice connection failed',
-            ErrorTypes.CONFIGURATION,
-            'Could not connect to the voice channel. Ensure Lavalink is online, the bot has Connect and Speak permissions, then try again.',
+            ErrorTypes.NETWORK,
+            'Koneksi audio ke voice channel belum berhasil terhubung. Pastikan bot memiliki izin Masuk (Connect) dan Bicara (Speak) di channel tersebut, lalu coba lagi.',
         );
     }
 }
@@ -143,6 +144,16 @@ export async function ensurePlayer(client, interaction) {
     const guildId = interaction.guild.id;
     const guildData = getGuildMusicData(guildId);
     let player = getPlayer(client, guildId);
+
+    // Jika player terpasang di node yang sudah terputus, bersihkan player lama agar connect ke node aktif
+    if (player && (!player.node || !player.node.connected)) {
+        try {
+            player.destroy();
+        } catch {
+            // abaikan
+        }
+        player = null;
+    }
 
     if (!player) {
         player = client.riffy.createConnection({
