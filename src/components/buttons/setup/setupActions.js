@@ -8,7 +8,6 @@ import { buildPacilEmbed } from '../../../ui/pacil.js';
 import { getGuildConfig, patchGuildConfig } from '../../../services/config/guildConfig.js';
 import { getConfessionConfig } from '../../../services/confessionService.js';
 import { guildCirclesListKey, getCircle } from '../../../services/circleService.js';
-import { renderWelcomeSubPanel } from '../../../ui/panels/welcomeSubPanel.js';
 import { renderRulesGuidePublicEmbed } from '../../../ui/panels/rulesGuideSubPanel.js';
 import { renderBoosterPublicPanel } from '../../../ui/panels/boosterSubPanel.js';
 import { renderMusicStatusEmbed } from '../../../ui/panels/musicSubPanel.js';
@@ -141,45 +140,6 @@ export async function handleSetupAction(interaction, client, action) {
       await interaction.channel.send({ embeds: [panelEmbed], components: [row] });
       return interaction.reply({
         content: `✅ Panel Menfess berhasil dikirim ke <#${interaction.channelId}>!`,
-        flags: MessageFlags.Ephemeral,
-      });
-    }
-
-    // 6. Toggle Welcome System
-    if (action === 'toggle_welcome') {
-      const guildConfig = await getGuildConfig(client, interaction.guildId);
-      const welcome = guildConfig.welcome || {};
-      const nextState = !welcome.enabled;
-
-      await patchGuildConfig(client, interaction.guildId, {
-        welcome: { ...welcome, enabled: nextState },
-      });
-
-      const updatedPanel = await renderWelcomeSubPanel(client, interaction.guild);
-      return interaction.update(updatedPanel);
-    }
-
-    // 7. Preview Greeting
-    if (action === 'test_welcome') {
-      const member = interaction.member;
-      const previewEmbed = buildPacilEmbed({
-        title: `Selamat Datang di Pacil Baik, ${member.user.username}! 🎉`,
-        description:
-          `Halo <@${member.id}>, selamat datang di rumah digital mahasiswa Fakultas Ilmu Komputer Universitas Indonesia!\n\n` +
-          `Silakan mampir ke channel <#${interaction.channelId}> untuk membaca panduan awal dan mulai berkenalan dengan teman-teman sesama anak Pacil!`,
-        tone: 'gold',
-        thumbnail: member.user.displayAvatarURL({ dynamic: true, size: 512 }),
-        fields: [
-          { name: '👤 Username', value: member.user.tag, inline: true },
-          { name: '📍 Member Ke-', value: `#${interaction.guild.memberCount}`, inline: true },
-          { name: '🔗 Diundang oleh', value: 'Direct / Server Link', inline: true },
-          { name: '📚 Langkah Pertama', value: 'Baca panduan di `#start-here` dan ambil role angkatanmu di `#reaction-roles`!', inline: false },
-        ],
-      });
-
-      return interaction.reply({
-        content: '*(Preview tampilan kartu sambutan kedatangan)*',
-        embeds: [previewEmbed],
         flags: MessageFlags.Ephemeral,
       });
     }

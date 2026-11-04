@@ -1,9 +1,7 @@
-import { pacilEmbed, PACIL_COLORS, PACIL_FOOTER } from '../ui/pacil.js';
 import { Events, PermissionFlagsBits } from 'discord.js';
-import { getColor, botConfig } from '../config/bot.js';
 import { getGuildConfig } from '../services/config/guildConfig.js';
 import { getWelcomeConfig } from '../utils/database.js';
-import { formatWelcomeMessage } from '../utils/welcome.js';
+import { buildWelcomeEmbed } from '../services/welcomeService.js';
 import { logEvent, EVENT_TYPES } from '../services/loggingService.js';
 import { getServerCounters, updateCounter } from '../services/serverstatsService.js';
 import { setBirthday as dbSetBirthday } from '../utils/database.js';
@@ -24,6 +22,9 @@ export default {
         
         const welcomeChannelId = welcomeConfig?.channelId;
 
+        // Selalu dihitung agar snapshot invite tetap mutakhir walau sambutan nonaktif.
+        const inviterId = await resolveInviter(guild).catch(() => null);
+
         if (welcomeConfig?.enabled && welcomeChannelId) {
             const channel = guild.channels.cache.get(welcomeChannelId);
             const me = guild.members.me;
@@ -31,83 +32,29 @@ export default {
             // Skip only the welcome message if permissions are missing; the rest of the
             // join pipeline (auto-role, verification, logging, counters) must still run.
             if (permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages])) {
-                const formatData = { user, guild, member };
-                const welcomeMessage = formatWelcomeMessage(
-                    welcomeConfig.welcomeMessage || welcomeConfig.welcomeEmbed?.description || botConfig.welcome?.defaultWelcomeMessage || 'Welcome {user} to {server}!',
-                    formatData
-                );
-
-                const messageContent = welcomeConfig.welcomePing ? user.toString() : null;
-
-                const embedTitle = formatWelcomeMessage(
-                    welcomeConfig.welcomeEmbed?.title || '🎉 Welcome!',
-                    formatData
-                );
-                const embedFooter = welcomeConfig.welcomeEmbed?.footer
-                    ? formatWelcomeMessage(welcomeConfig.welcomeEmbed.footer, formatData)
-                    : `Welcome to ${guild.name}!`;
-
+                const embed = buildWelcomeEmbed({ member, config: welcomeConfig, inviterId });
                 const canEmbed = permissions.has(PermissionFlagsBits.EmbedLinks);
+                const mention = welcomeConfig.welcomePing ? user.toString() : undefined;
+                await channel.send({
+                    content: canEmbed ? mention : [mention, embed.data.description].filter(Boolean).join(' '),
+                    embeds: canEmbed ? [embed] : [],
+                    allowedMentions: welcomeConfig.welcomePing ? { users: [user.id] } : { parse: [] },
+                });
+            }
+        }
+        
+        if (welcomeConfig?.roleIds?.length) {
+            const delayMs = Math.max(0, Number(welcomeConfig.autoRoleDelay) || 0) * 1000;
+            const grant = async () => {
+                for (const roleId of welcomeConfig.roleIds) {
+                    const role = guild.roles.cache.get(roleId);
+                    if (role) await assignRoleSafely(member, role);
+                }
+            };
+            if (delayMs > 0) setTimeout(() => grant().catch(() => {}), delayMs).unref?.();
+            else await grant();
+        }
 
-                if (!canEmbed) {
-                    await channel.send({
-                        content: messageContent || welcomeMessage
-                    });
-                } else {
-                    const inviterId = await resolveInviter(guild).catch(() => null);
-                    const embed = pacilEmbed()
-                        .setColor(PACIL_COLORS.gold) // Makara Gold
-                        .setTitle(`Selamat Datang di Pacil Baik, ${user.username}! 🎉`)
-                        .setDescription(
-                            `Halo <@${user.id}>, selamat datang di rumah digital mahasiswa Fakultas Ilmu Komputer Universitas Indonesia!\n\n` +
-                            `Silakan baca panduan di <#${welcomeChannelId}> dan ambil peran angkatanmu agar dapat mengakses seluruh ruang diskusi kuliah.`
-                        )
-                        .setThumbnail(user.displayAvatarURL({ dynamic: true, size: 512 }))
-                        .addFields(
-                            { name: '👤 Username', value: `${user.tag}`, inline: true },
-                            { name: '📍 Member Ke-', value: `#${guild.memberCount}`, inline: true },
-                            { name: '🔗 Diundang oleh', value: inviterId ? `<@${inviterId}>` : 'Tidak terdeteksi (link langsung)', inline: true },
-                            { name: '📚 Langkah Pertama', value: 'Buka `/guide` atau kunjungi `#start-here` untuk orientasi awal!', inline: false }
-                        )
-                        .setTimestamp()
-                        .setFooter({ text: PACIL_FOOTER });
-                    
-                    if (welcomeConfig.welcomeImage) {
-                        embed.setImage(welcomeConfig.welcomeImage);
-                    } else if (welcomeConfig.welcomeEmbed?.image?.url) {
-                        embed.setImage(welcomeConfig.welcomeEmbed.image.url);
-                    }
-                    
-                    await channel.send({ 
-                        content: messageContent,
-                        embeds: [embed] 
-                    });
-                }
-            }
-        }
-        
-        if (welcomeConfig?.roleIds && welcomeConfig.roleIds.length > 0) {
-            const delay = welcomeConfig.autoRoleDelay || 0;
-            const singleRoleId = welcomeConfig.roleIds[0];
-            
-            if (delay > 0) {
-                const timeout = setTimeout(async () => {
-                    const role = guild.roles.cache.get(singleRoleId);
-                    if (role) {
-                        await assignRoleSafely(member, role);
-                    }
-                }, delay * 1000);
-                if (typeof timeout.unref === 'function') {
-                    timeout.unref();
-                }
-            } else {
-                const role = guild.roles.cache.get(singleRoleId);
-                if (role) {
-                    await assignRoleSafely(member, role);
-                }
-            }
-        }
-        
         if (config?.verification?.enabled || config?.verification?.autoVerify?.enabled) {
             await handleVerification(member, guild, config.verification, member.client);
         }

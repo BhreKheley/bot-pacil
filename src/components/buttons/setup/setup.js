@@ -4,10 +4,12 @@
 import { renderMainDashboard } from '../../../ui/panels/mainDashboard.js';
 import { denyIfNoSetupAccess } from '../../../utils/setupGuard.js';
 import { handleSetupAction } from './setupActions.js';
+import { handleWelcomeButton } from '../../../services/welcomeConfigActions.js';
 
-async function route(interaction, client, [kind, action]) {
+async function route(interaction, client, [kind, action, arg]) {
   if (await denyIfNoSetupAccess(interaction)) return;
   if (kind === 'back') return interaction.update(renderMainDashboard(interaction.guild));
+  if (kind === 'welcome') return handleWelcomeButton(interaction, client, [action, arg]);
   if (kind === 'act') return handleSetupAction(interaction, client, action);
 }
 

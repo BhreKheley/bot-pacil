@@ -7,6 +7,7 @@ import { renderCircleSubPanel } from '../../../ui/panels/circleSubPanel.js';
 import { renderRulesGuideSubPanel } from '../../../ui/panels/rulesGuideSubPanel.js';
 import { renderMainDashboard, SETUP_MODULES } from '../../../ui/panels/mainDashboard.js';
 import { renderConfigView } from '../../../services/configHubService.js';
+import { handleWelcomeSelect } from '../../../services/welcomeConfigActions.js';
 import { denyIfNoSetupAccess } from '../../../utils/setupGuard.js';
 
 const PANELS = {
@@ -24,8 +25,9 @@ async function render(client, guild, value) {
   return PANELS[module.value](client, guild);
 }
 
-async function execute(interaction, client) {
+async function execute(interaction, client, [kind, ...rest] = []) {
   if (await denyIfNoSetupAccess(interaction)) return;
+  if (kind === 'welcome') return handleWelcomeSelect(interaction, client, rest);
   return interaction.update(await render(client, interaction.guild, interaction.values[0]));
 }
 

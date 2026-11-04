@@ -129,7 +129,7 @@ export function accessView({ disabledCommands, disabledCategories, notice }) {
 export const OTHER_DASHBOARDS = [
   ['🎫 Tiket', '/ticket dashboard'],
   ['📝 Logging', '/logging dashboard'],
-  ['👋 Welcome & Goodbye', '/greet dashboard'],
+  ['👋 Welcome & Goodbye', '/pacilsetup → Welcome System'],
   ['✅ Verifikasi', '/verification dashboard'],
   ['📊 Leveling', '/level dashboard'],
   ['🎭 Reaction Role', '/reactroles dashboard'],
