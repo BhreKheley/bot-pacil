@@ -35,7 +35,7 @@ Jalankan `/jointocreate setup`. Setiap ruang voice sementara mendapat panel kont
 
 ### Panduan admin
 
-- **Panduan permanen:** `/configwizard guide_channel:#panduan-bot` memposting direktori bantuan interaktif.
+- **Panduan permanen:** pasang lewat `/pacilsetup` → Rules & Guide → Pasang Panduan Interaktif.
 - **Pengumuman berdesain:** `/say message:<isi> title:<judul> color:<warna> channel:<tujuan>`.
 - **Atur semuanya:** `/pacilsetup`.
 

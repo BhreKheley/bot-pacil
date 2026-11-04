@@ -28,3 +28,20 @@ test('createPrivateCircle rollback: resource dihapus bila gagal di tengah', asyn
   await assert.rejects(() => createPrivateCircle(client, guild, member, 'Alpro'), /boom/);
   assert.deepEqual(deleted, ['cat', 'role']);
 });
+
+import { parseRoleColors, applyRoleColors } from '../src/services/boosterService.js';
+
+test('parseRoleColors: solid, gradien, dan input tidak valid', () => {
+  assert.deepEqual(parseRoleColors('#F2A900'), { ok: true, primary: 0xf2a900, secondary: null });
+  assert.deepEqual(parseRoleColors('#0d3a73, #f2a900'), { ok: true, primary: 0x0d3a73, secondary: 0xf2a900 });
+  assert.equal(parseRoleColors('GOLD').ok, false);
+  assert.equal(parseRoleColors('#111111 #222222 #333333').ok, false);
+});
+
+test('applyRoleColors: gradien ditolak Discord -> jatuh ke solid', async () => {
+  const calls = [];
+  const role = { setColors: async (c) => { calls.push(c); if (c.secondaryColor) throw new Error('no'); } };
+  const r = await applyRoleColors(role, { primary: 1, secondary: 2 });
+  assert.deepEqual(r, { gradient: false, fallback: true });
+  assert.equal(calls.length, 2);
+});
