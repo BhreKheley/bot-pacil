@@ -80,3 +80,35 @@ test('guide: override per halaman, kosong = reset, embed publik memakai override
   await setGuidePage(client, 'g', 'roles', { title: '', description: '' });
   assert.deepEqual(await getGuideOverrides(client, 'g'), {});
 });
+
+import { categorizeError } from '../src/utils/errorHandler.js';
+
+test('categorizeError: error voice/Lavalink bukan "database", error driver pg tetap database', () => {
+  assert.notEqual(categorizeError(new Error('Player connection is not initiated. Kindly use Riffy.createConnection()')), 'database');
+  assert.notEqual(categorizeError(new Error('Voice connection timeout')), 'database');
+  assert.equal(categorizeError(new Error('Connection terminated unexpectedly')), 'database');
+  assert.equal(categorizeError(new Error('timeout exceeded when trying to connect')), 'database');
+  assert.equal(categorizeError(new Error('PostgreSQL unavailable for readGuildConfig')), 'database');
+});
+
+import { MODERATION_DEFAULTS, applyWarnEscalation, getModerationPolicy, saveModerationPolicy } from '../src/services/moderation/moderationPolicy.js';
+
+test('kebijakan moderasi: default, simpan parsial, eskalasi timeout lalu kick', async () => {
+  const client = { db: memDb(), user: { tag: 'Pacil#1' } };
+  assert.deepEqual(await getModerationPolicy(client, 'g'), MODERATION_DEFAULTS);
+  await saveModerationPolicy(client, 'g', { escalation: { enabled: true, timeoutAt: 3, timeoutMinutes: 30, kickAt: 5 } });
+  const policy = await getModerationPolicy(client, 'g');
+  assert.equal(policy.dmOnAction, true);
+  assert.equal(policy.escalation.kickAt, 5);
+
+  const calls = [];
+  const guild = { id: 'g', name: 'Pacil', client: { ...client, db: client.db } };
+  const mkMember = () => ({ id: 'm', user: { tag: 'm#1', bot: false, send: async () => {} }, kickable: true, moderatable: true,
+    timeout: async (ms) => calls.push(['timeout', ms]), kick: async () => calls.push(['kick']) });
+  assert.equal(await applyWarnEscalation({ guild, member: mkMember(), totalCount: 2, policy, reason: 'x' }), null);
+  assert.match(await applyWarnEscalation({ guild, member: mkMember(), totalCount: 3, policy, reason: 'x' }), /timeout 30 menit/);
+  assert.match(await applyWarnEscalation({ guild, member: mkMember(), totalCount: 5, policy, reason: 'x' }), /dikeluarkan/);
+  assert.deepEqual(calls, [['timeout', 1_800_000], ['kick']]);
+  const off = { ...policy, escalation: { ...policy.escalation, enabled: false } };
+  assert.equal(await applyWarnEscalation({ guild, member: mkMember(), totalCount: 9, policy: off, reason: 'x' }), null);
+});

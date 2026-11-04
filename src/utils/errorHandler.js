@@ -181,6 +181,10 @@ function normalizeInteractionError(error, context = {}) {
     });
 }
 
+// Pesan driver pg yang khas. Kata umum seperti "connection"/"timeout" saja BUKAN tanda masalah database
+// (mis. error voice/Lavalink: "Player connection is not initiated").
+const DB_CONNECTION_PATTERN = /connection terminated|connection error|timeout exceeded when trying to connect|remaining connection slots|pool (is )?(ended|closed)/;
+
 export function categorizeError(error) {
     if (error instanceof PacilBotError) {
         return error.type;
@@ -214,7 +218,7 @@ export function categorizeError(error) {
         return ErrorTypes.PERMISSION;
     }
 
-    if (message.includes('database') || message.includes('postgres') || message.includes('sql') || message.includes('connection') || message.includes('timeout')) {
+    if (message.includes('database') || message.includes('postgres') || message.includes('sql') || DB_CONNECTION_PATTERN.test(message)) {
         return ErrorTypes.DATABASE;
     }
 

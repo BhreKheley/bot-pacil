@@ -4,6 +4,7 @@ import { PermissionFlagsBits } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { logModerationAction } from '../../utils/moderation.js';
+import { notifyModerationTarget } from './moderationPolicy.js';
 
 function getTargetLabel(target) {
   return target.user?.tag ?? target.displayName ?? 'this user';
@@ -174,6 +175,7 @@ export class ModerationService {
         }
       }
 
+      await notifyModerationTarget({ guild, user, action: 'ban', reason });
       await guild.members.ban(user.id, { reason });
 
       const caseId = await logModerationAction({
@@ -233,6 +235,7 @@ export class ModerationService {
         );
       }
 
+      await notifyModerationTarget({ guild, user: member.user, action: 'kick', reason });
       await member.kick(reason);
 
       const caseId = await logModerationAction({
@@ -291,6 +294,7 @@ export class ModerationService {
         );
       }
 
+      await notifyModerationTarget({ guild, user: member.user, action: 'timeout', reason, detail: `Durasi: ${Math.round(durationMs / 60000)} menit` });
       await member.timeout(durationMs, reason);
 
       const durationMinutes = Math.floor(durationMs / 60000);
