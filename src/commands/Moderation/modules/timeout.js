@@ -4,6 +4,7 @@ import { logger } from '../../../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../../../utils/errorHandler.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
 import { ModerationService } from '../../../services/moderation/moderationService.js';
+import { handleModerationReasonAutocomplete } from '../../../services/moderation/moderationTemplates.js';
 
 const durationChoices = [
     { name: "5 minutes", value: 5 },
@@ -34,10 +35,17 @@ export default {
                     .addChoices(...durationChoices),
         )
         .addStringOption((option) =>
-            option.setName("reason").setDescription("Reason for the timeout"),
+            option
+                .setName("reason")
+                .setDescription("Alasan timeout (pilih template atau ketik kustom)")
+                .setAutocomplete(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     category: "moderation",
+
+    async autocomplete(interaction) {
+        return handleModerationReasonAutocomplete(interaction);
+    },
 
     async execute(interaction, config, client) {
         const deferSuccess = await InteractionHelper.safeDefer(interaction);

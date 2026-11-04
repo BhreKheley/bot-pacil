@@ -25,7 +25,7 @@ const HTTPS_URL = /^https:\/\/\S+$/i;
 const input = (id, label, style, { value, placeholder, max, required = false } = {}) => {
   const t = new TextInputBuilder().setCustomId(id).setLabel(label).setStyle(style).setRequired(required);
   if (value) t.setValue(String(value).slice(0, max ?? 4000));
-  if (placeholder) t.setPlaceholder(placeholder);
+  if (placeholder) t.setPlaceholder(String(placeholder).slice(0, 100));
   if (max) t.setMaxLength(max);
   return new ActionRowBuilder().addComponents(t);
 };
@@ -70,16 +70,19 @@ export async function handleWelcomeButton(interaction, client, [action, arg]) {
       return refresh(interaction, client, 'goodbye');
     case 'edit': {
       const modal = new ModalBuilder().setCustomId('setup:welcome:edit').setTitle('Edit Pesan Sambutan').addComponents(
-        input('title', 'Judul', TextInputStyle.Short, { value: config.welcomeTitle, placeholder: WELCOME_DEFAULT_TITLE, max: 100 }),
-        input('message', 'Pesan', TextInputStyle.Paragraph, { value: config.welcomeMessage, placeholder: WELCOME_DEFAULT_MESSAGE, max: 1000 }),
-        input('image', 'URL Gambar Banner (https, opsional)', TextInputStyle.Short, { value: config.welcomeImage, max: 300 }),
+        input('title', 'Judul Sambutan', TextInputStyle.Short, { value: config.welcomeTitle, placeholder: WELCOME_DEFAULT_TITLE, max: 100 }),
+        input('message', 'Pesan Sambutan', TextInputStyle.Paragraph, { value: config.welcomeMessage, placeholder: 'Halo {user}, selamat datang di {server}!', max: 1000 }),
+        input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.welcomeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
+        input('thumbnail', 'Thumbnail (https / server / none / user)', TextInputStyle.Short, { value: config.welcomeThumbnail, placeholder: 'https://... atau "server" / "none" (kosong: avatar)', max: 300 }),
       );
       return interaction.showModal(modal);
     }
     case 'gedit': {
       const modal = new ModalBuilder().setCustomId('setup:welcome:gedit').setTitle('Edit Pesan Perpisahan').addComponents(
-        input('title', 'Judul', TextInputStyle.Short, { value: config.goodbyeTitle, placeholder: GOODBYE_DEFAULT_TITLE, max: 100 }),
-        input('message', 'Pesan', TextInputStyle.Paragraph, { value: config.leaveMessage, placeholder: GOODBYE_DEFAULT_MESSAGE, max: 1000 }),
+        input('title', 'Judul Perpisahan', TextInputStyle.Short, { value: config.goodbyeTitle, placeholder: GOODBYE_DEFAULT_TITLE, max: 100 }),
+        input('message', 'Pesan Perpisahan', TextInputStyle.Paragraph, { value: config.leaveMessage, placeholder: 'Sampai jumpa {user.username}!', max: 1000 }),
+        input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.goodbyeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
+        input('thumbnail', 'Thumbnail (https / server / none / user)', TextInputStyle.Short, { value: config.goodbyeThumbnail, placeholder: 'https://... atau "server" / "none" (kosong: avatar)', max: 300 }),
       );
       return interaction.showModal(modal);
     }
@@ -136,10 +139,32 @@ export async function handleWelcomeModal(interaction, client, [action]) {
 
   if (action === 'edit') {
     const image = get('image');
-    if (image && !HTTPS_URL.test(image)) return fail('URL gambar harus diawali `https://`.');
-    return done({ welcomeTitle: get('title'), welcomeMessage: get('message'), welcomeImage: image || null }, 'arrival');
+    const thumbnail = get('thumbnail');
+    if (image && !HTTPS_URL.test(image)) return fail('URL banner harus diawali `https://`.');
+    if (thumbnail && !HTTPS_URL.test(thumbnail) && !['server', 'none', 'user'].includes(thumbnail.toLowerCase())) {
+      return fail('Thumbnail harus berupa URL `https://`, atau kata kunci `server`, `none`, atau kosongkan untuk avatar member.');
+    }
+    return done({
+      welcomeTitle: get('title'),
+      welcomeMessage: get('message'),
+      welcomeImage: image || null,
+      welcomeThumbnail: thumbnail || null,
+    }, 'arrival');
   }
-  if (action === 'gedit') return done({ goodbyeTitle: get('title'), leaveMessage: get('message') }, 'goodbye');
+  if (action === 'gedit') {
+    const image = get('image');
+    const thumbnail = get('thumbnail');
+    if (image && !HTTPS_URL.test(image)) return fail('URL banner harus diawali `https://`.');
+    if (thumbnail && !HTTPS_URL.test(thumbnail) && !['server', 'none', 'user'].includes(thumbnail.toLowerCase())) {
+      return fail('Thumbnail harus berupa URL `https://`, atau kata kunci `server`, `none`, atau kosongkan untuk avatar member.');
+    }
+    return done({
+      goodbyeTitle: get('title'),
+      leaveMessage: get('message'),
+      goodbyeImage: image || null,
+      goodbyeThumbnail: thumbnail || null,
+    }, 'goodbye');
+  }
   if (action === 'delay') {
     const n = Number(get('seconds'));
     if (!Number.isInteger(n) || n < 0 || n > MAX_AUTOROLE_DELAY_SECONDS) return fail(`Isi bilangan bulat 0–${MAX_AUTOROLE_DELAY_SECONDS}.`);

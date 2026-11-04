@@ -237,6 +237,22 @@ export async function playQuery(client, interaction, query) {
             query,
             requester: interaction.user,
         });
+
+        // Fallback pencarian ke SoundCloud jika YouTube Music tidak menemukan lagu
+        if (
+            (!result?.tracks?.length || ['empty', 'NO_MATCHES'].includes(result?.loadType))
+            && !/^https?:\/\//i.test(query)
+        ) {
+            const fallback = await client.riffy.resolve({
+                query,
+                source: 'scsearch',
+                requester: interaction.user,
+            }).catch(() => null);
+
+            if (fallback?.tracks?.length) {
+                result = fallback;
+            }
+        }
     } catch (error) {
         throw new PacilBotError(
             `Lavalink resolve error: ${error?.message || error}`,

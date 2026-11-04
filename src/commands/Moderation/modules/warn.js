@@ -7,6 +7,7 @@ import { WarningService } from '../../../services/moderation/warningService.js';
 import { ModerationService } from '../../../services/moderation/moderationService.js';
 import { PacilBotError, ErrorTypes } from '../../../utils/errorHandler.js';
 import { InteractionHelper } from '../../../utils/interactionHelper.js';
+import { handleModerationReasonAutocomplete } from '../../../services/moderation/moderationTemplates.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("warn")
@@ -21,10 +22,15 @@ export default {
             o
                 .setName("reason")
                 .setRequired(true)
-                .setDescription("Reason for the warning"),
+                .setDescription("Alasan peringatan (pilih template atau ketik kustom)")
+                .setAutocomplete(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     category: "moderation",
+
+    async autocomplete(interaction) {
+        return handleModerationReasonAutocomplete(interaction);
+    },
 
     async execute(interaction, config, client) {
         const deferSuccess = await InteractionHelper.safeDefer(interaction);

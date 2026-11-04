@@ -15,7 +15,17 @@ export const MAX_AUTOROLE_DELAY_SECONDS = 3600;
 /** Teks tampilan untuk template (token dikenali: {user} {user.username} {user.tag} {server} {memberCount}). */
 export const TEMPLATE_TOKENS = '{user} {user.username} {user.tag} {server} {memberCount}';
 
-const avatar = (user) => user.displayAvatarURL({ extension: 'png', size: 512 });
+const avatar = (user) => (typeof user.displayAvatarURL === 'function' ? user.displayAvatarURL({ extension: 'png', size: 512 }) : undefined);
+
+export function resolveThumbnail(thumbConfig, user, guild) {
+  if (!thumbConfig || thumbConfig.toLowerCase() === 'user') return avatar(user);
+  if (thumbConfig.toLowerCase() === 'none') return undefined;
+  if (thumbConfig.toLowerCase() === 'server') {
+    return (typeof guild?.iconURL === 'function' ? guild.iconURL({ extension: 'png', size: 512 }) : null) || avatar(user);
+  }
+  if (/^https?:\/\//i.test(thumbConfig)) return thumbConfig;
+  return avatar(user);
+}
 
 export function buildWelcomeEmbed({ member, config, inviterId = null, guideChannelId = config?.guideChannelId ?? null }) {
   const { user, guild } = member;
@@ -31,7 +41,7 @@ export function buildWelcomeEmbed({ member, config, inviterId = null, guideChann
     title: formatWelcomeMessage(config.welcomeTitle || WELCOME_DEFAULT_TITLE, data),
     description: formatWelcomeMessage(config.welcomeMessage || WELCOME_DEFAULT_MESSAGE, data),
     tone: 'gold',
-    thumbnail: avatar(user),
+    thumbnail: resolveThumbnail(config.welcomeThumbnail, user, guild),
     image: config.welcomeImage || config.welcomeEmbed?.image?.url || undefined,
     fields,
   });
@@ -44,7 +54,8 @@ export function buildGoodbyeEmbed({ member, config }) {
     title: formatWelcomeMessage(config.goodbyeTitle || GOODBYE_DEFAULT_TITLE, data),
     description: formatWelcomeMessage(config.leaveMessage || GOODBYE_DEFAULT_MESSAGE, data),
     tone: 'navy',
-    thumbnail: avatar(user),
+    thumbnail: resolveThumbnail(config.goodbyeThumbnail, user, guild),
+    image: config.goodbyeImage || undefined,
     fields: [{ name: '👥 Jumlah Member', value: String(guild.memberCount), inline: true }],
   });
 }
@@ -53,6 +64,12 @@ export function buildGoodbyeEmbed({ member, config }) {
 export function summarizeWelcome(config) {
   const on = (v) => (v ? '✅ Aktif' : '⛔ Nonaktif');
   const ch = (id) => (id ? `<#${id}>` : '⚠️ Belum diatur');
+  const thumbLabel = (val) => {
+    if (!val || val === 'user') return '👤 Avatar Member (bawaan)';
+    if (val === 'none') return '⛔ Nonaktif (tanpa thumbnail)';
+    if (val === 'server') return '🏛️ Ikon Server';
+    return '🖼️ Gambar Kustom';
+  };
   return {
     arrival: [
       { name: 'Status', value: on(config.enabled), inline: true },
@@ -60,6 +77,7 @@ export function summarizeWelcome(config) {
       { name: 'Channel Panduan', value: config.guideChannelId ? `<#${config.guideChannelId}>` : '— (tidak ditampilkan)', inline: true },
       { name: 'Mention Member', value: config.welcomePing ? '✅ Ya' : '⛔ Tidak', inline: true },
       { name: 'Gambar Banner', value: config.welcomeImage ? '✅ Terpasang' : '— Tidak ada', inline: true },
+      { name: 'Thumbnail', value: thumbLabel(config.welcomeThumbnail), inline: true },
       {
         name: 'Auto-Role',
         value: config.roleIds?.length
@@ -72,6 +90,8 @@ export function summarizeWelcome(config) {
       { name: 'Status', value: on(config.goodbyeEnabled), inline: true },
       { name: 'Channel Perpisahan', value: ch(config.goodbyeChannelId), inline: true },
       { name: 'Mention Member', value: config.goodbyePing ? '✅ Ya' : '⛔ Tidak', inline: true },
+      { name: 'Gambar Banner', value: config.goodbyeImage ? '✅ Terpasang' : '— Tidak ada', inline: true },
+      { name: 'Thumbnail', value: thumbLabel(config.goodbyeThumbnail), inline: true },
     ],
   };
 }
