@@ -9,6 +9,7 @@ import { renderMainDashboard, SETUP_MODULES } from '../../../ui/panels/mainDashb
 import { renderConfigView } from '../../../services/configHubService.js';
 import { handleWelcomeSelect } from '../../../services/welcomeConfigActions.js';
 import { setTrackedBotIds } from '../../../services/musicTrackerService.js';
+import { handleGuideSelect } from '../../../services/guideConfigActions.js';
 import { denyIfNoSetupAccess } from '../../../utils/setupGuard.js';
 
 const PANELS = {
@@ -29,6 +30,7 @@ async function render(client, guild, value) {
 async function execute(interaction, client, [kind, ...rest] = []) {
   if (await denyIfNoSetupAccess(interaction)) return;
   if (kind === 'welcome') return handleWelcomeSelect(interaction, client, rest);
+  if (kind === 'guide') return handleGuideSelect(interaction, client);
   if (kind === 'music') {
     const bots = interaction.values.filter((id) => interaction.users?.get(id)?.bot);
     await setTrackedBotIds(client, interaction.guildId, bots);

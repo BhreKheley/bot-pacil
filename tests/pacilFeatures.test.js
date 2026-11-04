@@ -65,3 +65,18 @@ test('konfigurasi booster: default, simpan parsial, dan cleanup role', async () 
   assert.equal(deleted, true);
   assert.equal(await getUserBoosterRole(client, 'g', 'u'), null);
 });
+
+import { getGuideOverrides, setGuidePage, applyGuideOverride } from '../src/services/guideService.js';
+import { renderRulesGuidePublicEmbed, GUIDE_PAGES } from '../src/ui/panels/rulesGuideSubPanel.js';
+
+test('guide: override per halaman, kosong = reset, embed publik memakai override', async () => {
+  const client = { db: memDb() };
+  await setGuidePage(client, 'g', 'roles', { title: 'Role Baru', description: 'Isi baru' });
+  const ov = await getGuideOverrides(client, 'g');
+  assert.deepEqual(applyGuideOverride(GUIDE_PAGES.roles, ov.roles).title, 'Role Baru');
+  assert.equal(applyGuideOverride(GUIDE_PAGES.server, ov.server).title, GUIDE_PAGES.server.title);
+  const e = renderRulesGuidePublicEmbed('roles', ov).embeds[0].toJSON();
+  assert.equal(e.title ?? e.Title, 'Role Baru');
+  await setGuidePage(client, 'g', 'roles', { title: '', description: '' });
+  assert.deepEqual(await getGuideOverrides(client, 'g'), {});
+});

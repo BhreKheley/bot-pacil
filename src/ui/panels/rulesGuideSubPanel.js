@@ -6,6 +6,7 @@ import {
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { buildPacilEmbed } from '../pacil.js';
+import { applyGuideOverride, getGuideOverrides } from '../../services/guideService.js';
 
 export const GUIDE_PAGES = {
   server: {
@@ -59,14 +60,15 @@ export const GUIDE_PAGES = {
   },
 };
 
-export function renderRulesGuidePublicEmbed(category = 'server') {
-  const page = GUIDE_PAGES[category] || GUIDE_PAGES.server;
+export function renderRulesGuidePublicEmbed(category = 'server', overrides = {}) {
+  const key = GUIDE_PAGES[category] ? category : 'server';
+  const page = applyGuideOverride(GUIDE_PAGES[key], overrides[key]);
 
   const embed = buildPacilEmbed({
     title: page.title,
     description: page.description,
     tone: page.tone,
-    footer: 'Makara Fasilkom UI • Pacil Bot • Panduan Interaktif',
+    footer: 'Panduan Interaktif',
   });
 
   const selectMenu = new StringSelectMenuBuilder()
@@ -104,10 +106,13 @@ export function renderRulesGuidePublicEmbed(category = 'server') {
   return { embeds: [embed], components: [row] };
 }
 
-export async function renderRulesGuideSubPanel(client, guild) {
+export async function renderRulesGuideSubPanel(client, guild, { notice = null } = {}) {
+  const overrides = await getGuideOverrides(client, guild.id);
+  const edited = Object.keys(overrides).filter((k) => GUIDE_PAGES[k]);
   const embed = buildPacilEmbed({
     title: '📜 Sub-Panel: Rules & Interactive Guide',
     description:
+      (notice ? `${notice}\n\n` : '') +
       'Kelola panduan interaktif mahasiswa dan tata tertib server Pacil Baik Fasilkom UI.\n\n' +
       'Gunakan tombol di bawah untuk memasang pesan embed peraturan resmi (Community Guidelines & Server Etiquette) atau panel panduan interaktif.',
     tone: 'gold',
@@ -118,6 +123,11 @@ export async function renderRulesGuideSubPanel(client, guild) {
         inline: false,
       },
       {
+        name: '✏️ Halaman yang Disesuaikan',
+        value: edited.length ? edited.map((k) => `• ${GUIDE_PAGES[k].title}`).join('\n') : 'Belum ada — semua halaman memakai isi bawaan.',
+        inline: false,
+      },
+      {
         name: '📖 Interactive Guide',
         value: 'Embed yang dapat diganti topiknya secara dinamis via StringSelectMenu (Server, Roles, Voice, Ticket, Bot).',
         inline: false,
@@ -125,6 +135,13 @@ export async function renderRulesGuideSubPanel(client, guild) {
     ],
     footer: 'Makara Fasilkom UI • Pacil Bot',
   });
+
+  const editor = new StringSelectMenuBuilder()
+    .setCustomId('setup:guide:edit')
+    .setPlaceholder('Edit isi halaman panduan…')
+    .addOptions(Object.entries(GUIDE_PAGES).map(([value, page]) => new StringSelectMenuOptionBuilder()
+      .setLabel(page.title.replace(/^\S+\s/, '').slice(0, 100)).setValue(value).setDescription(overrides[value] ? 'Sudah disesuaikan' : 'Isi bawaan')));
+  const editorRow = new ActionRowBuilder().addComponents(editor);
 
   const buttonRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -139,13 +156,14 @@ export async function renderRulesGuideSubPanel(client, guild) {
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('setup:back')
-      .setLabel('🔙 Back to Main Menu')
+      .setLabel('Menu Utama')
+      .setEmoji('🔙')
       .setStyle(ButtonStyle.Primary)
   );
 
   return {
     embeds: [embed],
-    components: [buttonRow],
+    components: [editorRow, buttonRow],
   };
 }
 
