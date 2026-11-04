@@ -56,10 +56,6 @@ export const commandAliases = {
     'goodbye': 'goodbye',
     'autorole': 'autorole',
 
-    'calc': 'calculate',
-    'math': 'calculate',
-    'weather': 'weather',
-    'todo': 'todo',
     'report': 'report',
     'userinfo': 'userinfo',
     'whois': 'userinfo',
