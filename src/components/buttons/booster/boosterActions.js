@@ -46,10 +46,10 @@ export default {
 
       const colorInput = new TextInputBuilder()
         .setCustomId('role_color')
-        .setLabel('Kode Hex Warna (misal #F2A900 atau GOLD)')
+        .setLabel('Hex solid, atau 2 hex untuk gradien')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('#0d3a73, #f2a900, #ff5733...')
-        .setMaxLength(10)
+        .setPlaceholder('#F2A900  atau  #0d3a73, #f2a900')
+        .setMaxLength(20)
         .setRequired(false);
 
       modal.addComponents(
@@ -103,10 +103,10 @@ export default {
 
       const colorInput = new TextInputBuilder()
         .setCustomId('new_color')
-        .setLabel('Hex Warna (#0d3a73, #f2a900, atau RED)')
+        .setLabel('Hex solid, atau 2 hex untuk gradien')
         .setStyle(TextInputStyle.Short)
         .setPlaceholder('#f2a900')
-        .setMaxLength(10)
+        .setMaxLength(20)
         .setRequired(true);
 
       modal.addComponents(new ActionRowBuilder().addComponents(colorInput));

@@ -2,16 +2,10 @@ import { MessageFlags } from 'discord.js';
 import {
   getUserBoosterRole,
   saveUserBoosterRole,
+  parseRoleColors,
+  applyRoleColors,
 } from '../../../services/boosterService.js';
-import { PACIL_COLORS, buildPacilEmbed } from '../../../ui/pacil.js';
-
-function parseColorHex(input = '') {
-  const clean = input.trim().replace(/^#/, '');
-  if (/^[0-9A-Fa-f]{6}$/.test(clean)) {
-    return parseInt(clean, 16);
-  }
-  return PACIL_COLORS.gold;
-}
+import { buildPacilEmbed } from '../../../ui/pacil.js';
 
 export default {
   name: 'boosterModal',
@@ -22,14 +16,17 @@ export default {
     if (action === 'create') {
       const name = interaction.fields.getTextInputValue('role_name')?.trim();
       const rawColor = interaction.fields.getTextInputValue('role_color')?.trim();
-      const color = rawColor ? parseColorHex(rawColor) : PACIL_COLORS.gold;
+      const colors = parseRoleColors(rawColor || '#F2A900');
+      if (!colors.ok) return interaction.editReply({ content: `❌ ${colors.error}` });
+      const color = colors.primary;
 
       try {
         const role = await interaction.guild.roles.create({
           name: `💎 ${name}`,
-          color,
+          colors: { primaryColor: colors.primary },
           reason: `Custom role created by booster ${interaction.user.tag}`,
         });
+        const applied = colors.secondary !== null ? await applyRoleColors(role, colors) : { gradient: false };
 
         await interaction.member.roles.add(role);
 
@@ -47,9 +44,9 @@ export default {
           tone: 'gold',
           fields: [
             { name: '🏷️ Nama Role', value: `💎 ${name}`, inline: true },
-            { name: '🎨 Warna', value: rawColor || '#F2A900 (Makara Gold)', inline: true },
+            { name: '🎨 Warna', value: `${rawColor || '#F2A900 (Makara Gold)'}${applied.fallback ? ' — gradien butuh level boost lebih tinggi, dipasang solid' : ''}`, inline: true },
           ],
-          footer: 'Makara Fasilkom UI • Booster Perks',
+          footer: 'Booster Perks',
         });
 
         return interaction.editReply({ embeds: [successEmbed] });
@@ -83,7 +80,9 @@ export default {
     // 3. Color Submit
     if (action === 'color') {
       const newColor = interaction.fields.getTextInputValue('new_color')?.trim();
-      const parsedColor = parseColorHex(newColor);
+      const parsed = parseRoleColors(newColor);
+      if (!parsed.ok) return interaction.editReply({ content: `❌ ${parsed.error}` });
+      const parsedColor = parsed.primary;
       const existing = await getUserBoosterRole(client, interaction.guildId, interaction.user.id);
 
       if (!existing) {
@@ -94,10 +93,11 @@ export default {
         || (await interaction.guild.roles.fetch(existing.roleId).catch(() => null));
 
       if (role) {
-        await role.setColor(parsedColor);
+        const applied = await applyRoleColors(role, parsed);
         existing.color = parsedColor;
         await saveUserBoosterRole(client, interaction.guildId, interaction.user.id, existing);
-        return interaction.editReply({ content: `✅ Warna role berhasil diubah menjadi **${newColor}**!` });
+        const note = applied.fallback ? ' (gradien butuh level boost lebih tinggi, dipasang solid)' : applied.gradient ? ' (gradien)' : '';
+        return interaction.editReply({ content: `✅ Warna role berhasil diubah menjadi **${newColor}**${note}!` });
       } else {
         return interaction.editReply({ content: '❌ Role tidak ditemukan di server Discord.' });
       }
