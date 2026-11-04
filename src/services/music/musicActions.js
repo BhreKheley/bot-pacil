@@ -40,15 +40,15 @@ function assertBotVoicePermissions(channel) {
         throw new PacilBotError(
             'Voice channel unavailable',
             ErrorTypes.CONFIGURATION,
-            'Could not access that voice channel.',
+            'Voice channel tidak ditemukan atau tidak dapat diakses.',
         );
     }
 
-    if (!botHasPermission(channel, [PermissionFlagsBits.Connect, PermissionFlagsBits.Speak])) {
+    if (!botHasPermission(channel, [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak])) {
         throw new PacilBotError(
             'Missing voice permissions',
             ErrorTypes.PERMISSION,
-            'I need **Connect** and **Speak** permissions in your voice channel.',
+            'Bot membutuhkan izin **Lihat Channel (View Channel)**, **Masuk (Connect)**, dan **Bicara (Speak)** di voice channel tersebut.',
         );
     }
 }
@@ -76,12 +76,12 @@ async function waitForPlayerConnection(player) {
         // Timed out waiting for Lavalink to confirm the voice session.
     }
 
-    if (!player.connection?.isReady && !player.connected) {
+    if (!player.connection?.isReady) {
         player.destroy?.();
         throw new PacilBotError(
             'Voice connection failed',
             ErrorTypes.NETWORK,
-            'Koneksi audio ke voice channel belum berhasil terhubung. Pastikan bot memiliki izin Masuk (Connect) dan Bicara (Speak) di channel tersebut, lalu coba lagi.',
+            'Koneksi audio ke voice channel belum berhasil terhubung (Discord voice handshake timeout). Pastikan bot memiliki izin View Channel, Connect, dan Speak di voice channel tersebut, lalu coba lagi.',
         );
     }
 }
@@ -141,12 +141,15 @@ export async function ensurePlayer(client, interaction) {
     assertLavalinkNodeAvailable(client);
     assertInVoice(interaction.member);
 
+    const voiceChannel = interaction.member.voice?.channel;
+    assertBotVoicePermissions(voiceChannel);
+
     const guildId = interaction.guild.id;
     const guildData = getGuildMusicData(guildId);
     let player = getPlayer(client, guildId);
 
-    // Jika player terpasang di node yang sudah terputus, bersihkan player lama agar connect ke node aktif
-    if (player && (!player.node || !player.node.connected)) {
+    // Jika player terpasang di node yang sudah terputus atau voice channel berbeda, bersihkan player lama
+    if (player && ((!player.node || !player.node.connected) || (player.voiceChannel && player.voiceChannel !== voiceChannel.id))) {
         try {
             player.destroy();
         } catch {
@@ -158,7 +161,7 @@ export async function ensurePlayer(client, interaction) {
     if (!player) {
         player = client.riffy.createConnection({
             guildId,
-            voiceChannel: interaction.member.voice.channel.id,
+            voiceChannel: voiceChannel.id,
             textChannel: interaction.channel.id,
             deaf: true,
         });

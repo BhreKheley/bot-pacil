@@ -20,15 +20,19 @@ export function initializeMusic(client) {
                 return;
             }
 
-            const guild = client.guilds.cache.get(guildId);
-            if (guild?.shard) {
-                guild.shard.send(payload);
-                return;
-            }
+            try {
+                const guild = client.guilds.cache.get(guildId);
+                if (guild?.shard) {
+                    guild.shard.send(payload);
+                    return;
+                }
 
-            const shardCount = client.ws.shards.size || 1;
-            const shardId = Number((BigInt(guildId) >> 22n) % BigInt(shardCount));
-            client.ws.shards.get(shardId)?.send(payload);
+                const shardCount = client.ws?.shards?.size || 1;
+                const shardId = Number((BigInt(guildId) >> 22n) % BigInt(shardCount));
+                client.ws?.shards?.get(shardId)?.send(payload);
+            } catch (err) {
+                logger.error('Failed to send voice payload to gateway:', err);
+            }
         },
         defaultSearchPlatform: lavalinkConfig.defaultSearchPlatform,
         restVersion: lavalinkConfig.restVersion,
@@ -49,7 +53,13 @@ export function initializeMusic(client) {
         ) {
             return;
         }
-        client.riffy.updateVoiceState(packet);
+
+        if (client.riffy) {
+            if (!client.riffy.clientId && client.user?.id) {
+                client.riffy.init(client.user.id);
+            }
+            client.riffy.updateVoiceState(packet);
+        }
     });
 
     client.riffy.on('playerError', (player, error) => {
