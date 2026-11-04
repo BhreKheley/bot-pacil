@@ -61,8 +61,6 @@ export const commandAliases = {
     'jtc': 'jointocreate',
     'jointocreate': 'jointocreate',
 
-    'np': 'nowplaying',
-    'now': 'nowplaying',
 };
 
 export const subcommandAliases = {

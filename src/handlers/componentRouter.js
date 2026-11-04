@@ -10,7 +10,7 @@ import { runComponentGuarded } from '../utils/componentGuard.js';
 import { withTraceContext } from '../utils/traceContext.js';
 
 // Modal yang ditunggu langsung oleh command (awaitModalSubmit), bukan lewat registry.
-const INLINE_MODAL_PREFIXES = ['app_review_', 'jtc_', 'config_wizard_modal:', 'log_dash_channel_modal:', 'log_dash_filter_modal:'];
+const INLINE_MODAL_PREFIXES = ['app_review_', 'jtc_', 'log_dash_channel_modal:', 'log_dash_filter_modal:'];
 
 const KINDS = {
   button: { registry: 'buttons', type: 'button', unavailable: 'Tombol ini sudah tidak aktif. Buka ulang panelnya ya.' },

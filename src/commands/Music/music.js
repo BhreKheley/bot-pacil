@@ -17,11 +17,18 @@ import {
     leaveVoiceChannel,
     replyMusicSuccess,
 } from '../../services/music/musicActions.js';
+import { addModuleSubcommand } from '../../utils/composeCommand.js';
+import queueCmd from './modules/queue.js';
+import nowplayingCmd from './modules/nowplaying.js';
+import joinCmd from './modules/join.js';
 import { deferMusicCommand } from '../../services/music/prefixSupport.js';
+
+const DELEGATED = { queue: queueCmd, nowplaying: nowplayingCmd, join: joinCmd };
+const musicData = (builder) => Object.entries(DELEGATED).reduce((d, [n, m]) => addModuleSubcommand(d, n, m), builder);
 
 export default {
     category: 'Music',
-    data: new SlashCommandBuilder()
+    data: musicData(new SlashCommandBuilder()
         .setName('music')
         .setDescription('Manage playback, queue, and voice session settings')
         .addSubcommand((sub) =>
@@ -111,11 +118,12 @@ export default {
                 .addBooleanOption((opt) =>
                     opt.setName('enabled').setDescription('Enable or disable 24/7 mode').setRequired(true),
                 ),
-        ),
+        )),
 
     async execute(interaction, config, client) {
-        await deferMusicCommand(interaction);
         const subcommand = interaction.options.getSubcommand();
+        if (DELEGATED[subcommand]) return DELEGATED[subcommand].execute(interaction, config, client);
+        await deferMusicCommand(interaction);
 
         switch (subcommand) {
             case 'pause': {
