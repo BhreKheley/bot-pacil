@@ -10,6 +10,7 @@ import { getConfessionConfig } from '../../../services/confessionService.js';
 import { guildCirclesListKey, getCircle } from '../../../services/circleService.js';
 import { renderRulesGuidePublicEmbed } from '../../../ui/panels/rulesGuideSubPanel.js';
 import { renderBoosterPublicPanel } from '../../../ui/panels/boosterSubPanel.js';
+import { getTrackedBotIds } from '../../../services/musicTrackerService.js';
 import { renderMusicStatusEmbed } from '../../../ui/panels/musicSubPanel.js';
 
 export async function handleSetupAction(interaction, client, action) {
@@ -201,7 +202,7 @@ export async function handleSetupAction(interaction, client, action) {
 
     // 11. Pasang Tracker Live Music
     if (action === 'deploy_music_tracker') {
-      const trackerEmbed = renderMusicStatusEmbed(interaction.guild);
+      const trackerEmbed = renderMusicStatusEmbed(interaction.guild, await getTrackedBotIds(client, interaction.guildId));
       await interaction.channel.send({ embeds: [trackerEmbed] });
       return interaction.reply({
         content: `✅ Live Music Bot Tracker berhasil dikirim ke <#${interaction.channelId}>!`,
@@ -211,7 +212,7 @@ export async function handleSetupAction(interaction, client, action) {
 
     // 12. Refresh Music Panel
     if (action === 'refresh_music_panel') {
-      const trackerEmbed = renderMusicStatusEmbed(interaction.guild);
+      const trackerEmbed = renderMusicStatusEmbed(interaction.guild, await getTrackedBotIds(client, interaction.guildId));
       const buttonRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('setup:act:deploy_music_tracker')
