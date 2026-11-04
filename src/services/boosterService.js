@@ -49,3 +49,35 @@ export async function applyRoleColors(role, { primary, secondary }) {
     return { gradient: false, fallback: true };
   }
 }
+
+export const BOOSTER_DEFAULTS = Object.freeze({
+  enabled: true,        // fitur custom role aktif
+  autoCleanup: true,    // hapus role otomatis saat member berhenti boost
+  allowGift: true,
+  allowIcon: true,
+  nameMaxLength: 30,    // 2–32
+});
+export const BOOSTER_NAME_LIMITS = Object.freeze({ min: 2, max: 32 });
+
+const configKey = (guildId) => `guild:${guildId}:booster_config`;
+
+export async function getBoosterConfig(client, guildId) {
+  const saved = await client.db.get(configKey(guildId), {});
+  return { ...BOOSTER_DEFAULTS, ...(saved && typeof saved === 'object' ? saved : {}) };
+}
+
+export async function saveBoosterConfig(client, guildId, changes) {
+  const next = { ...(await getBoosterConfig(client, guildId)), ...changes };
+  await client.db.set(configKey(guildId), next);
+  return next;
+}
+
+/** Hapus role custom milik user (Discord + data). Dipakai saat berhenti boost. */
+export async function cleanupBoosterRole(client, guild, userId) {
+  const data = await getUserBoosterRole(client, guild.id, userId);
+  if (!data) return false;
+  const role = guild.roles.cache.get(data.roleId) || (await guild.roles.fetch(data.roleId).catch(() => null));
+  if (role) await role.delete('Member berhenti boost: custom role dibersihkan').catch(() => {});
+  await deleteUserBoosterRole(client, guild.id, userId);
+  return true;
+}

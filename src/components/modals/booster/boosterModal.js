@@ -2,6 +2,7 @@ import { MessageFlags } from 'discord.js';
 import {
   getUserBoosterRole,
   saveUserBoosterRole,
+  getBoosterConfig,
   parseRoleColors,
   applyRoleColors,
 } from '../../../services/boosterService.js';
@@ -15,6 +16,8 @@ export default {
     // 1. Create Role Submit
     if (action === 'create') {
       const name = interaction.fields.getTextInputValue('role_name')?.trim();
+      const { nameMaxLength } = await getBoosterConfig(client, interaction.guildId);
+      if (!name || name.length > nameMaxLength) return interaction.editReply({ content: `❌ Nama role maksimal ${nameMaxLength} karakter.` });
       const rawColor = interaction.fields.getTextInputValue('role_color')?.trim();
       const colors = parseRoleColors(rawColor || '#F2A900');
       if (!colors.ok) return interaction.editReply({ content: `❌ ${colors.error}` });
@@ -58,6 +61,8 @@ export default {
     // 2. Name Submit
     if (action === 'name') {
       const newName = interaction.fields.getTextInputValue('new_name')?.trim();
+      const { nameMaxLength: maxLen } = await getBoosterConfig(client, interaction.guildId);
+      if (!newName || newName.length > maxLen) return interaction.editReply({ content: `❌ Nama role maksimal ${maxLen} karakter.` });
       const existing = await getUserBoosterRole(client, interaction.guildId, interaction.user.id);
 
       if (!existing) {

@@ -1,5 +1,6 @@
 import { Events } from 'discord.js';
 import { logEvent, EVENT_TYPES } from '../services/loggingService.js';
+import { cleanupBoosterRole, getBoosterConfig } from '../services/boosterService.js';
 import { logger } from '../utils/logger.js';
 
 export default {
@@ -9,6 +10,12 @@ export default {
   async execute(oldMember, newMember) {
     try {
       if (!newMember.guild) return;
+
+      // Berhenti boost: bersihkan custom role bila diaktifkan di konfigurasi Booster.
+      if (oldMember.premiumSince && !newMember.premiumSince) {
+        const boosterConfig = await getBoosterConfig(newMember.client, newMember.guild.id);
+        if (boosterConfig.autoCleanup) await cleanupBoosterRole(newMember.client, newMember.guild, newMember.id);
+      }
 
       if (oldMember.nickname !== newMember.nickname) {
         await logEvent({
