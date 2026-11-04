@@ -37,14 +37,6 @@ export async function routeComponent(interaction, client, trace = {}) {
   const { registry, unavailable } = KINDS[kind];
   const customId = interaction.customId;
 
-  // Kasus khusus lama yang tidak memakai pola modul:aksi.
-  if (kind === 'button' && customId.startsWith('shared_todo_')) {
-    const parts = customId.split('_');
-    const handler = client.buttons.get(parts.slice(0, 3).join('_'));
-    if (!handler) throw createError(`No button handler found for ${parts.slice(0, 3).join('_')}`, ErrorTypes.CONFIGURATION, unavailable, withTraceContext({ customId }, trace));
-    await execute(interaction, trace, 'todo', () => handler.execute(interaction, client, [parts[3]]));
-    return true;
-  }
   if (kind === 'modal') {
     if (customId.startsWith('app_modal_')) {
       await execute(interaction, trace, 'application', () => handleApplicationModal(interaction));
