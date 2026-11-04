@@ -13,15 +13,16 @@ export const setupActionId = (action) => `setup:act:${action}`;
  * kind 'hub' = tampilan di configHub (view = nama view hub).
  */
 export const SETUP_MODULES = Object.freeze([
-  { value: 'welcome', kind: 'panel', emoji: '⚙️', label: 'Welcome System', description: 'Pesan kedatangan mahasiswa baru' },
+  { value: 'welcome', kind: 'panel', emoji: '👋', label: 'Welcome System', description: 'Pesan kedatangan mahasiswa baru' },
   { value: 'rules', kind: 'panel', emoji: '📜', label: 'Rules & Guide', description: 'Tata tertib dan panduan interaktif server' },
   { value: 'booster', kind: 'panel', emoji: '🎭', label: 'Booster Perks', description: 'Custom role hadiah Server Booster' },
   { value: 'music', kind: 'panel', emoji: '🎶', label: 'Music Bot Status', description: 'Status bot musik: tersedia, dipakai, offline' },
   { value: 'circle', kind: 'panel', emoji: '👥', label: 'Circle Manager', description: 'Ruang privat kelompok tugas dan tongkrongan' },
+  { value: 'moderation', kind: 'panel', emoji: '🛡️', label: 'Moderasi', description: 'DM ke member dan eskalasi peringatan otomatis' },
   { value: 'confession', kind: 'hub', view: 'menfess', emoji: '💌', label: 'Confession Setup', description: 'Menfess anonim, review moderator, dan balasan' },
   { value: 'sticky', kind: 'hub', view: 'sticky', emoji: '📌', label: 'Sticky Message', description: 'Pesan yang selalu muncul di bawah channel' },
   { value: 'jtc', kind: 'hub', view: 'jtc', emoji: '🎙️', label: 'Join to Create', description: 'Ruang voice sementara dan panel pemiliknya' },
-  { value: 'perm', kind: 'hub', view: 'perm', emoji: '🛡️', label: 'Izin Command', description: 'Role, channel, dan cooldown per command' },
+  { value: 'perm', kind: 'hub', view: 'perm', emoji: '🔐', label: 'Izin Command', description: 'Role, channel, dan cooldown per command' },
   { value: 'access', kind: 'hub', view: 'access', emoji: '🚦', label: 'Aktif / Nonaktif Command', description: 'Matikan atau hidupkan command per kategori' },
   { value: 'other', kind: 'hub', view: 'other', emoji: '🧰', label: 'Fitur Lainnya', description: 'Tiket, logging, verifikasi, dan lain-lain' },
 ]);

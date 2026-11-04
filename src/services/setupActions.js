@@ -4,15 +4,15 @@ import {
   ButtonStyle,
   MessageFlags,
 } from 'discord.js';
-import { buildPacilEmbed } from '../../../ui/pacil.js';
-import { getGuildConfig, patchGuildConfig } from '../../../services/config/guildConfig.js';
-import { getConfessionConfig } from '../../../services/confessionService.js';
-import { guildCirclesListKey, getCircle } from '../../../services/circleService.js';
-import { getGuideOverrides } from '../../../services/guideService.js';
-import { renderRulesGuidePublicEmbed } from '../../../ui/panels/rulesGuideSubPanel.js';
-import { renderBoosterPublicPanel } from '../../../ui/panels/boosterSubPanel.js';
-import { getTrackedBotIds } from '../../../services/musicTrackerService.js';
-import { renderMusicStatusEmbed } from '../../../ui/panels/musicSubPanel.js';
+import { buildPacilEmbed } from '../ui/pacil.js';
+import { getGuildConfig, patchGuildConfig } from '../services/config/guildConfig.js';
+import { getConfessionConfig } from '../services/confessionService.js';
+import { guildCirclesListKey, getCircle } from '../services/circleService.js';
+import { getGuideOverrides } from '../services/guideService.js';
+import { renderRulesGuidePublicEmbed } from '../ui/panels/rulesGuideSubPanel.js';
+import { renderBoosterPublicPanel } from '../ui/panels/boosterSubPanel.js';
+import { getTrackedBotIds } from '../services/musicTrackerService.js';
+import { renderMusicStatusEmbed } from '../ui/panels/musicSubPanel.js';
 
 export async function handleSetupAction(interaction, client, action) {
   {

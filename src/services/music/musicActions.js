@@ -30,7 +30,7 @@ export function assertLavalinkNodeAvailable(client) {
         throw new PacilBotError(
             'Lavalink unavailable',
             ErrorTypes.CONFIGURATION,
-            'Music is temporarily unavailable — no Lavalink nodes are connected. Try again shortly or configure your own Lavalink server.',
+            'Musik sedang tidak tersedia: tidak ada node Lavalink yang terhubung. Coba lagi sebentar, atau pasang node Lavalink milik sendiri (lihat docs/DEPLOY.md).',
         );
     }
 }
@@ -87,7 +87,20 @@ async function waitForPlayerConnection(player) {
 
 async function startPlayback(player) {
     await waitForPlayerConnection(player);
-    await player.play();
+    try {
+        await player.play();
+    } catch (error) {
+        // Node Lavalink putus / sesi suara belum dikonfirmasi: buang player basi agar percobaan berikutnya bersih.
+        if (/connection is not initiated/i.test(error?.message ?? '')) {
+            player.destroy?.();
+            throw new PacilBotError(
+                'Lavalink voice session not ready',
+                ErrorTypes.NETWORK,
+                'Koneksi ke server musik belum siap (node Lavalink sedang tidak stabil). Coba lagi beberapa detik lagi.',
+            );
+        }
+        throw error;
+    }
 }
 
 export function getPlayer(client, guildId) {

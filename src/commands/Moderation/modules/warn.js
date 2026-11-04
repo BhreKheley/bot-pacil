@@ -1,3 +1,4 @@
+import { applyWarnEscalation, getModerationPolicy, notifyModerationTarget } from '../../../services/moderation/moderationPolicy.js';
 import { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField, ChannelType, MessageFlags } from 'discord.js';
 import { createEmbed, errorEmbed, successEmbed, infoEmbed, warningEmbed } from '../../../utils/embeds.js';
 import { logModerationAction } from '../../../utils/moderation.js';
@@ -78,6 +79,13 @@ export default {
             timestamp: Date.now()
         });
 
+        const policy = await getModerationPolicy(client, guildId);
+        const dmSent = await notifyModerationTarget({
+            guild: interaction.guild, user: target, action: 'warn', reason,
+            detail: `Total peringatan kamu: ${totalCount}`, policy,
+        });
+        const escalationNote = await applyWarnEscalation({ guild: interaction.guild, member, totalCount, policy, reason });
+
         await logModerationAction({
             client,
             guild: interaction.guild,
@@ -100,7 +108,7 @@ export default {
             embeds: [
                 successEmbed(
                     `⚠️ **Warned** ${target.tag}`,
-                    `**Reason:** ${reason}\n**Total Warns:** ${totalCount}`,
+                    [`**Alasan:** ${reason}`, `**Total Peringatan:** ${totalCount}`, dmSent ? '📨 Member sudah diberi tahu lewat DM.' : '📭 DM ke member tidak terkirim (DM tertutup atau dinonaktifkan).', escalationNote].filter(Boolean).join('\n'),
                 ),
             ],
         });

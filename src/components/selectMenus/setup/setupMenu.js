@@ -3,6 +3,7 @@
 import { renderWelcomeSubPanel } from '../../../ui/panels/welcomeSubPanel.js';
 import { renderBoosterSubPanel } from '../../../ui/panels/boosterSubPanel.js';
 import { renderMusicSubPanel } from '../../../ui/panels/musicSubPanel.js';
+import { renderModerationSubPanel } from '../../../ui/panels/moderationSubPanel.js';
 import { renderCircleSubPanel } from '../../../ui/panels/circleSubPanel.js';
 import { renderRulesGuideSubPanel } from '../../../ui/panels/rulesGuideSubPanel.js';
 import { renderMainDashboard, SETUP_MODULES } from '../../../ui/panels/mainDashboard.js';
@@ -18,6 +19,7 @@ const PANELS = {
   booster: renderBoosterSubPanel,
   music: renderMusicSubPanel,
   circle: renderCircleSubPanel,
+  moderation: renderModerationSubPanel,
 };
 
 async function render(client, guild, value) {
