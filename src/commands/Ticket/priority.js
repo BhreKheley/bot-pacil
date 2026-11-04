@@ -8,6 +8,7 @@ import { getTicketPermissionContext } from '../../utils/ticket/ticketPermissions
 import { updateTicketPriority } from '../../services/ticket.js';
 
 export default {
+    register: false,
     data: new SlashCommandBuilder()
         .setName("priority")
         .setDescription("Sets the priority level for the current support ticket.")

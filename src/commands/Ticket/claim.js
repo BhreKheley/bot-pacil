@@ -7,6 +7,7 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { getTicketPermissionContext } from '../../utils/ticket/ticketPermissions.js';
 import { claimTicket } from '../../services/ticket.js';
 export default {
+    register: false,
     data: new SlashCommandBuilder()
         .setName("claim")
         .setDescription("Claims an open ticket, assigning it to you.")
