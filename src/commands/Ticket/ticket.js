@@ -216,7 +216,7 @@ export default {
             const priorityLevel = interaction.options.getString("level");
             await updateTicketPriority(interaction.channel, priorityLevel, interaction.user);
             return await InteractionHelper.safeEditReply(interaction, {
-                embeds: [successEmbed('Prioritas Diperbarui', `Prioritas tiket berhasil diubah menjadi **${priorityLevel.toUpperCase()}**.')],
+                embeds: [successEmbed('Prioritas Diperbarui', `Prioritas tiket berhasil diubah menjadi **${priorityLevel.toUpperCase()}**.`)],
             });
         }
 
