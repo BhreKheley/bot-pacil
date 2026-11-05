@@ -8,6 +8,49 @@ export const MODAL_LIMITS = {
   VALUE_MAX: 4000,
 };
 
+// Global defensive hardening for Discord.js ModalBuilder and TextInputBuilder
+// Guarantees no interaction in any command/panel will fail with RangeError [Invalid String Length]
+if (TextInputBuilder?.prototype && !TextInputBuilder.prototype._patchedForSafety) {
+  const origSetLabel = TextInputBuilder.prototype.setLabel;
+  TextInputBuilder.prototype.setLabel = function (label) {
+    return origSetLabel.call(this, String(label || '').slice(0, MODAL_LIMITS.LABEL_MAX));
+  };
+
+  const origSetPlaceholder = TextInputBuilder.prototype.setPlaceholder;
+  TextInputBuilder.prototype.setPlaceholder = function (placeholder) {
+    if (placeholder === null || placeholder === undefined) return this;
+    return origSetPlaceholder.call(this, String(placeholder).slice(0, MODAL_LIMITS.PLACEHOLDER_MAX));
+  };
+
+  const origSetValue = TextInputBuilder.prototype.setValue;
+  TextInputBuilder.prototype.setValue = function (value) {
+    if (value === null || value === undefined) return this;
+    const max = this.data?.max_length || MODAL_LIMITS.VALUE_MAX;
+    return origSetValue.call(this, String(value).slice(0, max));
+  };
+
+  const origSetCustomId = TextInputBuilder.prototype.setCustomId;
+  TextInputBuilder.prototype.setCustomId = function (id) {
+    return origSetCustomId.call(this, String(id || '').slice(0, MODAL_LIMITS.CUSTOM_ID_MAX));
+  };
+
+  TextInputBuilder.prototype._patchedForSafety = true;
+}
+
+if (ModalBuilder?.prototype && !ModalBuilder.prototype._patchedForSafety) {
+  const origSetTitle = ModalBuilder.prototype.setTitle;
+  ModalBuilder.prototype.setTitle = function (title) {
+    return origSetTitle.call(this, String(title || '').slice(0, MODAL_LIMITS.TITLE_MAX));
+  };
+
+  const origSetCustomId = ModalBuilder.prototype.setCustomId;
+  ModalBuilder.prototype.setCustomId = function (id) {
+    return origSetCustomId.call(this, String(id || '').slice(0, MODAL_LIMITS.CUSTOM_ID_MAX));
+  };
+
+  ModalBuilder.prototype._patchedForSafety = true;
+}
+
 /**
  * Creates a safely truncated TextInputBuilder component row.
  * Guarantees that Discord limits (label <= 45, placeholder <= 100, customId <= 100) are never exceeded.

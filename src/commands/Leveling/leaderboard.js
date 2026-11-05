@@ -1,9 +1,9 @@
 import { pacilEmbed, PACIL_COLORS } from '../../ui/pacil.js';
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, MessageFlags, AttachmentBuilder } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { getLeaderboard, getLevelingConfig, getXpForLevel } from '../../services/leveling/leveling.js';
-
+import { getCachedGuideCard, renderLevelGuideCard } from '../../utils/imageGenerator.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
   data: new SlashCommandBuilder()
@@ -70,7 +70,16 @@ export default {
       value: leaderboardText.join('\n')
     });
 
-    await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
+    let files = [];
+    try {
+      const guideBuffer = await getCachedGuideCard('level-guide-card', renderLevelGuideCard);
+      if (guideBuffer) {
+        files.push(new AttachmentBuilder(guideBuffer, { name: 'level-guide.png' }));
+        embed.setImage('attachment://level-guide.png');
+      }
+    } catch {}
+
+    await InteractionHelper.safeEditReply(interaction, { embeds: [embed], files });
     logger.debug(`Leaderboard displayed for guild ${interaction.guildId}`);
   }
 };

@@ -1,12 +1,14 @@
 import {
   SlashCommandBuilder, PermissionFlagsBits, ChannelType, MessageFlags,
   ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle,
+  AttachmentBuilder,
 } from 'discord.js';
 import { getGuildConfig, patchGuildConfig } from '../../services/config/guildConfig.js';
 import { findConfessionRecords, getConfessionConfig } from '../../services/confessionService.js';
 import { clampReplyCooldown } from '../../services/confessionLogic.js';
 import { pacilPanel, buildPacilEmbed } from '../../ui/pacil.js';
 import { t } from '../../utils/i18n.js';
+import { getCachedGuideCard, renderConfessionGuideCard } from '../../utils/imageGenerator.js';
 
 const TEXT_CHANNELS = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
 
@@ -83,7 +85,16 @@ export default {
           .setStyle(ButtonStyle.Primary)
       );
 
-      await targetChannel.send({ embeds: [panelEmbed], components: [row] });
+      let files = [];
+      try {
+        const cardBuffer = await getCachedGuideCard('confession-guide-card', renderConfessionGuideCard);
+        if (cardBuffer) {
+          files.push(new AttachmentBuilder(cardBuffer, { name: 'menfess-guide.png' }));
+          panelEmbed.setImage('attachment://menfess-guide.png');
+        }
+      } catch {}
+
+      await targetChannel.send({ embeds: [panelEmbed], components: [row], files });
       return interaction.reply({ content: `✅ Panel Menfess berhasil dikirim ke <#${targetChannel.id}>!`, flags: MessageFlags.Ephemeral });
     }
 

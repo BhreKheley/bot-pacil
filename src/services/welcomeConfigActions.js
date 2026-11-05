@@ -71,7 +71,7 @@ export async function handleWelcomeButton(interaction, client, [action, arg]) {
           input('title', 'Judul Sambutan', TextInputStyle.Short, { value: config.welcomeTitle, placeholder: WELCOME_DEFAULT_TITLE, max: 100 }),
           input('message', 'Pesan Sambutan', TextInputStyle.Paragraph, { value: config.welcomeMessage, placeholder: 'Halo {user}, selamat datang di {server}!', max: 1000 }),
           input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.welcomeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
-          input('thumbnail', 'Thumbnail (https / server / none)', TextInputStyle.Short, { value: config.welcomeThumbnail, placeholder: 'https://... atau "server" / "none" / "user"', max: 300 }),
+          input('thumbnail', 'Thumbnail (https / server / none)', TextInputStyle.Short, { value: typeof config.welcomeThumbnail === 'string' ? config.welcomeThumbnail : '', placeholder: 'https://... atau "server" / "none" / "user"', max: 300 }),
         ],
       });
       return interaction.showModal(modal);
@@ -84,7 +84,7 @@ export async function handleWelcomeButton(interaction, client, [action, arg]) {
           input('title', 'Judul Perpisahan', TextInputStyle.Short, { value: config.goodbyeTitle, placeholder: GOODBYE_DEFAULT_TITLE, max: 100 }),
           input('message', 'Pesan Perpisahan', TextInputStyle.Paragraph, { value: config.leaveMessage, placeholder: 'Sampai jumpa {user.username}!', max: 1000 }),
           input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.goodbyeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
-          input('thumbnail', 'Thumbnail (https / server / none)', TextInputStyle.Short, { value: config.goodbyeThumbnail, placeholder: 'https://... atau "server" / "none" / "user"', max: 300 }),
+          input('thumbnail', 'Thumbnail (https / server / none)', TextInputStyle.Short, { value: typeof config.goodbyeThumbnail === 'string' ? config.goodbyeThumbnail : '', placeholder: 'https://... atau "server" / "none" / "user"', max: 300 }),
         ],
       });
       return interaction.showModal(modal);

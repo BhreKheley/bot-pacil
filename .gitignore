@@ -10,6 +10,7 @@ lerna-debug.log*
 # Local development files
 .local/
 attached_assets/
+.agents/
 
 # Configuration and cache files
 .config/

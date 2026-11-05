@@ -3,11 +3,13 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    AttachmentBuilder,
 } from "discord.js";
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { createEmbed } from "../../utils/embeds.js";
 import { createSelectMenu } from "../../utils/components.js";
 import { getSystemStatusSummary } from "../../services/commandStatusService.js";
+import { getCachedGuideCard, renderHelpGuideCard } from "../../utils/imageGenerator.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -152,9 +154,21 @@ export async function createInitialHelpMenu(client, guildId = null) {
         bugReportButton,
     ]);
 
+    let files = [];
+    try {
+        const cardBuffer = await getCachedGuideCard('help-guide-card', renderHelpGuideCard);
+        if (cardBuffer) {
+            files.push(new AttachmentBuilder(cardBuffer, { name: 'help-guide.png' }));
+            embed.setImage('attachment://help-guide.png');
+        }
+    } catch (err) {
+        logger.debug('Failed to render help guide card:', err?.message);
+    }
+
     return {
         embeds: [embed],
         components: [buttonRow, selectRow],
+        files,
     };
 }
 
@@ -167,11 +181,12 @@ export default {
     async execute(interaction, guildConfig, client) {
         await InteractionHelper.safeDefer(interaction);
 
-        const { embeds, components } = await createInitialHelpMenu(client, interaction.guildId);
+        const { embeds, components, files } = await createInitialHelpMenu(client, interaction.guildId);
 
         await InteractionHelper.safeEditReply(interaction, {
             embeds,
             components,
+            files: files || [],
         });
 
         setTimeout(async () => {

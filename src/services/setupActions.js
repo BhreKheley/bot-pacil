@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   MessageFlags,
+  AttachmentBuilder,
 } from 'discord.js';
 import { buildPacilEmbed } from '../ui/pacil.js';
 import { getGuildConfig, patchGuildConfig } from '../services/config/guildConfig.js';
@@ -16,6 +17,7 @@ import { renderMusicStatusEmbed } from '../ui/panels/musicSubPanel.js';
 import { buildStaffListEmbed } from '../commands/Community/staff.js';
 import { buildCategoryTicketPanel } from './ticket/ticketCategoryPanels.js';
 import { buildCustomRolePanel } from './customRoleService.js';
+import { getCachedGuideCard, renderRulesGuideCard } from '../utils/imageGenerator.js';
 
 export async function handleSetupAction(interaction, client, action) {
   {
@@ -177,7 +179,16 @@ export async function handleSetupAction(interaction, client, action) {
         footer: 'Makara Fasilkom UI • Dewan Kehormatan Mahasiswa Pacil',
       });
 
-      await interaction.channel.send({ embeds: [rulesEmbed] });
+      let files = [];
+      try {
+        const cardBuffer = await getCachedGuideCard('rules-guide-card', renderRulesGuideCard, { guildName: interaction.guild?.name });
+        if (cardBuffer) {
+          files.push(new AttachmentBuilder(cardBuffer, { name: 'rules-guide.png' }));
+          rulesEmbed.setImage('attachment://rules-guide.png');
+        }
+      } catch {}
+
+      await interaction.channel.send({ embeds: [rulesEmbed], files });
       return interaction.reply({
         content: `✅ Embed Tata Tertib berhasil dikirim ke <#${interaction.channelId}>!`,
         flags: MessageFlags.Ephemeral,

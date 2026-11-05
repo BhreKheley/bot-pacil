@@ -1,9 +1,9 @@
 import { pacilEmbed, PACIL_COLORS } from '../../ui/pacil.js';
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, MessageFlags, AttachmentBuilder } from 'discord.js';
 import { logger } from '../../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { getUserLevelData, getLevelingConfig, getXpForLevel } from '../../services/leveling/leveling.js';
-
+import { renderRankCard } from '../../utils/imageGenerator.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
   data: new SlashCommandBuilder()
@@ -86,7 +86,25 @@ export default {
       .setColor(PACIL_COLORS.success)
       .setTimestamp();
 
-    await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
+    let files = [];
+    try {
+      const cardBuffer = await renderRankCard({
+        member,
+        level: safeUserData.level,
+        xp: safeUserData.xp,
+        xpNeeded,
+        totalXp: safeUserData.totalXp,
+        rankPosition: userData?.rank || 1,
+      });
+      if (cardBuffer) {
+        files.push(new AttachmentBuilder(cardBuffer, { name: 'rank-card.png' }));
+        embed.setImage('attachment://rank-card.png');
+      }
+    } catch (err) {
+      logger.debug('Failed to render rank card:', err?.message);
+    }
+
+    await InteractionHelper.safeEditReply(interaction, { embeds: [embed], files });
     logger.debug(`Rank checked for user ${targetUser.id} in guild ${interaction.guildId}`);
   }
 };

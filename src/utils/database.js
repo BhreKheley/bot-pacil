@@ -4,6 +4,14 @@ import { Mutex } from './mutex.js';
 import { pgDb } from './postgresDatabase.js';
 import { logger } from './logger.js';
 import { BotConfig, getDefaultApplicationQuestions } from '../config/bot.js';
+import {
+    normalizeWelcomeConfig,
+    normalizeLevelingConfig,
+    normalizeJtcConfig,
+    normalizeApplicationSettings,
+    normalizeModerationPolicy,
+    normalizeBoosterConfig,
+} from './schemas.js';
 
 export {
     db,
@@ -338,56 +346,7 @@ export async function markGiveawayEnded(client, giveawayId, endedData) {
     }
 }
 
-function normalizeWelcomeConfig(raw = {}) {
-    const base = typeof raw === "object" && raw !== null ? raw : {};
-
-    const channelId = base.channelId ?? null;
-    const goodbyeChannelId = base.goodbyeChannelId ?? null;
-
-    const welcomeMessage = base.welcomeMessage ?? "";
-    const leaveMessage = base.leaveMessage ?? "";
-
-    const welcomeEmbed = base.welcomeEmbed ?? {
-        title: "🎉 Welcome!",
-        description: "Welcome {user} to {server}!",
-        color: getColor("success"),
-        thumbnail: true,
-        footer: "Welcome to {server}!"
-    };
-
-    const leaveEmbed = base.leaveEmbed ?? {
-        title: "👋 Goodbye",
-        description: "{user.tag} has left the server.",
-        color: getColor("error"),
-        thumbnail: true,
-        footer: "Goodbye from {server}!"
-    };
-
-    const roleIds = Array.isArray(base.roleIds) ? base.roleIds : [];
-
-    return {
-        ...base,
-        enabled: Boolean(base.enabled),
-        channelId,
-        welcomeMessage,
-        welcomeEmbed,
-        welcomePing: Boolean(base.welcomePing),
-        welcomeTitle: base.welcomeTitle ?? "",
-        goodbyeTitle: base.goodbyeTitle ?? "",
-        guideChannelId: base.guideChannelId ?? null,
-        welcomeImage: base.welcomeImage ?? null,
-        goodbyeEnabled: Boolean(base.goodbyeEnabled),
-        goodbyeChannelId,
-        leaveMessage,
-        leaveEmbed,
-        dmMessage: base.dmMessage ?? "",
-        goodbyePing: Boolean(base.goodbyePing),
-        roleIds,
-        autoRoleDelay: base.autoRoleDelay ?? 0,
-        joinLogs: base.joinLogs ?? { enabled: false, channelId: null },
-        leaveLogs: base.leaveLogs ?? { enabled: false, channelId: null }
-    };
-}
+export { normalizeWelcomeConfig };
 
 export async function getWelcomeConfig(client, guildId) {
     if (!client.db) {
@@ -415,7 +374,7 @@ export async function saveWelcomeConfig(client, guildId, config) {
         }
 
         const existingConfig = await getWelcomeConfig(client, guildId);
-        const mergedConfig = { ...existingConfig, ...config };
+        const mergedConfig = normalizeWelcomeConfig({ ...existingConfig, ...(config && typeof config === 'object' ? config : {}) });
         
         await client.db.set(key, mergedConfig);
         return true;
@@ -428,7 +387,7 @@ export async function saveWelcomeConfig(client, guildId, config) {
 export async function updateWelcomeConfig(client, guildId, updates) {
     try {
         const currentConfig = await getWelcomeConfig(client, guildId);
-        const updatedConfig = { ...currentConfig, ...updates };
+        const updatedConfig = normalizeWelcomeConfig({ ...currentConfig, ...(updates && typeof updates === 'object' ? updates : {}) });
         
         await saveWelcomeConfig(client, guildId, updatedConfig);
         return updatedConfig;
@@ -438,42 +397,35 @@ export async function updateWelcomeConfig(client, guildId, updates) {
     }
 }
 
+export { normalizeLevelingConfig };
+
 export async function getLevelingConfig(client, guildId) {
     const key = getLevelingKey(guildId);
     try {
-        const config = await getFromDb(key, {
-            enabled: false,
-            xpPerMessage: 10,
-            xpPerMinute: 60,
-            cooldownEnabled: true,
-            messageLengthMultiplier: true,
-            levelUpMessages: true,
-            levelUpChannel: null,
-            roles: {},
-            milestones: {}
-        });
-        
-        return config;
+        let config = null;
+        if (client?.db && typeof client.db.get === 'function') {
+            config = await client.db.get(key, null);
+        } else {
+            config = await getFromDb(key, null);
+        }
+        const unwrapped = unwrapReplitData(config);
+        return normalizeLevelingConfig(unwrapped);
     } catch (error) {
         logger.error('Error getting leveling config:', error);
-        return {
-            enabled: false,
-            xpPerMessage: 10,
-            xpPerMinute: 60,
-            cooldownEnabled: true,
-            messageLengthMultiplier: true,
-            levelUpMessages: true,
-            levelUpChannel: null,
-            roles: {},
-            milestones: {}
-        };
+        return normalizeLevelingConfig();
     }
 }
 
 export async function saveLevelingConfig(client, guildId, config) {
     const key = getLevelingKey(guildId);
     try {
-        await setInDb(key, config);
+        const existingConfig = await getLevelingConfig(client, guildId);
+        const mergedConfig = normalizeLevelingConfig({ ...existingConfig, ...(config && typeof config === 'object' ? config : {}) });
+        if (client?.db && typeof client.db.set === 'function') {
+            await client.db.set(key, mergedConfig);
+        } else {
+            await setInDb(key, mergedConfig);
+        }
         return true;
     } catch (error) {
         logger.error(`Error saving leveling config for guild ${guildId}:`, error);
@@ -660,23 +612,23 @@ function buildApplicationSettingsDefaults() {
     };
 }
 
+export { normalizeApplicationSettings };
+
 export async function getApplicationSettings(client, guildId) {
     if (!client.db) {
         logger.warn('Database not available for getApplicationSettings');
-        return buildApplicationSettingsDefaults();
+        return normalizeApplicationSettings(buildApplicationSettingsDefaults());
     }
     
     const key = getApplicationSettingsKey(guildId);
     try {
         const settings = await client.db.get(key, {});
         const unwrapped = unwrapReplitData(settings);
-        
         const defaultSettings = buildApplicationSettingsDefaults();
-        
-        return { ...defaultSettings, ...unwrapped };
+        return normalizeApplicationSettings({ ...defaultSettings, ...(unwrapped && typeof unwrapped === 'object' ? unwrapped : {}) });
     } catch (error) {
         logger.error(`Error getting application settings for guild ${guildId}:`, error);
-        return buildApplicationSettingsDefaults();
+        return normalizeApplicationSettings(buildApplicationSettingsDefaults());
     }
 }
 
@@ -791,7 +743,7 @@ export async function saveApplicationSettings(client, guildId, settings) {
     const key = getApplicationSettingsKey(guildId);
     try {
         const existingSettings = await getApplicationSettings(client, guildId);
-        const mergedSettings = { ...existingSettings, ...settings };
+        const mergedSettings = normalizeApplicationSettings({ ...existingSettings, ...(settings && typeof settings === 'object' ? settings : {}) });
         
         await client.db.set(key, mergedSettings);
         return true;
@@ -1009,54 +961,32 @@ export async function getApplications(client, guildId, filters = {}) {
     }
 }
 
+export { normalizeJtcConfig };
+
 export async function getJoinToCreateConfig(client, guildId) {
     if (!client.db) {
         logger.warn('Database not available for getJoinToCreateConfig');
-        return {
-            enabled: false,
-            triggerChannels: [],
-            categoryId: null,
-            channelNameTemplate: "{username}'s Room",
-            userLimit: 0,
-            bitrate: 64000,
-            temporaryChannels: {}
-        };
+        return normalizeJtcConfig();
     }
     
     const key = getJoinToCreateConfigKey(guildId);
     try {
         const config = await client.db.get(key, {});
         const unwrapped = unwrapReplitData(config);
-        
-        return {
-            enabled: unwrapped.enabled || false,
-            triggerChannels: unwrapped.triggerChannels || [],
-            categoryId: unwrapped.categoryId || null,
-            channelNameTemplate: unwrapped.channelNameTemplate || "{username}'s Room",
-            userLimit: unwrapped.userLimit || 0,
-            bitrate: unwrapped.bitrate || 64000,
-            temporaryChannels: unwrapped.temporaryChannels || {},
-            ...unwrapped
-        };
+        return normalizeJtcConfig(unwrapped);
     } catch (error) {
         logger.error(`Error getting Join to Create config for guild ${guildId}:`, error);
-        return {
-            enabled: false,
-            triggerChannels: [],
-            categoryId: null,
-            channelNameTemplate: "{username}'s Room",
-            userLimit: 0,
-            bitrate: 64000,
-            temporaryChannels: {}
-        };
+        return normalizeJtcConfig();
     }
 }
+
+export const getJtcConfig = getJoinToCreateConfig;
 
 export async function saveJoinToCreateConfig(client, guildId, config) {
     const key = getJoinToCreateConfigKey(guildId);
     try {
         const existingConfig = await getJoinToCreateConfig(client, guildId);
-        const mergedConfig = { ...existingConfig, ...config };
+        const mergedConfig = normalizeJtcConfig({ ...existingConfig, ...(config && typeof config === 'object' ? config : {}) });
         
         await client.db.set(key, mergedConfig);
         return true;
@@ -1066,10 +996,12 @@ export async function saveJoinToCreateConfig(client, guildId, config) {
     }
 }
 
+export const saveJtcConfig = saveJoinToCreateConfig;
+
 export async function updateJoinToCreateConfig(client, guildId, updates) {
     try {
         const currentConfig = await getJoinToCreateConfig(client, guildId);
-        const updatedConfig = { ...currentConfig, ...updates };
+        const updatedConfig = normalizeJtcConfig({ ...currentConfig, ...(updates && typeof updates === 'object' ? updates : {}) });
         
         await saveJoinToCreateConfig(client, guildId, updatedConfig);
         return updatedConfig;
@@ -1203,4 +1135,56 @@ formatted = formatted.substring(0, 100);
 
 function generateCaseId() {
     return `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 4)}`;
+}
+
+export { normalizeModerationPolicy, normalizeBoosterConfig };
+
+export async function getModerationPolicyConfig(client, guildId) {
+    if (!client.db) return normalizeModerationPolicy();
+    try {
+        const saved = await client.db.get(`guild:${guildId}:moderation_policy`, {});
+        const unwrapped = unwrapReplitData(saved);
+        return normalizeModerationPolicy(unwrapped);
+    } catch (error) {
+        logger.error(`Error getting moderation policy for guild ${guildId}:`, error);
+        return normalizeModerationPolicy();
+    }
+}
+
+export async function saveModerationPolicyConfig(client, guildId, changes) {
+    if (!client.db || typeof client.db.set !== 'function') return false;
+    try {
+        const current = await getModerationPolicyConfig(client, guildId);
+        const merged = normalizeModerationPolicy({ ...current, ...(changes && typeof changes === 'object' ? changes : {}) });
+        await client.db.set(`guild:${guildId}:moderation_policy`, merged);
+        return true;
+    } catch (error) {
+        logger.error(`Error saving moderation policy for guild ${guildId}:`, error);
+        return false;
+    }
+}
+
+export async function getBoosterConfigData(client, guildId) {
+    if (!client.db) return normalizeBoosterConfig();
+    try {
+        const saved = await client.db.get(`guild:${guildId}:booster_config`, {});
+        const unwrapped = unwrapReplitData(saved);
+        return normalizeBoosterConfig(unwrapped);
+    } catch (error) {
+        logger.error(`Error getting booster config for guild ${guildId}:`, error);
+        return normalizeBoosterConfig();
+    }
+}
+
+export async function saveBoosterConfigData(client, guildId, changes) {
+    if (!client.db || typeof client.db.set !== 'function') return false;
+    try {
+        const current = await getBoosterConfigData(client, guildId);
+        const merged = normalizeBoosterConfig({ ...current, ...(changes && typeof changes === 'object' ? changes : {}) });
+        await client.db.set(`guild:${guildId}:booster_config`, merged);
+        return true;
+    } catch (error) {
+        logger.error(`Error saving booster config for guild ${guildId}:`, error);
+        return false;
+    }
 }

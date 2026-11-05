@@ -18,9 +18,13 @@ export const TEMPLATE_TOKENS = '{user} {user.username} {user.tag} {server} {memb
 const avatar = (user) => (typeof user.displayAvatarURL === 'function' ? user.displayAvatarURL({ extension: 'png', size: 512 }) : undefined);
 
 export function resolveThumbnail(thumbConfig, user, guild) {
-  if (!thumbConfig || thumbConfig.toLowerCase() === 'user') return avatar(user);
-  if (thumbConfig.toLowerCase() === 'none') return undefined;
-  if (thumbConfig.toLowerCase() === 'server') {
+  if (thumbConfig === false || thumbConfig === 'none') return undefined;
+  if (!thumbConfig || thumbConfig === true) return avatar(user);
+  if (typeof thumbConfig !== 'string') return avatar(user);
+  const normalized = thumbConfig.toLowerCase().trim();
+  if (normalized === 'user' || normalized === '') return avatar(user);
+  if (normalized === 'none') return undefined;
+  if (normalized === 'server') {
     return (typeof guild?.iconURL === 'function' ? guild.iconURL({ extension: 'png', size: 512 }) : null) || avatar(user);
   }
   if (/^https?:\/\//i.test(thumbConfig)) return thumbConfig;

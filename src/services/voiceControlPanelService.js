@@ -1,6 +1,7 @@
-import { ActionRowBuilder, StringSelectMenuBuilder, VideoQualityMode } from 'discord.js';
+import { ActionRowBuilder, StringSelectMenuBuilder, VideoQualityMode, AttachmentBuilder } from 'discord.js';
 import { pacilButtons, pacilId, pacilPanel } from '../ui/pacil.js';
 import { formatLimit, normalizeRoomRecord, regionLabel } from './voiceRoomLogic.js';
+import { renderVoiceGuideCard } from '../utils/imageGenerator.js';
 
 const MAX_MENTIONS = 10;
 
@@ -68,5 +69,18 @@ export function buildVoicePanel(channel, rawRecord, { ownerPresent = true } = {}
 export async function postVoiceControlPanel(voiceChannel, owner, triggerChannel, record = { ownerId: owner.id }) {
   if (!voiceChannel || typeof voiceChannel.send !== 'function') return null;
   const payload = buildVoicePanel(voiceChannel, { ...record, ownerId: owner.id }, { ownerPresent: true });
-  return voiceChannel.send({ ...payload, allowedMentions: { parse: [] } });
+  let files = [];
+  try {
+    const cardBuffer = await renderVoiceGuideCard({
+      channelName: voiceChannel.name,
+      ownerName: owner.displayName || owner.user?.username || 'Host',
+    });
+    if (cardBuffer) {
+      files.push(new AttachmentBuilder(cardBuffer, { name: 'voice-guide.png' }));
+      if (payload.embeds?.[0] && typeof payload.embeds[0].setImage === 'function') {
+        payload.embeds[0].setImage('attachment://voice-guide.png');
+      }
+    }
+  } catch {}
+  return voiceChannel.send({ ...payload, files, allowedMentions: { parse: [] } });
 }
