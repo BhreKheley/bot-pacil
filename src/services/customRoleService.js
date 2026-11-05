@@ -18,6 +18,7 @@ import {
   saveUserBoosterRole,
 } from './boosterService.js';
 import { safeModal, safeTextInputRow } from '../utils/modalHelper.js';
+import { InteractionHelper } from '../utils/interactionHelper.js';
 import { logger } from '../utils/logger.js';
 
 export const CUSTOM_ROLE_PREFIX = 'crole:';
@@ -305,14 +306,15 @@ export async function handleCustomRoleModal(interaction, client, modalId) {
   const { member, guild } = interaction;
   const action = String(modalId).replace(/^crole_modal_/, '').replace(/^crole:modal:/, '').replace(/^crole:/, '');
 
+  await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
+
   if (action === 'create') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const name = interaction.fields.getTextInputValue('name').trim();
     const colorInput = interaction.fields.getTextInputValue('color')?.trim() || '#f2a900';
 
     const parsed = parseRoleColors(colorInput);
     if (!parsed.ok) {
-      return interaction.editReply({ content: `❌ ${parsed.error}` });
+      return InteractionHelper.safeEditReply(interaction, { content: `❌ ${parsed.error}` });
     }
 
     try {
@@ -339,12 +341,12 @@ export async function handleCustomRoleModal(interaction, client, modalId) {
         giftedTo: [],
       });
 
-      return interaction.editReply({
+      return InteractionHelper.safeEditReply(interaction, {
         content: `🎉 Selamat! Custom role **${newRole.toString()}** berhasil dibuat dan diberikan kepadamu!`,
       });
     } catch (err) {
       logger.error('Gagal membuat custom role booster:', err);
-      return interaction.editReply({
+      return InteractionHelper.safeEditReply(interaction, {
         content: `❌ Gagal membuat role di Discord: ${err.message}. Pastikan role bot berada di atas role yang akan dibuat.`,
       });
     }
@@ -352,39 +354,36 @@ export async function handleCustomRoleModal(interaction, client, modalId) {
 
   const userRoleData = await getUserBoosterRole(client, guild.id, member.id);
   if (!userRoleData?.roleId) {
-    return interaction.reply({ content: '⚠️ Kamu belum memiliki custom role.', flags: MessageFlags.Ephemeral });
+    return InteractionHelper.safeEditReply(interaction, { content: '⚠️ Kamu belum memiliki custom role.' });
   }
 
   const role = guild.roles.cache.get(userRoleData.roleId) || (await guild.roles.fetch(userRoleData.roleId).catch(() => null));
   if (!role) {
-    return interaction.reply({ content: '⚠️ Role tidak ditemukan.', flags: MessageFlags.Ephemeral });
+    return InteractionHelper.safeEditReply(interaction, { content: '⚠️ Role tidak ditemukan.' });
   }
 
   if (action === 'name') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const newName = interaction.fields.getTextInputValue('name').trim();
     await role.setName(newName, `Diubah oleh ${member.user.tag}`);
-    return interaction.editReply({ content: `✅ Nama custom role berhasil diubah menjadi **${newName}**!` });
+    return InteractionHelper.safeEditReply(interaction, { content: `✅ Nama custom role berhasil diubah menjadi **${newName}**!` });
   }
 
   if (action === 'color') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const colorInput = interaction.fields.getTextInputValue('color').trim();
     const parsed = parseRoleColors(colorInput);
-    if (!parsed.ok) return interaction.editReply({ content: `❌ ${parsed.error}` });
+    if (!parsed.ok) return InteractionHelper.safeEditReply(interaction, { content: `❌ ${parsed.error}` });
 
     await applyRoleColors(role, parsed);
-    return interaction.editReply({ content: `✅ Warna role ${role.toString()} berhasil diperbarui!` });
+    return InteractionHelper.safeEditReply(interaction, { content: `✅ Warna role ${role.toString()} berhasil diperbarui!` });
   }
 
   if (action === 'icon') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const iconUrl = interaction.fields.getTextInputValue('icon').trim();
     try {
       await role.setIcon(iconUrl, `Icon diubah oleh ${member.user.tag}`);
-      return interaction.editReply({ content: `✅ Ikon custom role ${role.toString()} berhasil diperbarui!` });
+      return InteractionHelper.safeEditReply(interaction, { content: `✅ Ikon custom role ${role.toString()} berhasil diperbarui!` });
     } catch (err) {
-      return interaction.editReply({ content: `❌ Gagal memasang icon: ${err.message}` });
+      return InteractionHelper.safeEditReply(interaction, { content: `❌ Gagal memasang icon: ${err.message}` });
     }
   }
 }
@@ -396,45 +395,45 @@ export async function handleCustomRoleSelect(interaction, client, selectId) {
   const { member, guild } = interaction;
   const action = String(selectId).replace(/^crole_select_/, '').replace(/^crole:select:/, '').replace(/^crole:/, '');
 
+  await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
+
   const userRoleData = await getUserBoosterRole(client, guild.id, member.id);
   if (!userRoleData?.roleId) {
-    return interaction.reply({ content: '⚠️ Custom role tidak ditemukan.', flags: MessageFlags.Ephemeral });
+    return InteractionHelper.safeEditReply(interaction, { content: '⚠️ Custom role tidak ditemukan.' });
   }
 
   const role = guild.roles.cache.get(userRoleData.roleId);
   if (!role) {
-    return interaction.reply({ content: '⚠️ Role tidak ditemukan di server.', flags: MessageFlags.Ephemeral });
+    return InteractionHelper.safeEditReply(interaction, { content: '⚠️ Role tidak ditemukan di server.' });
   }
 
   if (action === 'gift') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const targetUserId = interaction.values[0];
     const targetMember = await guild.members.fetch(targetUserId).catch(() => null);
 
     if (!targetMember) {
-      return interaction.editReply({ content: '❌ Member tidak ditemukan.' });
+      return InteractionHelper.safeEditReply(interaction, { content: '❌ Member tidak ditemukan.' });
     }
 
     if (targetMember.id === member.id) {
-      return interaction.editReply({ content: '⚠️ Kamu sudah memiliki role ini.' });
+      return InteractionHelper.safeEditReply(interaction, { content: '⚠️ Kamu sudah memiliki role ini.' });
     }
 
     const currentGifted = Array.isArray(userRoleData.giftedTo) ? userRoleData.giftedTo : [];
     if (currentGifted.includes(targetUserId)) {
-      return interaction.editReply({ content: `⚠️ ${targetMember.toString()} sudah memiliki role ini.` });
+      return InteractionHelper.safeEditReply(interaction, { content: `⚠️ ${targetMember.toString()} sudah memiliki role ini.` });
     }
 
     await targetMember.roles.add(role, `Diberikan oleh ${member.user.tag}`);
     currentGifted.push(targetUserId);
     await saveUserBoosterRole(client, guild.id, member.id, { ...userRoleData, giftedTo: currentGifted });
 
-    return interaction.editReply({
+    return InteractionHelper.safeEditReply(interaction, {
       content: `🎁 Berhasil memberikan custom role ${role.toString()} ke ${targetMember.toString()}!`,
     });
   }
 
   if (action === 'revoke') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const targetUserId = interaction.values[0];
     const targetMember = await guild.members.fetch(targetUserId).catch(() => null);
 
@@ -447,7 +446,7 @@ export async function handleCustomRoleSelect(interaction, client, selectId) {
     );
     await saveUserBoosterRole(client, guild.id, member.id, { ...userRoleData, giftedTo: currentGifted });
 
-    return interaction.editReply({
+    return InteractionHelper.safeEditReply(interaction, {
       content: `✅ Role ${role.name} berhasil dicabut dari <@${targetUserId}>.`,
     });
   }
