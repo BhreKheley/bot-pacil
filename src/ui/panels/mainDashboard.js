@@ -14,6 +14,7 @@ export const setupActionId = (action) => `setup:act:${action}`;
  */
 export const SETUP_MODULES = Object.freeze([
   { value: 'welcome', kind: 'panel', emoji: '👋', label: 'Welcome System', description: 'Pesan kedatangan mahasiswa baru' },
+  { value: 'birthday', kind: 'panel', emoji: '🎂', label: 'Birthday System', description: 'Pengumuman ultah, role spesial, & kartu ucapan' },
   { value: 'rules', kind: 'panel', emoji: '📜', label: 'Rules & Guide', description: 'Tata tertib dan panduan interaktif server' },
   { value: 'booster', kind: 'panel', emoji: '🎭', label: 'Booster Perks', description: 'Custom role hadiah Server Booster' },
   { value: 'music', kind: 'panel', emoji: '🎶', label: 'Music Bot Status', description: 'Status bot musik: tersedia, dipakai, offline' },

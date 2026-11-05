@@ -16,6 +16,7 @@ import {
   renderConfessionGuideCard,
   renderRulesGuideCard,
   renderVoiceGuideCard,
+  renderBirthdayCard,
 } from '../src/utils/imageGenerator.js';
 import { assertValidPng } from './mocks/index.js';
 
@@ -114,6 +115,14 @@ test('M3 Visual Guide Templates: PNG 8-byte signature and byte threshold (>30,00
       boostTier: 2,
     });
     assertValidPng(boost, 30000);
+
+    const birthday = await renderBirthdayCard({
+      member: { user: { username: 'MahasiswaPacil' } },
+      guild: { name: 'Fasilkom UI' },
+      dateString: '12 September',
+      wish: 'Selamat ulang tahun dari Fasilkom UI!',
+    });
+    assertValidPng(birthday, 30000);
   });
 });
 

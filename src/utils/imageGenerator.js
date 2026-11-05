@@ -587,6 +587,178 @@ export async function renderBoostCard({
   return canvas.toBuffer('image/png');
 }
 
+/**
+ * Renders modern dynamic Birthday Card image for Fasilkom UI community members (800x340).
+ */
+export async function renderBirthdayCard({
+  member,
+  guild,
+  dateString = 'Hari Ini',
+  wish = 'Semoga IPK 4.0, lancar nugas DDP & SDA, dan sukses selalu di Pacil!',
+} = {}) {
+  const width = 800;
+  const height = 340;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  bgGrad.addColorStop(0, '#0c1b33');
+  bgGrad.addColorStop(0.5, '#08172c');
+  bgGrad.addColorStop(1, '#050e1c');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  drawTechGrid(ctx, width, height);
+
+  // Golden celebratory aura
+  const goldAura = ctx.createRadialGradient(400, 170, 20, 400, 170, 320);
+  goldAura.addColorStop(0, 'rgba(242, 169, 0, 0.25)');
+  goldAura.addColorStop(0.6, 'rgba(255, 209, 102, 0.08)');
+  goldAura.addColorStop(1, 'transparent');
+  ctx.fillStyle = goldAura;
+  ctx.fillRect(0, 0, width, height);
+
+  // Frame
+  ctx.save();
+  roundRect(ctx, 20, 20, width - 40, height - 40, 16);
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  drawCornerAccents(ctx, width, height, 32, 14);
+
+  // Top Right Pill: BIRTHDAY WARGA PACIL
+  const pillText = '🎂 BIRTHDAY WARGA PACIL';
+  ctx.save();
+  ctx.font = 'bold 12px sans-serif';
+  const pillWidth = Math.max(180, ctx.measureText(pillText).width + 24);
+  const pillHeight = 28;
+  const pillX = width - 45 - pillWidth;
+  const pillY = 38;
+  roundRect(ctx, pillX, pillY, pillWidth, pillHeight, 14);
+  ctx.fillStyle = 'rgba(242, 169, 0, 0.2)';
+  ctx.fill();
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+  ctx.fillStyle = COLORS.goldLight;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(pillText, pillX + pillWidth / 2, pillY + pillHeight / 2);
+  ctx.restore();
+
+  // Avatar with Glowing Gold Halo
+  const avatarX = 135;
+  const avatarY = 170;
+  const avatarRadius = 66;
+
+  ctx.save();
+  ctx.shadowColor = COLORS.goldGlow;
+  ctx.shadowBlur = 22;
+  ctx.beginPath();
+  ctx.arc(avatarX, avatarY, avatarRadius + 4, 0, Math.PI * 2);
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.restore();
+
+  const avatarUrl = member?.user?.displayAvatarURL?.({ extension: 'png', size: 256 })
+    || member?.displayAvatarURL?.({ extension: 'png', size: 256 });
+  const avatarBuffer = await fetchImageSafe(avatarUrl);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(avatarX, avatarY, avatarRadius, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+
+  if (avatarBuffer) {
+    try {
+      const img = await loadImage(avatarBuffer);
+      ctx.drawImage(img, avatarX - avatarRadius, avatarY - avatarRadius, avatarRadius * 2, avatarRadius * 2);
+    } catch {
+      drawAvatarFallback(ctx, avatarX, avatarY, avatarRadius, member?.user?.username || 'P');
+    }
+  } else {
+    drawAvatarFallback(ctx, avatarX, avatarY, avatarRadius, member?.user?.username || 'P');
+  }
+  ctx.restore();
+
+  // Text Information
+  const textLeft = 230;
+
+  // Header Subtitle
+  ctx.save();
+  ctx.fillStyle = COLORS.goldLight;
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('🎉 SELAMAT ULANG TAHUN DARI FASILKOM UI!', textLeft, 105);
+  ctx.restore();
+
+  // Display Name
+  const rawName = member?.user?.globalName || member?.user?.username || member?.displayName || 'Warga Pacil';
+  const displayName = rawName.length > 20 ? rawName.slice(0, 19) + '…' : rawName;
+  ctx.save();
+  ctx.fillStyle = COLORS.textPrimary;
+  ctx.font = 'bold 32px sans-serif';
+  ctx.fillText(displayName, textLeft, 145);
+  ctx.restore();
+
+  // Server Subtitle
+  const serverName = guild?.name || 'FASILKOM UI';
+  ctx.save();
+  ctx.fillStyle = COLORS.textSecondary;
+  ctx.font = '15px sans-serif';
+  ctx.fillText(`Keluarga Besar ${serverName} • Pacil Baik`, textLeft, 175);
+  ctx.restore();
+
+  // Meta Cards
+  const boxY = 210;
+  const boxHeight = 64;
+
+  // Box 1: Tanggal
+  const box1Width = 190;
+  ctx.save();
+  roundRect(ctx, textLeft, boxY, box1Width, boxHeight, 10);
+  ctx.fillStyle = COLORS.innerBoxBg;
+  ctx.fill();
+  ctx.strokeStyle = '#20406b';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.textMuted;
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText('TANGGAL SPESIAL', textLeft + 16, boxY + 24);
+
+  ctx.fillStyle = COLORS.gold;
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText(dateString, textLeft + 16, boxY + 48);
+  ctx.restore();
+
+  // Box 2: Wishes
+  const box2X = textLeft + box1Width + 14;
+  const box2Width = 270;
+  ctx.save();
+  roundRect(ctx, box2X, boxY, box2Width, boxHeight, 10);
+  ctx.fillStyle = COLORS.innerBoxBg;
+  ctx.fill();
+  ctx.strokeStyle = '#20406b';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.textMuted;
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText('DOA & HARAPAN', box2X + 16, boxY + 24);
+
+  ctx.fillStyle = COLORS.textSecondary;
+  ctx.font = '11px sans-serif';
+  drawWrappedText(ctx, wish, box2X + 16, boxY + 42, box2Width - 32, 14, 2);
+  ctx.restore();
+
+  return canvas.toBuffer('image/png');
+}
+
 
 /**
  * Renders visual guide card for new member orientation / #arrival (800x360).

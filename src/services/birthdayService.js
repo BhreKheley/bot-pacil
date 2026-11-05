@@ -1,9 +1,12 @@
 // birthdayService.js
 
+import { AttachmentBuilder } from 'discord.js';
 import { getGuildConfig } from './config/guildConfig.js';
 import { getGuildBirthdays, setBirthday as dbSetBirthday, deleteBirthday as dbDeleteBirthday, getMonthName, getBirthdayTrackingKey } from '../utils/database.js';
 import { logger } from '../utils/logger.js';
 import { PacilBotError, ErrorTypes } from '../utils/errorHandler.js';
+import { buildPacilEmbed } from '../ui/pacil.js';
+import { renderBirthdayCard } from '../utils/imageGenerator.js';
 
 export function validateBirthday(month, day) {
   
@@ -341,15 +344,34 @@ export async function checkBirthdays(client) {
       if (birthdayMembers.length > 0) {
         await client.db.set(trackingKey, updatedTrackingData);
         const mentionList = birthdayMembers.map(m => m.toString()).join(', ');
+        const primaryMember = birthdayMembers[0];
         
+        let files = [];
+        try {
+          const cardBuffer = await renderBirthdayCard({
+            member: primaryMember,
+            guild,
+            dateString: `${currentDay} ${getMonthName(currentMonth)}`,
+            wish: 'Selamat ulang tahun! Semoga diberi kelancaran kuliah di Fasilkom UI, IPK 4.0, dan sukses selalu!',
+          });
+          if (cardBuffer) {
+            files.push(new AttachmentBuilder(cardBuffer, { name: 'birthday-card.png' }));
+          }
+        } catch (err) {
+          logger.debug('Failed to render birthday card:', err?.message);
+        }
+
+        const embed = buildPacilEmbed({
+          title: '🎉 SELAMAT ULANG TAHUN WARGA PACIL! 🎂',
+          description: `Keluarga besar Fasilkom UI mengucapkan selamat ulang tahun untuk ${mentionList}! 🎈\n\nSemoga panjang umur, sehat selalu, lancar nugas dan praktikum, serta sukses meraih cita-cita di dunia ilmu komputer & sistem informasi!`,
+          tone: 'gold',
+          image: files.length ? 'attachment://birthday-card.png' : undefined,
+          footer: 'Makara Fasilkom UI • Pacil Bot Birthday Desk',
+        });
+
         await channel.send({
-          embeds: [{
-            title: '🎉 Happy Birthday! 🎂',
-            description: `A very happy birthday to ${mentionList}! Wishing you an amazing day! 🎈`,
-            color: 0xff69b4,
-            footer: { text: 'Birthday Bot' },
-            timestamp: new Date()
-          }]
+          embeds: [embed],
+          files,
         });
       }
     } catch (error) {
