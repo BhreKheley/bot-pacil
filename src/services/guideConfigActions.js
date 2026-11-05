@@ -1,18 +1,37 @@
 // Editor halaman Interactive Guide dari panel /pacilsetup: select setup:guide:edit -> modal setup:guide:<halaman>.
-import { ActionRowBuilder, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { MessageFlags, TextInputStyle } from 'discord.js';
 import { GUIDE_BODY_MAX, GUIDE_TITLE_MAX, applyGuideOverride, getGuideOverrides, setGuidePage } from './guideService.js';
 import { GUIDE_PAGES, renderRulesGuideSubPanel } from '../ui/panels/rulesGuideSubPanel.js';
+import { safeModal, safeTextInputRow } from '../utils/modalHelper.js';
 
 export async function handleGuideSelect(interaction, client) {
   const page = interaction.values[0];
   if (!GUIDE_PAGES[page]) return;
   const current = applyGuideOverride(GUIDE_PAGES[page], (await getGuideOverrides(client, interaction.guildId))[page]);
-  const field = (id, label, style, value, max) => new ActionRowBuilder().addComponents(
-    new TextInputBuilder().setCustomId(id).setLabel(label).setStyle(style).setRequired(false).setMaxLength(max).setValue(String(value).slice(0, max)));
-  return interaction.showModal(new ModalBuilder().setCustomId(`setup:guide:${page}`).setTitle('Edit Halaman Panduan').addComponents(
-    field('title', 'Judul (kosongkan semua = kembali ke bawaan)', TextInputStyle.Short, current.title, GUIDE_TITLE_MAX),
-    field('description', 'Isi halaman', TextInputStyle.Paragraph, current.description, GUIDE_BODY_MAX),
-  ));
+
+  const modal = safeModal({
+    customId: `setup:guide:${page}`,
+    title: 'Edit Halaman Panduan',
+    rows: [
+      safeTextInputRow({
+        id: 'title',
+        label: 'Judul (kosong = bawaan)',
+        style: TextInputStyle.Short,
+        value: current.title || '',
+        max: GUIDE_TITLE_MAX,
+        placeholder: 'Judul halaman panduan...',
+      }),
+      safeTextInputRow({
+        id: 'description',
+        label: 'Isi halaman panduan',
+        style: TextInputStyle.Paragraph,
+        value: current.description || '',
+        max: GUIDE_BODY_MAX,
+        placeholder: 'Isi penjelasan panduan...',
+      }),
+    ],
+  });
+  return interaction.showModal(modal);
 }
 
 export async function handleGuideModal(interaction, client, [page]) {

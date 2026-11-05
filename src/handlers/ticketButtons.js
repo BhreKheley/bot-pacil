@@ -1,4 +1,5 @@
 import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, AttachmentBuilder, MessageFlags } from 'discord.js';
+import { safeModal, safeTextInputRow } from '../utils/modalHelper.js';
 import { createEmbed, successEmbed } from '../utils/embeds.js';
 import { createTicket, closeTicket, claimTicket, updateTicketPriority } from '../services/ticket.js';
 import { getGuildConfig } from '../services/config/guildConfig.js';
@@ -150,6 +151,65 @@ const createTicketHandler = {
   }
 };
 
+const ticketCreateCatHandler = {
+  name: 'ticket_create_cat',
+  async execute(interaction, client, args) {
+    try {
+      if (!(await ensureGuildContext(interaction))) return;
+
+      const rateLimitKey = `${interaction.user.id}:create_ticket`;
+      const allowed = await checkRateLimit(rateLimitKey, 3, 60000);
+      if (!allowed) {
+        await replyUserError(interaction, { type: ErrorTypes.RATE_LIMIT, message: 'Kamu membuat ticket terlalu cepat. Mohon tunggu sebentar.' });
+        return;
+      }
+
+      const config = await getGuildConfig(client, interaction.guildId);
+      const maxTicketsPerUser = config.maxTicketsPerUser || 3;
+
+      const { getUserTicketCount } = await import('../services/ticket.js');
+      const currentTicketCount = await getUserTicketCount(interaction.guildId, interaction.user.id);
+
+      if (currentTicketCount >= maxTicketsPerUser) {
+        return await replyUserError(interaction, {
+          type: ErrorTypes.UNKNOWN,
+          message: `Kamu telah mencapai batas maksimal open ticket (${maxTicketsPerUser}).\nMohon selesaikan/tutup ticket aktifmu terlebih dahulu.`
+        });
+      }
+
+      const catKey = args?.[0] || interaction.customId.split(':')[1] || 'bantuan';
+      const titles = {
+        bantuan: 'Buat Ticket Bantuan',
+        report: 'Buat Ticket Report',
+        suggestion: 'Buat Ticket Suggestion',
+      };
+      const title = titles[catKey] || 'Buat Ticket';
+
+      const modal = safeModal({
+        customId: `create_ticket_modal:${catKey}`,
+        title,
+        rows: [
+          safeTextInputRow({
+            id: 'reason',
+            label: 'Jelaskan keperluan kamu',
+            style: TextInputStyle.Paragraph,
+            placeholder: 'Tuliskan detail pertanyaan, laporan, atau saran...',
+            required: true,
+            max: 1000,
+          }),
+        ],
+      });
+
+      await interaction.showModal(modal);
+    } catch (error) {
+      logger.error('Error creating category ticket modal:', error);
+      if (!interaction.replied && !interaction.deferred) {
+        await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Gagal membuka formulir ticket.' });
+      }
+    }
+  }
+};
+
 const createTicketModalHandler = {
   name: 'create_ticket_modal',
   async execute(interaction, client) {
@@ -158,11 +218,15 @@ const createTicketModalHandler = {
 
       const deferSuccess = await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
       if (!deferSuccess) return;
-      
-      const reason = interaction.fields.getTextInputValue('reason');
+
+      const rawReason = interaction.fields.getTextInputValue('reason');
+      const catKey = interaction.customId.split(':')[1];
+      const categoryTag = catKey ? `[${catKey.toUpperCase()}] ` : '';
+      const reason = `${categoryTag}${rawReason}`;
+
       const config = await getGuildConfig(client, interaction.guildId);
       const categoryId = config.ticketCategoryId || null;
-      
+
       const { channel } = await createTicket(
         interaction.guild,
         interaction.member,
@@ -171,8 +235,8 @@ const createTicketModalHandler = {
       );
       await interaction.editReply({
         embeds: [successEmbed(
-          'Ticket Created',
-          `Your ticket has been created in ${channel}!`
+          'Ticket Berhasil Dibuat',
+          `Ticket kamu telah dibuat di ${channel}! Tim staff akan segera merespons.`
         )]
       });
     } catch (error) {
@@ -473,6 +537,7 @@ const deleteTicketHandler = {
 
 export default createTicketHandler;
 export { 
+  ticketCreateCatHandler,
   createTicketModalHandler, 
   closeTicketModalHandler,
   closeTicketHandler, 

@@ -88,6 +88,29 @@ export default {
         )
         .addSubcommand((subcommand) =>
             subcommand
+                .setName("deploy")
+                .setDescription("Pasang panel tiket kategori (Bantuan, Report, Suggestion)")
+                .addStringOption((opt) =>
+                    opt
+                        .setName("category")
+                        .setDescription("Pilih kategori tiket")
+                        .setRequired(true)
+                        .addChoices(
+                            { name: "Bantuan (#bantuan)", value: "bantuan" },
+                            { name: "Report (#report)", value: "report" },
+                            { name: "Suggestion (#suggestion)", value: "suggestion" },
+                        )
+                )
+                .addChannelOption((opt) =>
+                    opt
+                        .setName("channel")
+                        .setDescription("Channel tujuan (opsional)")
+                        .addChannelTypes(ChannelType.GuildText)
+                        .setRequired(false)
+                ),
+        )
+        .addSubcommand((subcommand) =>
+            subcommand
                 .setName("dashboard")
                 .setDescription("Open the interactive ticket system dashboard"),
         )
@@ -134,6 +157,18 @@ export default {
         }
 
         const subcommand = interaction.options.getSubcommand();
+
+        if (subcommand === "deploy") {
+            const { buildCategoryTicketPanel } = await import('../../services/ticket/ticketCategoryPanels.js');
+            const category = interaction.options.getString("category");
+            const targetChannel = interaction.options.getChannel("channel") || interaction.channel;
+            const panel = buildCategoryTicketPanel(category);
+
+            await targetChannel.send(panel);
+            return await InteractionHelper.safeEditReply(interaction, {
+                embeds: [successEmbed('Panel Berhasil Dipasang', `Panel tiket **${category.toUpperCase()}** berhasil dipasang di ${targetChannel.toString()}!`)],
+            });
+        }
 
         if (subcommand === "claim") {
             const { getTicketPermissionContext } = await import('../../utils/ticket/ticketPermissions.js');

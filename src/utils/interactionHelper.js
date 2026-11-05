@@ -255,6 +255,32 @@ export class InteractionHelper {
                 return false;
             }
 
+            if (modal?.data) {
+                if (modal.data.title && typeof modal.data.title === 'string' && modal.data.title.length > 45) {
+                    modal.data.title = modal.data.title.slice(0, 45);
+                }
+                if (modal.data.custom_id && typeof modal.data.custom_id === 'string' && modal.data.custom_id.length > 100) {
+                    modal.data.custom_id = modal.data.custom_id.slice(0, 100);
+                }
+                if (Array.isArray(modal.data.components)) {
+                    for (const row of modal.data.components) {
+                        if (Array.isArray(row.components)) {
+                            for (const comp of row.components) {
+                                if (comp.label && typeof comp.label === 'string' && comp.label.length > 45) {
+                                    comp.label = comp.label.slice(0, 45);
+                                }
+                                if (comp.placeholder && typeof comp.placeholder === 'string' && comp.placeholder.length > 100) {
+                                    comp.placeholder = comp.placeholder.slice(0, 100);
+                                }
+                                if (comp.custom_id && typeof comp.custom_id === 'string' && comp.custom_id.length > 100) {
+                                    comp.custom_id = comp.custom_id.slice(0, 100);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             await interaction.showModal(modal);
             return true;
         } catch (error) {

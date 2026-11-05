@@ -1,14 +1,14 @@
 // Aksi konfigurasi Welcome dari panel /pacilsetup (tombol, select, modal). Semua menulis lewat saveWelcomeConfig.
 
 import {
-  ActionRowBuilder,
+  AttachmentBuilder,
   MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
 import { getWelcomeConfig, saveWelcomeConfig } from '../utils/database.js';
 import { renderWelcomeSubPanel } from '../ui/panels/welcomeSubPanel.js';
+import { safeModal, safeTextInputRow } from '../utils/modalHelper.js';
+import { renderWelcomeCard } from '../utils/imageGenerator.js';
 import {
   buildGoodbyeEmbed,
   buildWelcomeEmbed,
@@ -22,13 +22,8 @@ import {
 
 const HTTPS_URL = /^https:\/\/\S+$/i;
 
-const input = (id, label, style, { value, placeholder, max, required = false } = {}) => {
-  const t = new TextInputBuilder().setCustomId(id).setLabel(label).setStyle(style).setRequired(required);
-  if (value) t.setValue(String(value).slice(0, max ?? 4000));
-  if (placeholder) t.setPlaceholder(String(placeholder).slice(0, 100));
-  if (max) t.setMaxLength(max);
-  return new ActionRowBuilder().addComponents(t);
-};
+const input = (id, label, style, opts = {}) =>
+  safeTextInputRow({ id, label, style, ...opts });
 
 
 async function refresh(interaction, client, viewName, notice) {
@@ -69,31 +64,69 @@ export async function handleWelcomeButton(interaction, client, [action, arg]) {
       await patch(client, guildId, { goodbyePing: !config.goodbyePing });
       return refresh(interaction, client, 'goodbye');
     case 'edit': {
-      const modal = new ModalBuilder().setCustomId('setup:welcome:edit').setTitle('Edit Pesan Sambutan').addComponents(
-        input('title', 'Judul Sambutan', TextInputStyle.Short, { value: config.welcomeTitle, placeholder: WELCOME_DEFAULT_TITLE, max: 100 }),
-        input('message', 'Pesan Sambutan', TextInputStyle.Paragraph, { value: config.welcomeMessage, placeholder: 'Halo {user}, selamat datang di {server}!', max: 1000 }),
-        input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.welcomeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
-        input('thumbnail', 'Thumbnail (https / server / none / user)', TextInputStyle.Short, { value: config.welcomeThumbnail, placeholder: 'https://... atau "server" / "none" (kosong: avatar)', max: 300 }),
-      );
+      const modal = safeModal({
+        customId: 'setup:welcome:edit',
+        title: 'Edit Pesan Sambutan',
+        rows: [
+          input('title', 'Judul Sambutan', TextInputStyle.Short, { value: config.welcomeTitle, placeholder: WELCOME_DEFAULT_TITLE, max: 100 }),
+          input('message', 'Pesan Sambutan', TextInputStyle.Paragraph, { value: config.welcomeMessage, placeholder: 'Halo {user}, selamat datang di {server}!', max: 1000 }),
+          input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.welcomeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
+          input('thumbnail', 'Thumbnail (https / server / none)', TextInputStyle.Short, { value: config.welcomeThumbnail, placeholder: 'https://... atau "server" / "none" / "user"', max: 300 }),
+        ],
+      });
       return interaction.showModal(modal);
     }
     case 'gedit': {
-      const modal = new ModalBuilder().setCustomId('setup:welcome:gedit').setTitle('Edit Pesan Perpisahan').addComponents(
-        input('title', 'Judul Perpisahan', TextInputStyle.Short, { value: config.goodbyeTitle, placeholder: GOODBYE_DEFAULT_TITLE, max: 100 }),
-        input('message', 'Pesan Perpisahan', TextInputStyle.Paragraph, { value: config.leaveMessage, placeholder: 'Sampai jumpa {user.username}!', max: 1000 }),
-        input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.goodbyeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
-        input('thumbnail', 'Thumbnail (https / server / none / user)', TextInputStyle.Short, { value: config.goodbyeThumbnail, placeholder: 'https://... atau "server" / "none" (kosong: avatar)', max: 300 }),
-      );
+      const modal = safeModal({
+        customId: 'setup:welcome:gedit',
+        title: 'Edit Pesan Perpisahan',
+        rows: [
+          input('title', 'Judul Perpisahan', TextInputStyle.Short, { value: config.goodbyeTitle, placeholder: GOODBYE_DEFAULT_TITLE, max: 100 }),
+          input('message', 'Pesan Perpisahan', TextInputStyle.Paragraph, { value: config.leaveMessage, placeholder: 'Sampai jumpa {user.username}!', max: 1000 }),
+          input('image', 'URL Banner (https, opsional)', TextInputStyle.Short, { value: config.goodbyeImage, placeholder: 'https://i.imgur.com/example.png', max: 300 }),
+          input('thumbnail', 'Thumbnail (https / server / none)', TextInputStyle.Short, { value: config.goodbyeThumbnail, placeholder: 'https://... atau "server" / "none" / "user"', max: 300 }),
+        ],
+      });
       return interaction.showModal(modal);
     }
     case 'delay': {
-      const modal = new ModalBuilder().setCustomId('setup:welcome:delay').setTitle('Tunda Auto-Role').addComponents(
-        input('seconds', `Detik (0–${MAX_AUTOROLE_DELAY_SECONDS})`, TextInputStyle.Short, { value: config.autoRoleDelay || 0, max: 4, required: true }),
-      );
+      const modal = safeModal({
+        customId: 'setup:welcome:delay',
+        title: 'Tunda Auto-Role',
+        rows: [
+          input('seconds', `Detik (0–${MAX_AUTOROLE_DELAY_SECONDS})`, TextInputStyle.Short, { value: config.autoRoleDelay || 0, max: 4, required: true }),
+        ],
+      });
       return interaction.showModal(modal);
     }
-    case 'preview':
-      return previewReply(interaction, buildWelcomeEmbed({ member: interaction.member, config, inviterId: interaction.user.id }), 'sambutan');
+    case 'preview': {
+      let cardFile = null;
+      try {
+        const cardBuffer = await renderWelcomeCard({
+          member: interaction.member,
+          guild: interaction.guild,
+          inviterTag: `@${interaction.user.username}`,
+          memberCount: interaction.guild.memberCount,
+        });
+        if (cardBuffer) {
+          cardFile = new AttachmentBuilder(cardBuffer, { name: 'welcome-card.png' });
+        }
+      } catch {}
+
+      const embed = buildWelcomeEmbed({
+        member: interaction.member,
+        config,
+        inviterId: interaction.user.id,
+        attachmentImageName: cardFile ? 'welcome-card.png' : null,
+      });
+
+      return interaction.reply({
+        content: '*(Preview Sambutan — pesan ini hanya terlihat olehmu)*',
+        embeds: [embed],
+        files: cardFile ? [cardFile] : [],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     case 'gpreview':
       return previewReply(interaction, buildGoodbyeEmbed({ member: interaction.member, config }), 'perpisahan');
     default:

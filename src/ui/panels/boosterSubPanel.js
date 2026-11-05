@@ -5,6 +5,7 @@ import {
 } from 'discord.js';
 import { buildPacilEmbed } from '../pacil.js';
 import { getBoosterConfig } from '../../services/boosterService.js';
+import { buildCustomRolePanel } from '../../services/customRoleService.js';
 
 export async function renderBoosterSubPanel(client, guild, { notice = null } = {}) {
   const config = await getBoosterConfig(client, guild.id);
@@ -35,13 +36,14 @@ export async function renderBoosterSubPanel(client, guild, { notice = null } = {
         inline: false,
       },
       {
-        name: '✨ Fitur Custom Role Booster',
+        name: '✨ Fitur Custom Role Booster & Circle',
         value:
-          '• **Create Role:** Buat custom role baru\n' +
-          '• **Manage Name:** Ganti nama role\n' +
-          '• **Manage Color:** Atur warna (Solid Hex code / Gradien)\n' +
-          '• **Manage Icon:** Pasang ikon emoji kustom pada role\n' +
-          '• **Gift Role:** Berikan role ke teman terdekat\n' +
+          '• **Create Role:** Buat custom / circle role\n' +
+          '• **Gift Role:** Berikan custom role ke member\n' +
+          '• **Manage Gift Role:** Kelola member penerima role\n' +
+          '• **Manage Role Name:** Kelola nama custom role\n' +
+          '• **Manage Role Color:** Solid, Gradient, atau Holographic\n' +
+          '• **Manage Role Icon:** Kelola icon custom role\n' +
           '• **Delete Role:** Hapus custom role',
         inline: false,
       },
@@ -78,70 +80,5 @@ export async function renderBoosterSubPanel(client, guild, { notice = null } = {
 }
 
 export function renderBoosterPublicPanel() {
-  const embed = buildPacilEmbed({
-    title: '💎 Server Booster Lounge — Custom Role Perks',
-    description:
-      'Terima kasih telah men-support server **Pacil Baik Fasilkom UI** melalui Server Boost! 🚀\n\n' +
-      'Sebagai bentuk apresiasi, kamu berhak mendapatkan dan mengelola **Custom Role Eksklusif** dengan warna, ikon, dan nama sesukamu.',
-    tone: 'gold',
-    fields: [
-      {
-        name: '🎨 Opsi Pengaturan',
-        value:
-          '• **Create Role** — Buat role baru kamu\n' +
-          '• **Name & Color** — Ganti nama atau kode warna hex (contoh: `#f2a900`)\n' +
-          '• **Role Icon** — Upload icon/emoji kustom\n' +
-          '• **Gift Role** — Bagikan role ke teman belajar kamu\n' +
-          '• **Delete Role** — Hapus role kamu',
-        inline: false,
-      },
-      {
-        name: '📌 Syarat',
-        value: 'Hanya anggota yang sedang aktif melakukan Boost di server ini yang dapat menggunakan tombol di bawah.',
-        inline: false,
-      },
-    ],
-    footer: 'Makara Fasilkom UI • Booster Perks',
-  });
-
-  const row1 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('booster:create')
-      .setLabel('Create Role')
-      .setEmoji('✨')
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId('booster:name')
-      .setLabel('Manage Name')
-      .setEmoji('✏️')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('booster:color')
-      .setLabel('Manage Color')
-      .setEmoji('🎨')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId('booster:icon')
-      .setLabel('Manage Icon')
-      .setEmoji('🖼️')
-      .setStyle(ButtonStyle.Secondary)
-  );
-
-  const row2 = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId('booster:gift')
-      .setLabel('Gift Role')
-      .setEmoji('🎁')
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('booster:delete')
-      .setLabel('Delete Role')
-      .setEmoji('🗑️')
-      .setStyle(ButtonStyle.Danger)
-  );
-
-  return {
-    embeds: [embed],
-    components: [row1, row2],
-  };
+  return buildCustomRolePanel();
 }

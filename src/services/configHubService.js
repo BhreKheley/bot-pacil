@@ -3,9 +3,10 @@
 // Modul hub dashboard /pacilsetup: ambil data, render view, dan jalankan aksi komponennya.
 // Tampilan murni ada di src/ui/configHub.js; logika izin murni di commandPolicyLogic.js.
 
-import { MessageFlags, ModalBuilder, PermissionFlagsBits, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
+import { MessageFlags, PermissionFlagsBits, TextInputStyle } from 'discord.js';
 import { Mutex } from '../utils/mutex.js';
 import { logger } from '../utils/logger.js';
+import { safeModal, safeTextInputRow } from '../utils/modalHelper.js';
 import { getGuildConfig, patchGuildConfig } from './config/guildConfig.js';
 import { getConfessionConfig } from './confessionService.js';
 import { clampReplyCooldown } from './confessionLogic.js';
@@ -107,14 +108,18 @@ const saveConfession = (client, guildId, current, patch) =>
   Mutex.runExclusive(configLockKey(guildId), () => patchGuildConfig(client, guildId, { confessions: { ...current, ...patch } }));
 
 function cooldownModal(customId, title, inputs) {
-  const modal = new ModalBuilder().setCustomId(customId).setTitle(title);
-  for (const input of inputs) {
-    modal.addComponents(new ActionRowBuilder().addComponents(
-      new TextInputBuilder().setCustomId(input.id).setLabel(input.label).setStyle(TextInputStyle.Short)
-        .setRequired(true).setMinLength(1).setMaxLength(input.max ?? 6).setValue(String(input.value ?? '')),
-    ));
-  }
-  return modal;
+  const rows = inputs.map((input) =>
+    safeTextInputRow({
+      id: input.id,
+      label: input.label,
+      style: TextInputStyle.Short,
+      required: true,
+      min: 1,
+      max: input.max ?? 6,
+      value: String(input.value ?? ''),
+    })
+  );
+  return safeModal({ customId, title, rows });
 }
 
 const VIEWS = new Set(['home', 'menfess', 'sticky', 'jtc', 'perm', 'access', 'other']);
@@ -214,7 +219,7 @@ export async function handleConfigInteraction(interaction, client, args) {
       }
       if (action === 'pcd') {
         return interaction.showModal(cooldownModal(cid('pcdm', key), 'Cooldown Command', [
-          { id: 'value', label: 'Jeda per orang (detik, atau 1m30s, 2h; 0 = mati)', value: current.cooldownSeconds ?? 0, max: 10 },
+          { id: 'value', label: 'Jeda per user (dtk/1m30s/2h, 0=mati)', value: current.cooldownSeconds ?? 0, max: 10 },
         ]));
       }
       if (action === 'pcdm') {

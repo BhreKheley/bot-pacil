@@ -1,4 +1,5 @@
 import createTicketHandler, {
+  ticketCreateCatHandler,
   closeTicketHandler,
   claimTicketHandler,
   priorityTicketHandler,
@@ -10,6 +11,7 @@ import createTicketHandler, {
 
 export default [
   createTicketHandler,
+  ticketCreateCatHandler,
   closeTicketHandler,
   claimTicketHandler,
   priorityTicketHandler,

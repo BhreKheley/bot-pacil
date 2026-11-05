@@ -13,6 +13,9 @@ import { renderRulesGuidePublicEmbed } from '../ui/panels/rulesGuideSubPanel.js'
 import { renderBoosterPublicPanel } from '../ui/panels/boosterSubPanel.js';
 import { getTrackedBotIds } from '../services/musicTrackerService.js';
 import { renderMusicStatusEmbed } from '../ui/panels/musicSubPanel.js';
+import { buildStaffListEmbed } from '../commands/Community/staff.js';
+import { buildCategoryTicketPanel } from './ticket/ticketCategoryPanels.js';
+import { buildCustomRolePanel } from './customRoleService.js';
 
 export async function handleSetupAction(interaction, client, action) {
   {
@@ -313,6 +316,37 @@ export async function handleSetupAction(interaction, client, action) {
 
       return interaction.reply({
         content: `✅ Panel Verifikasi berhasil dipasang di <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 15. Pasang Panel Staff
+    if (action === 'deploy_staff_panel') {
+      const embed = await buildStaffListEmbed(interaction.guild);
+      await interaction.channel.send({ embeds: [embed] });
+      return interaction.reply({
+        content: `✅ Panel Daftar Staff berhasil dipasang di <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 16. Pasang Panel Kategori Tiket
+    if (action.startsWith('deploy_ticket_cat_')) {
+      const catKey = action.replace('deploy_ticket_cat_', '');
+      const panel = buildCategoryTicketPanel(catKey);
+      await interaction.channel.send(panel);
+      return interaction.reply({
+        content: `✅ Panel Tiket **${catKey.toUpperCase()}** berhasil dipasang di <#${interaction.channelId}>!`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    // 17. Pasang Panel Custom Role
+    if (action === 'deploy_customrole_panel') {
+      const panel = buildCustomRolePanel();
+      await interaction.channel.send(panel);
+      return interaction.reply({
+        content: `✅ Panel Custom Role berhasil dipasang di <#${interaction.channelId}>!`,
         flags: MessageFlags.Ephemeral,
       });
     }

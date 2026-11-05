@@ -1,7 +1,8 @@
-import { Events, PermissionFlagsBits } from 'discord.js';
+import { AttachmentBuilder, Events, PermissionFlagsBits } from 'discord.js';
 import { getGuildConfig } from '../services/config/guildConfig.js';
 import { getWelcomeConfig } from '../utils/database.js';
 import { buildWelcomeEmbed } from '../services/welcomeService.js';
+import { renderWelcomeCard } from '../utils/imageGenerator.js';
 import { logEvent, EVENT_TYPES } from '../services/loggingService.js';
 import { getServerCounters, updateCounter } from '../services/serverstatsService.js';
 import { setBirthday as dbSetBirthday } from '../utils/database.js';
@@ -32,12 +33,38 @@ export default {
             // Skip only the welcome message if permissions are missing; the rest of the
             // join pipeline (auto-role, verification, logging, counters) must still run.
             if (permissions?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages])) {
-                const embed = buildWelcomeEmbed({ member, config: welcomeConfig, inviterId });
+                let cardFile = null;
+                try {
+                    let inviterTag = 'Direct / Discovery';
+                    if (inviterId) {
+                        const inviterUser = await member.client.users.fetch(inviterId).catch(() => null);
+                        if (inviterUser) inviterTag = `@${inviterUser.username}`;
+                    }
+                    const cardBuffer = await renderWelcomeCard({
+                        member,
+                        guild,
+                        inviterTag,
+                        memberCount: guild.memberCount,
+                    });
+                    if (cardBuffer) {
+                        cardFile = new AttachmentBuilder(cardBuffer, { name: 'welcome-card.png' });
+                    }
+                } catch (cardErr) {
+                    logger.warn('Gagal merender kartu sambutan:', cardErr);
+                }
+
+                const embed = buildWelcomeEmbed({
+                    member,
+                    config: welcomeConfig,
+                    inviterId,
+                    attachmentImageName: cardFile ? 'welcome-card.png' : null,
+                });
                 const canEmbed = permissions.has(PermissionFlagsBits.EmbedLinks);
                 const mention = welcomeConfig.welcomePing ? user.toString() : undefined;
                 await channel.send({
                     content: canEmbed ? mention : [mention, embed.data.description].filter(Boolean).join(' '),
                     embeds: canEmbed ? [embed] : [],
+                    files: cardFile && canEmbed ? [cardFile] : [],
                     allowedMentions: welcomeConfig.welcomePing ? { users: [user.id] } : { parse: [] },
                 });
             }

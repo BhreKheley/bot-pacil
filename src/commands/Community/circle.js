@@ -127,6 +127,16 @@ export default {
 
     // 2. Request Circle via modal
     if (subcommand === 'request') {
+      if (!interaction.member?.premiumSince && !interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+        return interaction.reply({
+          content:
+            '❌ **Fitur Khusus Server Booster**\n' +
+            'Untuk membuat Private Circle kamu sendiri, kamu perlu menjadi **Server Booster** terlebih dahulu.\n' +
+            'Dukungan boost kamu akan diapresiasi di **#boost-hall**!',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
       const modal = new ModalBuilder()
         .setCustomId(`circleCreateModal:${interaction.guildId}`)
         .setTitle('Buat Private Circle Baru');
@@ -135,7 +145,7 @@ export default {
         .setCustomId('circle_name')
         .setLabel('Nama Circle / Kelompok')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('Contoh: Circle Alpro A, Geng Kancil, Tim Capstone')
+        .setPlaceholder('Contoh: Circle Alpro A, Tim Capstone')
         .setMinLength(2)
         .setMaxLength(32)
         .setRequired(true);

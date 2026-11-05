@@ -27,7 +27,7 @@ export function resolveThumbnail(thumbConfig, user, guild) {
   return avatar(user);
 }
 
-export function buildWelcomeEmbed({ member, config, inviterId = null, guideChannelId = config?.guideChannelId ?? null }) {
+export function buildWelcomeEmbed({ member, config, inviterId = null, guideChannelId = config?.guideChannelId ?? null, attachmentImageName = null }) {
   const { user, guild } = member;
   const data = { user, guild, member };
   const fields = [
@@ -37,12 +37,17 @@ export function buildWelcomeEmbed({ member, config, inviterId = null, guideChann
   if (guideChannelId) {
     fields.push({ name: '📚 Langkah Pertama', value: `Baca panduan di <#${guideChannelId}> lalu ambil peran angkatanmu.`, inline: false });
   }
+
+  const image = attachmentImageName
+    ? `attachment://${attachmentImageName}`
+    : config.welcomeImage || config.welcomeEmbed?.image?.url || undefined;
+
   return buildPacilEmbed({
-    title: formatWelcomeMessage(config.welcomeTitle || WELCOME_DEFAULT_TITLE, data),
+    title: formatWelcomeMessage(config.welcomeTitle || `🏛️ WELCOME TO ${guild.name.toUpperCase()}`, data),
     description: formatWelcomeMessage(config.welcomeMessage || WELCOME_DEFAULT_MESSAGE, data),
     tone: 'gold',
     thumbnail: resolveThumbnail(config.welcomeThumbnail, user, guild),
-    image: config.welcomeImage || config.welcomeEmbed?.image?.url || undefined,
+    image,
     fields,
   });
 }

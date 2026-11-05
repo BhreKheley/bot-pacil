@@ -1,7 +1,8 @@
 // Aksi konfigurasi Moderasi dari panel /pacilsetup: setup:moderation:<dm|esc|thresholds> + modal setup:moderation:thresholds.
-import { ActionRowBuilder, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { MessageFlags, TextInputStyle } from 'discord.js';
 import { ESCALATION_LIMITS, getModerationPolicy, saveModerationPolicy } from './moderation/moderationPolicy.js';
 import { renderModerationSubPanel } from '../ui/panels/moderationSubPanel.js';
+import { safeModal, safeTextInputRow } from '../utils/modalHelper.js';
 
 export async function handleModerationButton(interaction, client, [action]) {
   const policy = await getModerationPolicy(client, interaction.guildId);
@@ -18,13 +19,37 @@ export async function handleModerationButton(interaction, client, [action]) {
     return interaction.update(await renderModerationSubPanel(client, interaction.guild));
   }
   if (action === 'thresholds') {
-    const field = (id, label, value) => new ActionRowBuilder().addComponents(
-      new TextInputBuilder().setCustomId(id).setLabel(label).setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(5).setValue(String(value)));
-    return interaction.showModal(new ModalBuilder().setCustomId('setup:moderation:thresholds').setTitle('Batas Eskalasi Peringatan').addComponents(
-      field('timeoutAt', `Timeout pada peringatan ke- (0 = mati, maks ${ESCALATION_LIMITS.maxWarns})`, policy.escalation.timeoutAt),
-      field('timeoutMinutes', `Lama timeout, menit (1–${ESCALATION_LIMITS.maxTimeoutMinutes})`, policy.escalation.timeoutMinutes),
-      field('kickAt', `Kick pada peringatan ke- (0 = mati, maks ${ESCALATION_LIMITS.maxWarns})`, policy.escalation.kickAt),
-    ));
+    const modal = safeModal({
+      customId: 'setup:moderation:thresholds',
+      title: 'Batas Eskalasi Peringatan',
+      rows: [
+        safeTextInputRow({
+          id: 'timeoutAt',
+          label: `Timeout pd warn ke- (0=mati, maks ${ESCALATION_LIMITS.maxWarns})`,
+          style: TextInputStyle.Short,
+          required: true,
+          max: 5,
+          value: policy.escalation.timeoutAt,
+        }),
+        safeTextInputRow({
+          id: 'timeoutMinutes',
+          label: `Lama timeout, mnt (1-${ESCALATION_LIMITS.maxTimeoutMinutes})`,
+          style: TextInputStyle.Short,
+          required: true,
+          max: 5,
+          value: policy.escalation.timeoutMinutes,
+        }),
+        safeTextInputRow({
+          id: 'kickAt',
+          label: `Kick pd warn ke- (0=mati, maks ${ESCALATION_LIMITS.maxWarns})`,
+          style: TextInputStyle.Short,
+          required: true,
+          max: 5,
+          value: policy.escalation.kickAt,
+        }),
+      ],
+    });
+    return interaction.showModal(modal);
   }
 }
 

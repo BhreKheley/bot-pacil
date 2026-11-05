@@ -1,6 +1,7 @@
 import { Events } from 'discord.js';
 import { logEvent, EVENT_TYPES } from '../services/loggingService.js';
 import { cleanupBoosterRole, getBoosterConfig } from '../services/boosterService.js';
+import { postBoostHallAppreciation } from '../services/boostHallService.js';
 import { logger } from '../utils/logger.js';
 
 export default {
@@ -10,6 +11,15 @@ export default {
   async execute(oldMember, newMember) {
     try {
       if (!newMember.guild) return;
+
+      // Member baru mem-boost server
+      if (!oldMember.premiumSince && newMember.premiumSince) {
+        await postBoostHallAppreciation({
+          client: newMember.client,
+          guild: newMember.guild,
+          member: newMember,
+        }).catch((err) => logger.warn('Gagal memproses apresiasi booster:', err));
+      }
 
       // Berhenti boost: bersihkan custom role bila diaktifkan di konfigurasi Booster.
       if (oldMember.premiumSince && !newMember.premiumSince) {

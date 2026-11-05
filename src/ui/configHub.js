@@ -147,13 +147,23 @@ export function otherView({ notice } = {}) {
     fields: OTHER_DASHBOARDS.map(([name, command]) => ({ name, value: `Command: \`${command}\``, inline: true })),
   });
 
-  const deployButtons = pacilButtons([
-    { id: 'setup:act:deploy_ticket_panel', label: 'Pasang Panel Tiket', emoji: '🎫', style: 'success' },
-    { id: 'setup:act:deploy_verify_panel', label: 'Pasang Panel Verifikasi', emoji: '✅', style: 'success' },
+  const row1 = pacilButtons([
+    { id: 'setup:act:deploy_ticket_cat_bantuan', label: 'Tiket Bantuan', emoji: '💬', style: 'primary' },
+    { id: 'setup:act:deploy_ticket_cat_report', label: 'Tiket Report', emoji: '🚨', style: 'danger' },
+    { id: 'setup:act:deploy_ticket_cat_suggestion', label: 'Tiket Suggestion', emoji: '💡', style: 'primary' },
+  ]);
+
+  const row2 = pacilButtons([
+    { id: 'setup:act:deploy_staff_panel', label: 'Panel Staff', emoji: '🏛️', style: 'success' },
+    { id: 'setup:act:deploy_verify_panel', label: 'Verifikasi', emoji: '✅', style: 'success' },
     backButton(),
   ]);
 
-  return payload(notice, embed, deployButtons);
+  return {
+    content: notice ?? '',
+    embeds: [embed],
+    components: [row1, row2],
+  };
 }
 
 export function permCategoryView({ categories, notice }) {
