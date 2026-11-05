@@ -15,21 +15,32 @@ export function initializeMusic(client) {
 
     client.riffy = new Riffy(client, lavalinkConfig.nodes, {
         send: (payload) => {
-            const guildId = payload.d?.guild_id;
+            const data = payload?.d || payload;
+            const guildId = data?.guild_id;
             if (!guildId) {
                 return;
             }
 
+            const packet = payload?.op !== undefined ? payload : {
+                op: 4,
+                d: {
+                    guild_id: data.guild_id,
+                    channel_id: data.channel_id ?? null,
+                    self_mute: Boolean(data.self_mute),
+                    self_deaf: Boolean(data.self_deaf),
+                },
+            };
+
             try {
                 const guild = client.guilds.cache.get(guildId);
                 if (guild?.shard) {
-                    guild.shard.send(payload);
+                    guild.shard.send(packet);
                     return;
                 }
 
                 const shardCount = client.ws?.shards?.size || 1;
                 const shardId = Number((BigInt(guildId) >> 22n) % BigInt(shardCount));
-                client.ws?.shards?.get(shardId)?.send(payload);
+                client.ws?.shards?.get(shardId)?.send(packet);
             } catch (err) {
                 logger.error('Failed to send voice payload to gateway:', err);
             }
