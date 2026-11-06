@@ -17,6 +17,7 @@ import { initializeMusic } from './services/music/riffySetup.js';
 import { shutdownMusic } from './services/music/playerHandler.js';
 import pkg from '../package.json' with { type: 'json' };
 import { EXPECTED_SCHEMA_VERSION, EXPECTED_SCHEMA_LABEL } from './config/database/schemaVersion.js';
+import { createSsoRouter } from './web/ssoRoutes.js';
 
 class PacilBot extends Client {
   constructor() {
@@ -212,6 +213,8 @@ class PacilBot extends Client {
         timestamp: new Date().toISOString()
       });
     });
+
+    app.use('/auth/sso', createSsoRouter(this));
 
     const startServer = (port, attempt = 0) => {
       let hasStartedListening = false;

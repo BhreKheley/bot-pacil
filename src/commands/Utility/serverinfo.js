@@ -4,6 +4,7 @@ import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 
 export default {
+    register: false,
     data: new SlashCommandBuilder()
     .setName("serverinfo")
     .setDescription("Get detailed information about the server"),

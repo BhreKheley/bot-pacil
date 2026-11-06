@@ -3,6 +3,7 @@ import { createEmbed } from '../../utils/embeds.js';
 import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
+    register: false,
     data: new SlashCommandBuilder()
     .setName("userinfo")
     .setDescription("Get detailed information about a user")

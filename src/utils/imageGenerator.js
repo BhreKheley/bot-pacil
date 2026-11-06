@@ -759,6 +759,431 @@ export async function renderBirthdayCard({
   return canvas.toBuffer('image/png');
 }
 
+/**
+ * Renders modern visual guide card for Student SSO UI Verification (#verifikasi).
+ */
+export async function renderVerifyGuideCard({ guildName = 'FASILKOM UI' } = {}) {
+  const width = 800;
+  const height = 340;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  bgGrad.addColorStop(0, COLORS.navyDark);
+  bgGrad.addColorStop(0.5, '#0c2242');
+  bgGrad.addColorStop(1, '#051122');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  drawTechGrid(ctx, width, height);
+
+  // Subtle ambient gold glow
+  const goldAura = ctx.createRadialGradient(400, 60, 10, 400, 60, 240);
+  goldAura.addColorStop(0, 'rgba(242, 169, 0, 0.16)');
+  goldAura.addColorStop(1, 'transparent');
+  ctx.fillStyle = goldAura;
+  ctx.fillRect(0, 0, width, height);
+
+  // Outer frame & corners
+  ctx.save();
+  roundRect(ctx, 20, 20, width - 40, height - 40, 16);
+  ctx.strokeStyle = COLORS.cardBorder;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  drawCornerAccents(ctx, width, height);
+
+  // Top Right Badge
+  const pillText = 'PORTAL SSO UI • RESMI & AMAN';
+  ctx.font = 'bold 11px sans-serif';
+  const pillWidth = ctx.measureText(pillText).width + 24;
+  const pillHeight = 28;
+  const pillX = width - 45 - pillWidth;
+  const pillY = 38;
+
+  ctx.save();
+  roundRect(ctx, pillX, pillY, pillWidth, pillHeight, 14);
+  ctx.fillStyle = 'rgba(242, 169, 0, 0.15)';
+  ctx.fill();
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.goldLight;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(pillText, pillX + pillWidth / 2, pillY + pillHeight / 2);
+  ctx.restore();
+
+  // Left Verification Emblem Icon
+  const iconX = 120;
+  const iconY = 170;
+  const iconR = 64;
+
+  ctx.save();
+  ctx.shadowColor = COLORS.goldGlow;
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.arc(iconX, iconY, iconR, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(13, 58, 115, 0.85)';
+  ctx.fill();
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Draw Shield / Graduation symbol inside
+  ctx.save();
+  ctx.fillStyle = COLORS.gold;
+  ctx.font = 'bold 44px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🎓', iconX, iconY);
+  ctx.restore();
+
+  // Right Side Titles
+  const textLeft = 210;
+
+  ctx.save();
+  ctx.fillStyle = COLORS.gold;
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('OTENTIKASI MAHASISWA FASILKOM UI', textLeft, 85);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = COLORS.textPrimary;
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillText('VERIFIKASI AKUN SSO UI', textLeft, 120);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = COLORS.textSecondary;
+  ctx.font = '14px sans-serif';
+  ctx.fillText('Masuk via sso.ui.ac.id untuk mendapatkan role prodi, angkatan, & akses server', textLeft, 145);
+  ctx.restore();
+
+  // 3 Process Step Boxes
+  const stepY = 180;
+  const stepH = 75;
+  const stepW = 168;
+  const steps = [
+    { num: '01', title: 'Klik Verifikasi', desc: 'Dapatkan link login resmi SSO UI' },
+    { num: '02', title: 'Login SSO UI', desc: 'Aman langsung di sso.ui.ac.id' },
+    { num: '03', title: 'Role Otomatis', desc: 'Dapatkan role CS/SI & Angkatan' },
+  ];
+
+  steps.forEach((step, idx) => {
+    const sX = textLeft + idx * (stepW + 16);
+    ctx.save();
+    roundRect(ctx, sX, stepY, stepW, stepH, 10);
+    ctx.fillStyle = COLORS.innerBoxBg;
+    ctx.fill();
+    ctx.strokeStyle = '#1b375e';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = COLORS.gold;
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText(step.num, sX + 12, stepY + 22);
+
+    ctx.fillStyle = COLORS.textPrimary;
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText(step.title, sX + 12, stepY + 42);
+
+    ctx.fillStyle = COLORS.textMuted;
+    ctx.font = '10px sans-serif';
+    drawWrappedText(ctx, step.desc, sX + 12, stepY + 58, stepW - 24, 12, 2);
+    ctx.restore();
+  });
+
+  return canvas.toBuffer('image/png');
+}
+
+/**
+ * Renders modern visual guide card for Helpdesk & Ticket panels (#bantuan, #report, #suggestion).
+ */
+export async function renderTicketGuideCard({ category = 'bantuan', guildName = 'FASILKOM UI' } = {}) {
+  const width = 800;
+  const height = 340;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  bgGrad.addColorStop(0, COLORS.navyDark);
+  bgGrad.addColorStop(0.5, '#0a2140');
+  bgGrad.addColorStop(1, '#051122');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  drawTechGrid(ctx, width, height);
+
+  // Frame & corners
+  ctx.save();
+  roundRect(ctx, 20, 20, width - 40, height - 40, 16);
+  ctx.strokeStyle = COLORS.cardBorder;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  drawCornerAccents(ctx, width, height);
+
+  const catConfigs = {
+    bantuan: {
+      tag: 'PUSAT BANTUAN & HELPDESK',
+      title: 'LAYANAN BANTUAN MAHASISWA',
+      icon: '💬',
+      desc: 'Bantuan pertanyaan server, bot, materi kuliah, dan kendala teknis',
+      accent: COLORS.gold,
+    },
+    report: {
+      tag: 'KETERTIBAN & LAPORAN',
+      title: 'LAPORAN PELANGGARAN SERVER',
+      icon: '🚨',
+      desc: 'Laporkan spam, pelecehan, pelanggaran aturan, atau appeal punishment',
+      accent: '#ef4444',
+    },
+    suggestion: {
+      tag: 'KOTAK SARAN & ASPIRASI',
+      title: 'SARAN PENGEMBANGAN SERVER',
+      icon: '💡',
+      desc: 'Kirimkan ide fitur, channel baru, event seru, dan masukan komunitas',
+      accent: '#ffd166',
+    },
+  };
+
+  const currentCat = catConfigs[category] || catConfigs.bantuan;
+
+  // Header Pill
+  ctx.font = 'bold 11px sans-serif';
+  const pillWidth = ctx.measureText(currentCat.tag).width + 24;
+  const pillHeight = 28;
+  const pillX = width - 45 - pillWidth;
+  const pillY = 38;
+
+  ctx.save();
+  roundRect(ctx, pillX, pillY, pillWidth, pillHeight, 14);
+  ctx.fillStyle = 'rgba(20, 43, 77, 0.85)';
+  ctx.fill();
+  ctx.strokeStyle = currentCat.accent;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = currentCat.accent;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(currentCat.tag, pillX + pillWidth / 2, pillY + pillHeight / 2);
+  ctx.restore();
+
+  // Emblem Left
+  const emblemX = 120;
+  const emblemY = 170;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(emblemX, emblemY, 60, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(13, 58, 115, 0.8)';
+  ctx.fill();
+  ctx.strokeStyle = currentCat.accent;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = currentCat.accent;
+  ctx.font = 'bold 40px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(currentCat.icon, emblemX, emblemY);
+  ctx.restore();
+
+  // Titles
+  const textLeft = 210;
+  ctx.save();
+  ctx.fillStyle = currentCat.accent;
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('PACIL SUPPORT DESK • FASILKOM UI', textLeft, 90);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = COLORS.textPrimary;
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(currentCat.title, textLeft, 125);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = COLORS.textSecondary;
+  ctx.font = '14px sans-serif';
+  ctx.fillText(currentCat.desc, textLeft, 155);
+  ctx.restore();
+
+  // Bottom Notice Cards
+  const bY = 195;
+  const bH = 80;
+  const bW = 250;
+
+  // Box 1: Etika
+  ctx.save();
+  roundRect(ctx, textLeft, bY, bW, bH, 10);
+  ctx.fillStyle = COLORS.innerBoxBg;
+  ctx.fill();
+  ctx.strokeStyle = '#1b375e';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.gold;
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText('PANDUAN PEMBUATAN', textLeft + 14, bY + 22);
+
+  ctx.fillStyle = COLORS.textSecondary;
+  ctx.font = '12px sans-serif';
+  drawWrappedText(ctx, 'Jelaskan kendala dengan sopan, santun, dan sertakan bukti screenshot jika ada.', textLeft + 14, bY + 40, bW - 28, 16, 2);
+  ctx.restore();
+
+  // Box 2: Staff Desk
+  const b2X = textLeft + bW + 16;
+  const b2W = 260;
+  ctx.save();
+  roundRect(ctx, b2X, bY, b2W, bH, 10);
+  ctx.fillStyle = COLORS.innerBoxBg;
+  ctx.fill();
+  ctx.strokeStyle = '#1b375e';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.gold;
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText('TIM PENANGANAN', b2X + 14, bY + 22);
+
+  ctx.fillStyle = COLORS.textSecondary;
+  ctx.font = '12px sans-serif';
+  drawWrappedText(ctx, 'Tiket akan ditangani langsung oleh BPH, Staff, dan Asdos Fasilkom UI.', b2X + 14, bY + 40, b2W - 28, 16, 2);
+  ctx.restore();
+
+  return canvas.toBuffer('image/png');
+}
+
+/**
+ * Renders modern visual guide card for Booster Perks & Custom Roles (#custom-role).
+ */
+export async function renderCustomRoleCard({ guildName = 'FASILKOM UI' } = {}) {
+  const width = 800;
+  const height = 340;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  bgGrad.addColorStop(0, '#100726');
+  bgGrad.addColorStop(0.5, '#0c1b3a');
+  bgGrad.addColorStop(1, '#051122');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  drawTechGrid(ctx, width, height);
+
+  // Outer frame & corners
+  ctx.save();
+  roundRect(ctx, 20, 20, width - 40, height - 40, 16);
+  ctx.strokeStyle = '#3b2469';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  drawCornerAccents(ctx, width, height);
+
+  // Top Right Badge
+  const pillText = 'EKSKLUSIF SERVER BOOSTER';
+  ctx.font = 'bold 11px sans-serif';
+  const pillWidth = ctx.measureText(pillText).width + 24;
+  const pillHeight = 28;
+  const pillX = width - 45 - pillWidth;
+  const pillY = 38;
+
+  ctx.save();
+  roundRect(ctx, pillX, pillY, pillWidth, pillHeight, 14);
+  ctx.fillStyle = 'rgba(242, 169, 0, 0.18)';
+  ctx.fill();
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.goldLight;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(pillText, pillX + pillWidth / 2, pillY + pillHeight / 2);
+  ctx.restore();
+
+  // Emblem Left
+  const emblemX = 120;
+  const emblemY = 170;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(emblemX, emblemY, 60, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(45, 20, 80, 0.85)';
+  ctx.fill();
+  ctx.strokeStyle = COLORS.gold;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = COLORS.gold;
+  ctx.font = 'bold 38px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🎨', emblemX, emblemY);
+  ctx.restore();
+
+  // Titles
+  const textLeft = 210;
+  ctx.save();
+  ctx.fillStyle = COLORS.gold;
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('HAK ISTIMEWA KOMUNITAS • FASILKOM UI', textLeft, 90);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = COLORS.textPrimary;
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('CUSTOM ROLE & CIRCLE HUB', textLeft, 125);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = COLORS.textSecondary;
+  ctx.font = '14px sans-serif';
+  ctx.fillText('Buat role unik dengan warna hex personal dan kelola ruang circle sendiri', textLeft, 155);
+  ctx.restore();
+
+  // 3 Perk boxes
+  const pY = 195;
+  const pH = 75;
+  const pW = 168;
+  const perks = [
+    { title: 'Warna Personal', desc: 'Pilihan solid hex, gradien, & ikon role' },
+    { title: 'Gift Role', desc: 'Bagikan custom role ke teman circle kamu' },
+    { title: 'Circle Privat', desc: 'Channel text & voice privat untuk kelompok' },
+  ];
+
+  perks.forEach((p, idx) => {
+    const pX = textLeft + idx * (pW + 16);
+    ctx.save();
+    roundRect(ctx, pX, pY, pW, pH, 10);
+    ctx.fillStyle = COLORS.innerBoxBg;
+    ctx.fill();
+    ctx.strokeStyle = '#2d2254';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = COLORS.gold;
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(p.title, pX + 12, pY + 24);
+
+    ctx.fillStyle = COLORS.textMuted;
+    ctx.font = '10px sans-serif';
+    drawWrappedText(ctx, p.desc, pX + 12, pY + 42, pW - 24, 13, 2);
+    ctx.restore();
+  });
+
+  return canvas.toBuffer('image/png');
+}
 
 /**
  * Renders visual guide card for new member orientation / #arrival (800x360).

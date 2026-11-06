@@ -90,3 +90,4 @@ export async function renderBirthdaySubPanel(client, guild, { notice = null } = 
     ],
   };
 }
+

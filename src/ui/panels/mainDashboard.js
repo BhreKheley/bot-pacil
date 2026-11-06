@@ -14,6 +14,8 @@ export const setupActionId = (action) => `setup:act:${action}`;
  */
 export const SETUP_MODULES = Object.freeze([
   { value: 'welcome', kind: 'panel', emoji: '👋', label: 'Welcome System', description: 'Pesan kedatangan mahasiswa baru' },
+  { value: 'verification', kind: 'panel', emoji: '🎓', label: 'Verifikasi SSO UI', description: 'Otentikasi mahasiswa UI & auto role prodi/angkatan' },
+  { value: 'ticket', kind: 'panel', emoji: '🎫', label: 'Ticket System', description: 'Panel mandiri Bantuan, Report, & Suggestion' },
   { value: 'birthday', kind: 'panel', emoji: '🎂', label: 'Birthday System', description: 'Pengumuman ultah, role spesial, & kartu ucapan' },
   { value: 'rules', kind: 'panel', emoji: '📜', label: 'Rules & Guide', description: 'Tata tertib dan panduan interaktif server' },
   { value: 'booster', kind: 'panel', emoji: '🎭', label: 'Booster Perks', description: 'Custom role hadiah Server Booster' },
@@ -25,7 +27,7 @@ export const SETUP_MODULES = Object.freeze([
   { value: 'jtc', kind: 'hub', view: 'jtc', emoji: '🎙️', label: 'Join to Create', description: 'Ruang voice sementara dan panel pemiliknya' },
   { value: 'perm', kind: 'hub', view: 'perm', emoji: '🔐', label: 'Izin Command', description: 'Role, channel, dan cooldown per command' },
   { value: 'access', kind: 'hub', view: 'access', emoji: '🚦', label: 'Aktif / Nonaktif Command', description: 'Matikan atau hidupkan command per kategori' },
-  { value: 'other', kind: 'hub', view: 'other', emoji: '🧰', label: 'Fitur Lainnya', description: 'Tiket, logging, verifikasi, dan lain-lain' },
+  { value: 'other', kind: 'hub', view: 'other', emoji: '🧰', label: 'Fitur Lainnya', description: 'Logging, status, dan konfigurasi server' },
 ]);
 
 export function renderMainDashboard(guild, { notice } = {}) {

@@ -30,6 +30,7 @@ function resolveTargetChannel(interaction) {
 }
 
 export default {
+    register: false,
     data: new SlashCommandBuilder()
         .setName('say')
         .setDescription('Send a plain message as the bot')

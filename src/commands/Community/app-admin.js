@@ -37,6 +37,7 @@ function getApplicationStatusPresentation(statusValue) {
 }
 
 export default {
+    register: false,
     data: new SlashCommandBuilder()
     .setName("app-admin")
     .setDescription("Manage staff applications")

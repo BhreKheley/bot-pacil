@@ -6,6 +6,7 @@ import { logger } from '../../utils/logger.js';
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 export default {
+    register: false,
     data: new SlashCommandBuilder()
         .setName('cases')
         .setDescription('View moderation cases and audit logs')

@@ -1,6 +1,8 @@
 // Menu modul dashboard /pacilsetup (customId: setup:menu). Merender sub-panel dengan interaction.update().
 
 import { renderWelcomeSubPanel } from '../../../ui/panels/welcomeSubPanel.js';
+import { renderVerificationSubPanel } from '../../../ui/panels/verificationSubPanel.js';
+import { renderTicketSubPanel } from '../../../ui/panels/ticketSubPanel.js';
 import { renderBirthdaySubPanel } from '../../../ui/panels/birthdaySubPanel.js';
 import { renderBoosterSubPanel } from '../../../ui/panels/boosterSubPanel.js';
 import { renderMusicSubPanel } from '../../../ui/panels/musicSubPanel.js';
@@ -11,12 +13,16 @@ import { renderMainDashboard, SETUP_MODULES } from '../../../ui/panels/mainDashb
 import { renderConfigView } from '../../../services/configHubService.js';
 import { handleWelcomeSelect } from '../../../services/welcomeConfigActions.js';
 import { handleBirthdaySelect } from '../../../services/birthdayConfigActions.js';
+import { handleVerificationConfigAction } from '../../../services/verificationConfigActions.js';
+import { handleTicketConfigAction } from '../../../services/ticketConfigActions.js';
 import { setTrackedBotIds } from '../../../services/musicTrackerService.js';
 import { handleGuideSelect } from '../../../services/guideConfigActions.js';
 import { denyIfNoSetupAccess } from '../../../utils/setupGuard.js';
 
 const PANELS = {
   welcome: renderWelcomeSubPanel,
+  verification: renderVerificationSubPanel,
+  ticket: renderTicketSubPanel,
   birthday: renderBirthdaySubPanel,
   rules: renderRulesGuideSubPanel,
   booster: renderBoosterSubPanel,
@@ -35,6 +41,8 @@ async function render(client, guild, value) {
 async function execute(interaction, client, [kind, ...rest] = []) {
   if (await denyIfNoSetupAccess(interaction)) return;
   if (kind === 'welcome') return handleWelcomeSelect(interaction, client, rest);
+  if (kind === 'verif') return handleVerificationConfigAction(interaction, client);
+  if (kind === 'ticket') return handleTicketConfigAction(interaction, client);
   if (kind === 'birthday') return handleBirthdaySelect(interaction, client, rest);
   if (kind === 'guide') return handleGuideSelect(interaction, client);
   if (kind === 'music') {

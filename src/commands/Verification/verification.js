@@ -1,6 +1,8 @@
 import { botConfig, getColor } from '../../config/bot.js';
-import { SlashCommandBuilder, PermissionFlagsBits, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, AttachmentBuilder } from 'discord.js';
 import { createEmbed, infoEmbed, successEmbed } from '../../utils/embeds.js';
+import { buildPacilEmbed } from '../../ui/pacil.js';
+import { renderVerifyGuideCard } from '../../utils/imageGenerator.js';
 import { getGuildConfig, setGuildConfig } from '../../services/config/guildConfig.js';
 import { withErrorHandling, createError, ErrorTypes, replyUserError } from '../../utils/errorHandler.js';
 import { removeVerification, verifyUser } from '../../services/verificationService.js';
@@ -181,23 +183,41 @@ async function handleSetup(interaction, guild, client) {
 
     await InteractionHelper.safeDefer(interaction);
 
-    const verifyEmbed = createEmbed({
-        title: "Server Verification",
-        description: message,
-        color: getColor('success')
+    const cardBuffer = await renderVerifyGuideCard({ guildName: guild.name });
+    const file = new AttachmentBuilder(cardBuffer, { name: 'verify-guide.png' });
+
+    const verifyEmbed = buildPacilEmbed({
+        title: "PORTAL VERIFIKASI MAHASISWA UI",
+        icon: "🎓",
+        description: message || "Selamat datang di server komunitas **pacil baik**! Untuk menjaga keamanan dan kenyamanan berinteraksi, silakan lakukan verifikasi status mahasiswa kamu melalui portal resmi **SSO UI**.",
+        tone: "gold",
+        image: "attachment://verify-guide.png",
+        fields: [
+            {
+                name: "Perlindungan & Keamanan",
+                value: "Autentikasi dilakukan langsung di portal resmi `sso.ui.ac.id`. Bot tidak dapat melihat password SSO kamu.",
+                inline: false,
+            },
+            {
+                name: "Role Otomatis yang Didapat",
+                value: "• **Warga Pacil** (Role Utama)\n• **Program Studi** (Ilmu Komputer / Sistem Informasi)\n• **Angkatan** (Tahun Masuk Mahasiswa)",
+                inline: false,
+            }
+        ]
     });
 
     const verifyButton = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
             .setCustomId("verify_user")
-            .setLabel(buttonText)
+            .setLabel("Mulai Verifikasi SSO UI")
             .setStyle(ButtonStyle.Success)
-            .setEmoji("✅")
+            .setEmoji("🔐")
     );
 
     const verifyMessage = await verificationChannel.send({
         embeds: [verifyEmbed],
-        components: [verifyButton]
+        components: [verifyButton],
+        files: [file],
     });
 
     guildConfig.verification = {

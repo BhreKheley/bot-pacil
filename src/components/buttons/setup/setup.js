@@ -8,10 +8,14 @@ import { handleModerationButton } from '../../../services/moderationConfigAction
 import { handleBoosterButton } from '../../../services/boosterConfigActions.js';
 import { handleWelcomeButton } from '../../../services/welcomeConfigActions.js';
 import { handleBirthdayButton } from '../../../services/birthdayConfigActions.js';
+import { handleVerificationConfigAction } from '../../../services/verificationConfigActions.js';
+import { handleTicketConfigAction } from '../../../services/ticketConfigActions.js';
 
 async function route(interaction, client, [kind, action, arg]) {
   if (await denyIfNoSetupAccess(interaction)) return;
   if (kind === 'back') return interaction.update(renderMainDashboard(interaction.guild));
+  if (kind === 'verif') return handleVerificationConfigAction(interaction, client);
+  if (kind === 'ticket') return handleTicketConfigAction(interaction, client);
   if (kind === 'birthday') return handleBirthdayButton(interaction, client, [action]);
   if (kind === 'moderation') return handleModerationButton(interaction, client, [action]);
   if (kind === 'booster') return handleBoosterButton(interaction, client, [action]);

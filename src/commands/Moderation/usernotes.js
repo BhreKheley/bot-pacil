@@ -8,6 +8,7 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 
 export default {
+    register: false,
     data: new SlashCommandBuilder()
         .setName("usernotes")
         .setDescription("Manage user notes for moderation purposes")

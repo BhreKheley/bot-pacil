@@ -17,6 +17,9 @@ import {
   renderRulesGuideCard,
   renderVoiceGuideCard,
   renderBirthdayCard,
+  renderVerifyGuideCard,
+  renderTicketGuideCard,
+  renderCustomRoleCard,
 } from '../src/utils/imageGenerator.js';
 import { assertValidPng } from './mocks/index.js';
 
@@ -299,6 +302,12 @@ test('M3 Resilient Offline Avatar Fallback & Adversarial Handling', async (t) =>
     assertValidPng(await renderConfessionGuideCard(), 30000);
     assertValidPng(await renderRulesGuideCard(), 30000);
     assertValidPng(await renderVoiceGuideCard(), 30000);
+    assertValidPng(await renderBirthdayCard(), 30000);
+    assertValidPng(await renderVerifyGuideCard(), 30000);
+    assertValidPng(await renderTicketGuideCard({ category: 'bantuan' }), 30000);
+    assertValidPng(await renderTicketGuideCard({ category: 'report' }), 30000);
+    assertValidPng(await renderTicketGuideCard({ category: 'suggestion' }), 30000);
+    assertValidPng(await renderCustomRoleCard(), 30000);
   });
 });
 

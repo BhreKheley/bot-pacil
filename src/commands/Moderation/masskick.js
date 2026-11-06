@@ -7,6 +7,7 @@ import { PacilBotError, replyUserError, ErrorTypes } from '../../utils/errorHand
 
 import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
+    register: false,
     data: new SlashCommandBuilder()
         .setName("masskick")
         .setDescription("Kick multiple users from the server at once")
