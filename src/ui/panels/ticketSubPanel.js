@@ -103,3 +103,4 @@ export async function renderTicketSubPanel(client, guild, { notice = null } = {}
 
   return { embeds: [embed], components: rows };
 }
+

@@ -135,3 +135,4 @@ export async function renderVerificationSubPanel(client, guild, { notice = null 
 
   return { embeds: [embed], components: rows };
 }
+

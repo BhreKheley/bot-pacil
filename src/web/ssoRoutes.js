@@ -297,3 +297,4 @@ function renderHtmlNotice({ status, title, message, student, roles = [], nicknam
 </body>
 </html>`;
 }
+

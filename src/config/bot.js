@@ -478,6 +478,7 @@ const COMMAND_CATEGORY_FEATURE_MAP = {
   moderation: "moderation",
   music: "music",
   reaction_roles: "reactionRoles",
+  reactionroles: "reactionRoles",
   serverstats: "counter",
   ticket: "tickets",
   tools: "tools",

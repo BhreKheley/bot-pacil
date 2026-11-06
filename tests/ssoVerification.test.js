@@ -91,3 +91,4 @@ test('SSO UI Verification Suite: Student Metadata & Security Parser', async (t) 
     assert.ok(panel.embeds[0].data.title.includes('Ticket System'));
   });
 });
+

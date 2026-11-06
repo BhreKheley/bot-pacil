@@ -32,3 +32,4 @@ export default {
     return await InteractionHelper.safeEditReply(interaction, { embeds: [success] });
   },
 };
+
